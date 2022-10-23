@@ -12,9 +12,9 @@
           this.size = size;
           this.daysInAYear = daysInAYear;
           if (!this.colour) this.colour = new THREE.Color( Math.random()*0xffffff );
-          if (!this.size) this.size = Math.random()*10;
+          if (!this.size) this.size = Math.random()*6;
           if (!this.daysInAYear) this.daysInAYear = 1;
-          if (!this.orbitDistance) this.orbitDistance = Math.random()*-30;
+          if (!this.orbitDistance) this.orbitDistance = -10 + Math.random()*-90;
 
           const geometry = new THREE.SphereGeometry( this.size );
           const material = new THREE.MeshLambertMaterial( { color: this.colour } );
@@ -42,17 +42,31 @@
       sunLight.position.set( 0, 0, 0 );
       scene.add( sunLight );
 
-      const ambientLight = new THREE.AmbientLight( 0xffffff, 0.2 );
+      const ambientLight = new THREE.AmbientLight( 0xffffff, 0.3 );
       scene.add( ambientLight );
 
-      camera.position.z = 50;
+      camera.position.z = 100;
 
-      let planet = new Planet();
-      planet.addToScene(scene);
+      const numPlanets = Math.random()*8 + 2;
+
+      let planets = [];
+      for (var i=0; i<numPlanets; i++) {
+        let planet = new Planet();
+        planet.addToScene(scene);
+        planets.push(planet);
+      }
+
+      const geometry = new THREE.SphereGeometry( 8 );
+      const material = new THREE.MeshBasicMaterial( { color: 0xffffcc } );
+      let sun = new THREE.Mesh( geometry, material );
+      sun.position.set( 0, 0, 0);
+      scene.add(sun);
 
       function animate() {
         requestAnimationFrame( animate );
-        planet.travel();
+        planets.forEach(planet => {
+          planet.travel();
+        });
         renderer.render( scene, camera );
       }
       animate();
