@@ -15,11 +15,13 @@ scene.add( sunLight );
 const ambientLight = new THREE.AmbientLight( 0xffffff, 0.3 );
 scene.add( ambientLight );
 
-camera.position.z = 100;
+const viewSize = 160;
+camera.position.z = viewSize;
 
 let planets = [];
 let minimumDistance = 16;
-while (minimumDistance < 80) {
+
+while (minimumDistance < (viewSize/2)) {
   let planet = new Planet(minimumDistance);
   planet.addToScene(scene);
   planets.push(planet);
