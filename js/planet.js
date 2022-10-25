@@ -1,38 +1,43 @@
 import * as THREE from 'https://cdnjs.cloudflare.com/ajax/libs/three.js/0.145.0/three.module.js';
 
+const exaggerateddistanceFromSunModifier = 1.5;
 class Planet {
-  constructor(colour, size, daysInAYear, orbitDistance, orbitEccentricity) {
-    this.orbitPosition = 0;
+  constructor(minimumDistance, colour, size, daysInAYear, orbitEccentricity) {
+    this.minimumDistance = minimumDistance;
     this.colour = colour;
     this.size = size;
     this.daysInAYear = daysInAYear;
-    this.orbitDistance = orbitDistance;
     this.orbitEccentricity = orbitEccentricity;
 
-    this.orbitalPosition = Math.random()*360;
-
+    if (!this.minimumDistance) this.minimumDistance = 20;
     if (!this.colour) this.colour = new THREE.Color( Math.random()*0xffffff );
-    if (!this.size) this.size = Math.random()*6;
+    if (!this.size) this.size = Math.random()*4+1;
     if (!this.daysInAYear) this.daysInAYear = 1;
-    if (!this.orbitDistance) this.orbitDistance = -10 + Math.random()*-90;
     if (!this.orbitEccentricity) this.orbitEccentricity = Math.random()*0.1;
 
-    const geometry = new THREE.SphereGeometry( this.size );
-    const material = new THREE.MeshLambertMaterial( { color: this.colour } );
-    this.sphere = new THREE.Mesh( geometry, material );
-    this.sphere.position.set( this.orbitDistance, 0, 0);
+    this.distanceFromSun = this.minimumDistance + this.size*2 + Math.random()*40;
+    this.orbitalPosition = Math.random()*360;
+    this.speed = (0.3 / (Math.pow(this.distanceFromSun, exaggerateddistanceFromSunModifier)));
   }
 
   addToScene(scene) {
+    const geometry = new THREE.SphereGeometry( this.size );
+    const material = new THREE.MeshLambertMaterial( { color: this.colour } );
+    this.sphere = new THREE.Mesh( geometry, material );
+    this.sphere.position.set( this.distanceFromSun, 0, 0);
     scene.add(this.sphere);
+  }
+
+  nextNeighbourMinimumDistance() {
+    return this.distanceFromSun + this.size*2;
   }
 
   travel() {
     this.sphere.rotation.z += this.daysInAYear*0.01;
-    let x = this.orbitDistance;
-    let y = this.orbitDistance * Math.sqrt(1.0 - Math.pow(this.orbitEccentricity, 1));
-    let z = Math.sin(0) * this.orbitDistance;
-    this.orbitalPosition += 0.005;
+    let x = this.distanceFromSun;
+    let y = this.distanceFromSun * Math.sqrt(1.0 - Math.pow(this.orbitEccentricity, 1));
+    let z = Math.sin(0) * this.distanceFromSun;
+    this.orbitalPosition += this.speed;
 
     this.sphere.position.x = Math.cos(this.orbitalPosition) * x;
     this.sphere.position.y = Math.sin(this.orbitalPosition) * y;

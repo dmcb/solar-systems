@@ -17,14 +17,16 @@ scene.add( ambientLight );
 
 camera.position.z = 100;
 
-const numPlanets = Math.random()*8 + 2;
-
 let planets = [];
-for (var i=0; i<numPlanets; i++) {
-  let planet = new Planet();
+let minimumDistance = 16;
+while (minimumDistance < 80) {
+  let planet = new Planet(minimumDistance);
   planet.addToScene(scene);
   planets.push(planet);
+  minimumDistance = planet.nextNeighbourMinimumDistance();
 }
+
+console.log(planets.length);
 
 const geometry = new THREE.SphereGeometry( 8 );
 const material = new THREE.MeshBasicMaterial( { color: 0xffffcc } );
