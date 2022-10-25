@@ -2,9 +2,11 @@ import * as THREE from 'https://cdnjs.cloudflare.com/ajax/libs/three.js/0.145.0/
 
 class Planet {
   constructor(colour, size, daysInAYear, orbitDistance) {
+    this.orbitPosition = 0;
     this.colour = colour;
     this.size = size;
     this.daysInAYear = daysInAYear;
+    this.orbitDistance = orbitDistance;
     if (!this.colour) this.colour = new THREE.Color( Math.random()*0xffffff );
     if (!this.size) this.size = Math.random()*6;
     if (!this.daysInAYear) this.daysInAYear = 1;
@@ -22,6 +24,14 @@ class Planet {
 
   travel() {
     this.sphere.rotation.z += this.daysInAYear*0.01;
+    let x = this.orbitDistance;
+    let y = this.orbitDistance;
+    let z = Math.sin(0) * this.orbitDistance;
+    this.orbitPosition += 0.005;
+
+    this.sphere.position.x = Math.cos(this.orbitPosition) * x;
+    this.sphere.position.y = Math.sin(this.orbitPosition) * y;
+    this.sphere.position.z = Math.cos(this.orbitPosition + 0) * z;
   }
 }
 
