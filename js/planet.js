@@ -1,5 +1,5 @@
 import * as THREE from 'https://cdnjs.cloudflare.com/ajax/libs/three.js/0.145.0/three.module.js';
-import { cheapGaussianRandom } from './utility.js';
+import { fakeGaussianRandom, randomFromSeed } from './utility.js';
 
 const exaggeratedDistanceFromSunModifier = 1.2;
 const speedModifier = 0.005;
@@ -14,13 +14,13 @@ class Planet {
     this.orbitEccentricity = orbitEccentricity;
 
     if (!this.minimumDistance) this.minimumDistance = 20;
-    if (!this.colour) this.colour = new THREE.Color( Math.random()*0xffffff );
-    if (!this.size) this.size = cheapGaussianRandom(-2)*6+0.5;
+    if (!this.colour) this.colour = new THREE.Color( randomFromSeed()*0xffffff );
+    if (!this.size) this.size = fakeGaussianRandom(-2)*6+0.5;
     if (!this.daysInAYear) this.daysInAYear = 1;
-    if (!this.orbitEccentricity) this.orbitEccentricity = cheapGaussianRandom()*0.1;
+    if (!this.orbitEccentricity) this.orbitEccentricity = fakeGaussianRandom()*0.1;
 
-    this.distanceFromSun = this.minimumDistance + this.size*1.5 + cheapGaussianRandom(-9,10)*this.maximumDistance;
-    this.orbitalPosition = Math.random()*360;
+    this.distanceFromSun = this.minimumDistance + this.size*1.5 + fakeGaussianRandom(-9,10)*this.maximumDistance;
+    this.orbitalPosition = randomFromSeed()*360;
     this.speed = speedModifier * Math.pow(16, exaggeratedDistanceFromSunModifier) * (1 / Math.pow(this.distanceFromSun, exaggeratedDistanceFromSunModifier));
   }
 

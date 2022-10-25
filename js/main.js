@@ -1,7 +1,10 @@
 import * as THREE from 'https://cdnjs.cloudflare.com/ajax/libs/three.js/0.145.0/three.module.js';
+import 'https://cdnjs.cloudflare.com/ajax/libs/seedrandom/3.0.5/seedrandom.min.js';
 import { Planet } from './planet.js';
+import { randomFromSeed } from './utility.js';
 
 const solarSystemRadius = 160;
+
 let camWidth = solarSystemRadius;
 let camHeight = solarSystemRadius;
 let windowAspectRatio = window.innerWidth / window.innerHeight;
@@ -33,7 +36,7 @@ camera.position.z = 20;
 let planets = [];
 let minimumDistance = 16;
 let maximumDistance = solarSystemRadius;
-let direction = Math.random();
+let direction = randomFromSeed();
 if (direction >= 0.5) direction = 1;
 else direction = -1;
 

@@ -1,4 +1,9 @@
-export function cheapGaussianRandom(howSkewed, howNormalized) {
+import 'https://cdnjs.cloudflare.com/ajax/libs/seedrandom/3.0.5/seedrandom.min.js';
+
+var seed = prompt("Enter seed");
+let randomSeed = new Math.seedrandom(seed);
+
+export function fakeGaussianRandom(howSkewed, howNormalized) {
   if (!howSkewed) howSkewed = 0;
   if (!howNormalized) howNormalized = 6;
 
@@ -9,7 +14,7 @@ export function cheapGaussianRandom(howSkewed, howNormalized) {
   let randomTotal = 0;
 
   for (var i = 0; i < howNormalized; i += 1) {
-    randomNumbers.push(Math.random());
+    randomNumbers.push(randomFromSeed());
   }
 
   if (howSkewed != 0) {
@@ -28,4 +33,8 @@ export function cheapGaussianRandom(howSkewed, howNormalized) {
   }, 0);
 
   return randomTotal / randomNumbers.length;
+}
+
+export function randomFromSeed() {
+  return randomSeed();
 }
