@@ -20,12 +20,18 @@ camera.position.z = viewSize;
 
 let planets = [];
 let minimumDistance = 16;
+let maximumDistance = viewSize*0.75;
+let direction = Math.random();
+if (direction >= 0.5) direction = 1;
+else direction = -1;
 
-while (minimumDistance < (viewSize/2)) {
-  let planet = new Planet(minimumDistance);
-  planet.addToScene(scene);
-  planets.push(planet);
+while (minimumDistance < maximumDistance) {
+  let planet = new Planet(minimumDistance, maximumDistance, direction);
   minimumDistance = planet.nextNeighbourMinimumDistance();
+  if (minimumDistance < maximumDistance) {
+    planet.addToScene(scene);
+    planets.push(planet);
+  }
 }
 
 console.log(planets.length);
