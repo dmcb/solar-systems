@@ -1,8 +1,20 @@
 import * as THREE from 'https://cdnjs.cloudflare.com/ajax/libs/three.js/0.145.0/three.module.js';
 import { Planet } from './planet.js';
 
+const solarSystemRadius = 160;
+let camWidth = solarSystemRadius;
+let camHeight = solarSystemRadius;
+let windowAspectRatio = window.innerWidth / window.innerHeight;
+if (window.innerWidth > window.innerHeight)  {
+  camWidth = camHeight * windowAspectRatio;
+}
+else {
+  camHeight = camWidth / windowAspectRatio;
+}
+
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+// const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+const camera = new THREE.OrthographicCamera( camWidth*-1, camWidth, camHeight, camHeight*-1, 1, 1000 );
 
 const renderer = new THREE.WebGLRenderer();
 renderer.setSize( window.innerWidth, window.innerHeight );
@@ -12,15 +24,15 @@ const sunLight = new THREE.PointLight( 0xffffff, 1, 0, 0 );
 sunLight.position.set( 0, 0, 0 );
 scene.add( sunLight );
 
-const ambientLight = new THREE.AmbientLight( 0xffffff, 0.3 );
+const ambientLight = new THREE.AmbientLight( 0xffffff, 0.5 );
 scene.add( ambientLight );
 
-const viewSize = 160;
-camera.position.z = viewSize;
+
+camera.position.z = 20;
 
 let planets = [];
 let minimumDistance = 16;
-let maximumDistance = viewSize*0.75;
+let maximumDistance = solarSystemRadius;
 let direction = Math.random();
 if (direction >= 0.5) direction = 1;
 else direction = -1;
@@ -52,7 +64,15 @@ function animate() {
 animate();
 
 window.addEventListener('resize', () => {
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
+  windowAspectRatio = window.innerWidth / window.innerHeight;
+  if (window.innerWidth > window.innerHeight)  {
+    camera.left = solarSystemRadius * -windowAspectRatio;
+    camera.right =  solarSystemRadius * windowAspectRatio;
+  }
+  else {
+    camera.top = solarSystemRadius / windowAspectRatio;
+    camera.bottom = solarSystemRadius / -windowAspectRatio;
+  }
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  camera.updateProjectionMatrix();
 });

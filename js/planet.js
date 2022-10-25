@@ -1,7 +1,8 @@
 import * as THREE from 'https://cdnjs.cloudflare.com/ajax/libs/three.js/0.145.0/three.module.js';
 import { cheapGaussianRandom } from './utility.js';
 
-const exaggerateddistanceFromSunModifier = 1.6;
+const exaggeratedDistanceFromSunModifier = 1.2;
+const speedModifier = 0.005;
 class Planet {
   constructor(minimumDistance, maximumDistance, direction, colour, size, daysInAYear, orbitEccentricity) {
     this.minimumDistance = minimumDistance;
@@ -14,13 +15,13 @@ class Planet {
 
     if (!this.minimumDistance) this.minimumDistance = 20;
     if (!this.colour) this.colour = new THREE.Color( Math.random()*0xffffff );
-    if (!this.size) this.size = cheapGaussianRandom(-2)*4+1;
+    if (!this.size) this.size = cheapGaussianRandom(-2)*6+0.5;
     if (!this.daysInAYear) this.daysInAYear = 1;
     if (!this.orbitEccentricity) this.orbitEccentricity = cheapGaussianRandom()*0.1;
 
     this.distanceFromSun = this.minimumDistance + this.size*1.5 + cheapGaussianRandom(-9,10)*this.maximumDistance;
     this.orbitalPosition = Math.random()*360;
-    this.speed = (0.8 / (Math.pow(this.distanceFromSun, exaggerateddistanceFromSunModifier)));
+    this.speed = speedModifier * Math.pow(16, exaggeratedDistanceFromSunModifier) * (1 / Math.pow(this.distanceFromSun, exaggeratedDistanceFromSunModifier));
   }
 
   addToScene(scene) {
