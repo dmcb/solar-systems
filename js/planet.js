@@ -3,6 +3,7 @@ import { fakeGaussianRandom, randomFromSeed } from './utility.js';
 
 const exaggeratedDistanceFromSunModifier = 1.2;
 const speedModifier = 0.005;
+
 class Planet {
   constructor(minimumDistance, maximumDistance, direction, colour, size, daysInAYear, orbitEccentricity) {
     this.minimumDistance = minimumDistance;
@@ -67,6 +68,13 @@ class Planet {
       y: Math.sin(orbitalPosition) * y,
       z: Math.cos(orbitalPosition + 0) * z
     }
+  }
+
+  destroy() {
+    this.sphere.geometry.dispose();
+    this.sphere.removeFromParent();
+    this.line.geometry.dispose();
+    this.line.removeFromParent();
   }
 }
 

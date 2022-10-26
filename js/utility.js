@@ -1,11 +1,11 @@
 import 'https://cdnjs.cloudflare.com/ajax/libs/seedrandom/3.0.5/seedrandom.min.js';
 
-let seed = prompt("Enter seed");
-if (!seed) {
-  seed = Math.random().toString(36).substring(2,7);
-}
-document.getElementById('seed').innerHTML = 'Seed: ' + seed;
+export let seed = Math.random().toString(36).substring(2,7);
 let randomSeed = new Math.seedrandom(seed);
+
+export function updateSeed(seed) {
+  randomSeed = new Math.seedrandom(seed);
+}
 
 export function fakeGaussianRandom(howSkewed, howNormalized) {
   if (!howSkewed) howSkewed = 0;
