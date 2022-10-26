@@ -15,7 +15,7 @@ class Planet {
 
     if (!this.minimumDistance) this.minimumDistance = 20;
     if (!this.colour) this.colour = new THREE.Color( randomFromSeed()*0xffffff );
-    if (!this.size) this.size = fakeGaussianRandom(-2)*6+0.5;
+    if (!this.size) this.size = fakeGaussianRandom(-1,3)*7+1;
     if (!this.daysInAYear) this.daysInAYear = 1;
     if (!this.orbitEccentricity) this.orbitEccentricity = fakeGaussianRandom()*0.1;
 
