@@ -19,13 +19,13 @@ class Planet {
     if (!this.minimumDistance) this.minimumDistance = 20;
     if (!this.colour) this.colour = new THREE.Color( randomFromSeed()*0xffffff );
     if (!this.size) this.size = fakeGaussianRandom(-1,3)*7+1;
-    if (!this.rotationSpeed) this.rotationSpeed = fakeGaussianRandom()*5;
+    if (!this.rotationSpeed) this.rotationSpeed = fakeGaussianRandom()*3;
     if (!this.orbitEccentricity) this.orbitEccentricity = fakeGaussianRandom()*0.2;
-    if (!this.rockiness) this.rockiness = randomFromSeed();
-    if (!this.surfaceTexture) this.surfaceTexture = Math.round(randomFromSeed()*3+1);
+    if (!this.rockiness) this.rockiness = fakeGaussianRandom();
+    if (!this.surfaceTexture) this.surfaceTexture = Math.round(randomFromSeed()*6+1);
 
     this.distanceFromSun = this.minimumDistance + this.size*1.5 + fakeGaussianRandom(-9,10)*this.maximumDistance;
-    this.orbitalPosition = randomFromSeed()*360;
+    this.orbitalPosition = randomFromSeed()*2*Math.PI;
     this.speed = speedModifier * Math.pow(16, exaggeratedDistanceFromSunModifier) * (1 / Math.pow(this.distanceFromSun, exaggeratedDistanceFromSunModifier));
   }
 
@@ -33,8 +33,9 @@ class Planet {
     // Add planet to scene
     const textureLoader = new THREE.TextureLoader();
     const normalMap = textureLoader.load( 'textures/0' + this.surfaceTexture + '.jpg' );
+    console.log('textures/0' + this.surfaceTexture + '.jpg');
     const sphereGeometry = new THREE.SphereGeometry( this.size );
-    const sphereMaterial = new THREE.MeshLambertMaterial( { color: this.colour, normalMap: normalMap, normalScale: new THREE.Vector2( this.rockiness, this.rockiness ) } );
+    const sphereMaterial = new THREE.MeshPhongMaterial( { color: this.colour, shininess: 1, normalMap: normalMap, normalScale: new THREE.Vector2( this.rockiness, this.rockiness ) } );
     this.sphere = new THREE.Mesh( sphereGeometry, sphereMaterial );
     this.sphere.position.set( this.distanceFromSun, 0, 0);
     scene.add(this.sphere);

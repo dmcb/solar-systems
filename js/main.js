@@ -1,4 +1,5 @@
 import * as THREE from 'https://cdnjs.cloudflare.com/ajax/libs/three.js/0.145.0/three.module.js';
+
 import { SolarSystem } from './solarSystem.js';
 import { seed, updateSeed } from './utility.js';
 
@@ -32,7 +33,8 @@ let sun = new THREE.Mesh( sunGeometry, sunMaterial );
 sun.position.set( 0, 0, 0);
 scene.add(sun);
 
-const renderer = new THREE.WebGLRenderer();
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio( window.devicePixelRatio );
 renderer.setSize( window.innerWidth, window.innerHeight );
 document.body.appendChild( renderer.domElement );
 
