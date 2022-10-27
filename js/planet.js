@@ -5,20 +5,24 @@ const exaggeratedDistanceFromSunModifier = 1.2;
 const speedModifier = 0.005;
 
 class Planet {
-  constructor(minimumDistance, maximumDistance, direction, colour, size, daysInAYear, orbitEccentricity) {
+  constructor(minimumDistance, maximumDistance, direction, colour, size, rotationSpeed, orbitEccentricity, rockiness, surfaceTexture) {
     this.minimumDistance = minimumDistance;
     this.maximumDistance = maximumDistance;
     this.direction = direction;
     this.colour = colour;
     this.size = size;
-    this.daysInAYear = daysInAYear;
+    this.rotationSpeed = rotationSpeed;
     this.orbitEccentricity = orbitEccentricity;
+    this.rockiness = rockiness;
+    this.surfaceTexture = surfaceTexture;
 
     if (!this.minimumDistance) this.minimumDistance = 20;
     if (!this.colour) this.colour = new THREE.Color( randomFromSeed()*0xffffff );
     if (!this.size) this.size = fakeGaussianRandom(-1,3)*7+1;
-    if (!this.daysInAYear) this.daysInAYear = 1;
+    if (!this.rotationSpeed) this.rotationSpeed = fakeGaussianRandom()*5;
     if (!this.orbitEccentricity) this.orbitEccentricity = fakeGaussianRandom()*0.2;
+    if (!this.rockiness) this.rockiness = randomFromSeed();
+    if (!this.surfaceTexture) this.surfaceTexture = Math.round(randomFromSeed()*3+1);
 
     this.distanceFromSun = this.minimumDistance + this.size*1.5 + fakeGaussianRandom(-9,10)*this.maximumDistance;
     this.orbitalPosition = randomFromSeed()*360;
@@ -26,12 +30,16 @@ class Planet {
   }
 
   addToScene(scene) {
+    // Add planet to scene
+    const textureLoader = new THREE.TextureLoader();
+    const normalMap = textureLoader.load( 'textures/0' + this.surfaceTexture + '.jpg' );
     const sphereGeometry = new THREE.SphereGeometry( this.size );
-    const sphereMaterial = new THREE.MeshLambertMaterial( { color: this.colour } );
+    const sphereMaterial = new THREE.MeshLambertMaterial( { color: this.colour, normalMap: normalMap, normalScale: new THREE.Vector2( this.rockiness, this.rockiness ) } );
     this.sphere = new THREE.Mesh( sphereGeometry, sphereMaterial );
     this.sphere.position.set( this.distanceFromSun, 0, 0);
     scene.add(this.sphere);
 
+    // Add orbit path to scene
     const lineMaterial = new THREE.LineBasicMaterial( { color: 0x333333 } );
     const points = [];
     for (let i=0; i < 2*Math.PI; i = i+Math.PI/32) {
@@ -48,7 +56,7 @@ class Planet {
   }
 
   travel() {
-    this.sphere.rotation.z += this.daysInAYear*0.01;
+    this.sphere.rotation.z += this.rotationSpeed*0.01;
     this.orbitalPosition += this.speed * this.direction;
 
     let position = this.determinePosition(this.orbitalPosition);

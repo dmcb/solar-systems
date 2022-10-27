@@ -8,7 +8,7 @@ const scene = new THREE.Scene();
 const sunLight = new THREE.PointLight( 0xffffff, 1, 0, 0 );
 sunLight.position.set( 0, 0, 0 );
 scene.add( sunLight );
-const ambientLight = new THREE.AmbientLight( 0xffffff, 0.5 );
+const ambientLight = new THREE.AmbientLight( 0xffffff, 0.25 );
 scene.add( ambientLight );
 
 // Camera!
