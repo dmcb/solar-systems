@@ -3,9 +3,19 @@ body {
   background-color: black;
 }
 
-div#seed {
+button#seed {
   margin: 0.5em 0 0 0.5em;
+  padding: 0.25em 0.5em;
+  border: 0;
+  border-radius: 0.5em;
+  background-color: #fff;
   z-index: 1;
   position: fixed;
-  color: white;
+  color: #000;
+  cursor: pointer;
+  transition: 0.3s background-color;
+}
+
+button#seed:hover {
+  background-color: #bd41a6;
 }
