@@ -9,22 +9,24 @@ class Planet {
     this.minimumDistance = minimumDistance;
     this.maximumDistance = maximumDistance;
     this.direction = direction;
+    this.projectedDistanceFromSun = fakeGaussianRandom(-9,10)*this.maximumDistance + this.minimumDistance;
 
     this.colour = new THREE.Color( randomFromSeed()*0xffffff );
-    this.size = fakeGaussianRandom(-1,3)*7+1;
+    this.size = fakeGaussianRandom(-1,3)*6+1;
     this.rotationSpeed = fakeGaussianRandom()*3;
     this.orbitEccentricity = fakeGaussianRandom()*0.2;
     this.rockiness = fakeGaussianRandom();
     this.surfaceTexture = Math.round(randomFromSeed()*6+1);
-    this.ringSize = fakeGaussianRandom(-5)*this.size*2;
+    this.ringSize = fakeGaussianRandom(-9,10)*this.size*2;
     this.ringDistance = fakeGaussianRandom()*4;
     if (this.ringSize < 1) {
       this.ringSize = 0;
       this.ringDistance = 0;
     }
-    this.distanceFromSun = this.minimumDistance + (this.size + this.ringSize + this.ringDistance) * 1.8 + fakeGaussianRandom(-9,10)*this.maximumDistance;
+    this.planetOccupiedArea = (this.size + this.ringSize + this.ringDistance) * 1.5;
+    this.actualDistanceFromSun = this.projectedDistanceFromSun + this.planetOccupiedArea;
     this.orbitalPosition = randomFromSeed()*2*Math.PI;
-    this.speed = speedModifier * Math.pow(16, exaggeratedDistanceFromSunModifier) * (1 / Math.pow(this.distanceFromSun, exaggeratedDistanceFromSunModifier));
+    this.speed = speedModifier * Math.pow(16, exaggeratedDistanceFromSunModifier) * (1 / Math.pow(this.actualDistanceFromSun, exaggeratedDistanceFromSunModifier));
   }
 
   addToScene(scene) {
@@ -34,7 +36,7 @@ class Planet {
     const sphereGeometry = new THREE.SphereGeometry( this.size );
     const sphereMaterial = new THREE.MeshPhongMaterial( { color: this.colour, shininess: 1, normalMap: normalMap, normalScale: new THREE.Vector2( this.rockiness, this.rockiness ) } );
     this.sphere = new THREE.Mesh( sphereGeometry, sphereMaterial );
-    this.sphere.position.set( this.distanceFromSun, 0, 0);
+    this.sphere.position.set( this.actualDistanceFromSun, 0, 0);
     scene.add(this.sphere);
 
     // Add orbit path to scene
@@ -69,7 +71,7 @@ class Planet {
   }
 
   nextNeighbourMinimumDistance() {
-    return this.distanceFromSun + (this.size + this.ringSize + this.ringDistance) * 1.8;
+    return this.actualDistanceFromSun +this.planetOccupiedArea;
   }
 
   travel() {
@@ -84,9 +86,9 @@ class Planet {
   }
   
   determineOrbit(orbitalPosition) {
-    let x = this.distanceFromSun;
-    let y = this.distanceFromSun * Math.sqrt(1.0 - Math.pow(this.orbitEccentricity, 1));
-    let z = Math.sin(0) * this.distanceFromSun;
+    let x = this.actualDistanceFromSun;
+    let y = this.actualDistanceFromSun * Math.sqrt(1.0 - Math.pow(this.orbitEccentricity, 1));
+    let z = Math.sin(0) * this.actualDistanceFromSun;
 
     return { 
       x: Math.cos(orbitalPosition) * x,
