@@ -44,17 +44,20 @@ class Planet {
     this.orbitLine = new THREE.Line( orbitLineGeometry, orbitLineMaterial );
     scene.add(this.orbitLine);
 
-    // Draw rings
+    // Add rings
     const ringStart = this.size + 2;
     const ringEnd = ringStart + this.ringSize;
-    const ringLineMaterial = new THREE.LineBasicMaterial( { color: this.colour, transparent: true, opacity: 0.1 });
     this.ringLines = [];
-    for (let i=ringStart; i < ringEnd; i = i+0.1) {
+    for (let i=ringStart; i < ringEnd; i = i+0.2) {
       let ringPoints = [];
+      let ringColourPoints = [];
       for (let j=0; j < 2*Math.PI; j = j+Math.PI/32) {
         ringPoints.push( new THREE.Vector3( Math.cos(j)*i, Math.sin(j)*i, 0 ) );
+        ringColourPoints.push( this.colour.r, this.colour.g, this.colour.b );
       }
       let ringLineGeometry = new THREE.BufferGeometry().setFromPoints( ringPoints );
+      ringLineGeometry.setAttribute('color', new THREE.Float32BufferAttribute( ringColourPoints, 3 ));
+      let ringLineMaterial = new THREE.LineBasicMaterial( { vertexColors: true, transparent: true, opacity: fakeGaussianRandom(-2) });
       let ringLine = new THREE.Line( ringLineGeometry, ringLineMaterial );
       this.ringLines.push(ringLine);
       this.sphere.add(ringLine);
@@ -62,7 +65,7 @@ class Planet {
   }
 
   nextNeighbourMinimumDistance() {
-    return this.distanceFromSun + (this.size + this.ringSize) * 1.5 + 2;
+    return this.distanceFromSun + (this.size + this.ringSize) * 1.8 + 2;
   }
 
   travel() {

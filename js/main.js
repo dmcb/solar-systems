@@ -59,8 +59,8 @@ function init() {
       camera.top = solarSystemRadius / windowAspectRatio;
       camera.bottom = solarSystemRadius / -windowAspectRatio;
     }
-    renderer.setSize(window.innerWidth, window.innerHeight);
     camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
   });
 
   // Add seed label and button
