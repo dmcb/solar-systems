@@ -16,9 +16,13 @@ class Planet {
     this.orbitEccentricity = fakeGaussianRandom()*0.2;
     this.rockiness = fakeGaussianRandom();
     this.surfaceTexture = Math.round(randomFromSeed()*6+1);
-    this.ringSize = fakeGaussianRandom(-5)*this.size;
-    if (this.ringSize < 1) this.ringSize = 0;
-    this.distanceFromSun = this.minimumDistance + this.size*1.5 + fakeGaussianRandom(-9,10)*this.maximumDistance;
+    this.ringSize = fakeGaussianRandom(-5)*this.size*2;
+    this.ringDistance = fakeGaussianRandom()*4;
+    if (this.ringSize < 1) {
+      this.ringSize = 0;
+      this.ringDistance = 0;
+    }
+    this.distanceFromSun = this.minimumDistance + (this.size + this.ringSize + this.ringDistance) * 1.8 + fakeGaussianRandom(-9,10)*this.maximumDistance;
     this.orbitalPosition = randomFromSeed()*2*Math.PI;
     this.speed = speedModifier * Math.pow(16, exaggeratedDistanceFromSunModifier) * (1 / Math.pow(this.distanceFromSun, exaggeratedDistanceFromSunModifier));
   }
@@ -45,7 +49,7 @@ class Planet {
     scene.add(this.orbitLine);
 
     // Add rings
-    const ringStart = this.size + 2;
+    const ringStart = this.size + this.ringDistance;
     const ringEnd = ringStart + this.ringSize;
     this.ringLines = [];
     for (let i=ringStart; i < ringEnd; i = i+0.2) {
@@ -57,7 +61,7 @@ class Planet {
       }
       let ringLineGeometry = new THREE.BufferGeometry().setFromPoints( ringPoints );
       ringLineGeometry.setAttribute('color', new THREE.Float32BufferAttribute( ringColourPoints, 3 ));
-      let ringLineMaterial = new THREE.LineBasicMaterial( { vertexColors: true, transparent: true, opacity: fakeGaussianRandom(-2) });
+      let ringLineMaterial = new THREE.LineBasicMaterial( { vertexColors: true, transparent: true, opacity: fakeGaussianRandom()*0.5 });
       let ringLine = new THREE.Line( ringLineGeometry, ringLineMaterial );
       this.ringLines.push(ringLine);
       this.sphere.add(ringLine);
@@ -65,7 +69,7 @@ class Planet {
   }
 
   nextNeighbourMinimumDistance() {
-    return this.distanceFromSun + (this.size + this.ringSize) * 1.8 + 2;
+    return this.distanceFromSun + (this.size + this.ringSize + this.ringDistance) * 1.8;
   }
 
   travel() {
