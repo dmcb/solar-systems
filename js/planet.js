@@ -19,7 +19,8 @@ class Planet {
     this.surfaceTexture = Math.round(randomFromSeed()*6+1);
     this.ringSize = fakeGaussianRandom(-9,10)*this.size*2;
     this.ringDistance = fakeGaussianRandom()*4;
-    this.ringRotation = fakeGaussianRandom(-5)*90;
+    this.ringRotation = fakeGaussianRandom(-9,10)*90;
+    this.ringNumber = Math.floor(fakeGaussianRandom()*this.ringSize)+1;
     if (this.ringSize < 1) {
       this.ringSize = 0;
       this.ringDistance = 0;
@@ -57,7 +58,7 @@ class Planet {
     // Add rings
     const ringStart = this.size + this.ringDistance;
     const ringEnd = ringStart + this.ringSize;
-    // this.ringLines = [];
+    this.ringLines = [];
     // for (let i=ringStart; i < ringEnd; i = i+0.2) {
     //   let ringPoints = [];
     //   let ringColourPoints = [];
@@ -76,12 +77,13 @@ class Planet {
     //   ringLineGeometry.setAttribute('color', new THREE.Float32BufferAttribute( ringColourPoints, 3 ));
     //   let ringLineMaterial = new THREE.LineBasicMaterial( { vertexColors: true, transparent: true, opacity: fakeGaussianRandom()*0.5 });
     //   let ringLine = new THREE.Line( ringLineGeometry, ringLineMaterial );
-    const ringGeometry = new THREE.RingGeometry(ringStart, ringEnd, 32);
-    const ringMaterial = new THREE.MeshPhongMaterial( { color: this.colour, side: THREE.DoubleSide } );
-    this.ring = new THREE.Mesh ( ringGeometry, ringMaterial);
-    this.ring.receiveShadow = true;
-    this.ring.rotation.y = this.ringRotation;
-    this.sphere.add(this.ring);
+    let ringGeometry = new THREE.RingGeometry(ringStart, ringEnd, 32);
+    let ringMaterial = new THREE.MeshPhongMaterial( { color: this.colour, side: THREE.DoubleSide } );
+    let ring = new THREE.Mesh ( ringGeometry, ringMaterial);
+    ring.receiveShadow = true;
+    ring.rotation.y = this.ringRotation;
+    this.ringLines.push(ring)
+    this.sphere.add(ring);
   }
 
   nextNeighbourMinimumDistance() {
@@ -100,7 +102,9 @@ class Planet {
     this.sphere.position.z = position.z;
 
     // Align ring shadows
-    // this.ring.rotation.z = (this.sphere.rotation.z * -1) + this.orbitalPosition - Math.PI/4;
+    this.ringLines.forEach((item, index, object) => {
+      item.rotation.z = (this.sphere.rotation.z * -1);
+    });
   }
   
   determineOrbit(orbitalPosition) {
