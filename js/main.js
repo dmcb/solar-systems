@@ -14,6 +14,7 @@ function init() {
   // Lights
   const sunLight = new THREE.PointLight( 0xffffff, 1, 0, 0 );
   sunLight.position.set( 0, 0, 0 );
+  sunLight.castShadow = true;
   scene.add( sunLight );
   const ambientLight = new THREE.AmbientLight( 0xffffff, 0.2 );
   scene.add( ambientLight );
@@ -42,6 +43,8 @@ function init() {
 
   // Add renderer
   renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.BasicShadowMap;
   renderer.setPixelRatio( window.devicePixelRatio );
   renderer.setSize( window.innerWidth, window.innerHeight );
   document.body.appendChild( renderer.domElement );

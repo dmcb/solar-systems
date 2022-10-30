@@ -36,6 +36,8 @@ class Planet {
     const sphereGeometry = new THREE.SphereGeometry( this.size );
     const sphereMaterial = new THREE.MeshPhongMaterial( { color: this.colour, shininess: 1, normalMap: normalMap, normalScale: new THREE.Vector2( this.rockiness, this.rockiness ) } );
     this.sphere = new THREE.Mesh( sphereGeometry, sphereMaterial );
+    this.sphere.receiveShadow = true;
+    this.sphere.castShadow = true;
     this.sphere.position.set( this.actualDistanceFromSun, 0, 0);
     scene.add(this.sphere);
 
