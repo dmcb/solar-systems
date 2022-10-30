@@ -58,8 +58,15 @@ class Planet {
       let ringPoints = [];
       let ringColourPoints = [];
       for (let j=0; j < 2*Math.PI; j = j+Math.PI/32) {
+        let shadow = 1 - (Math.cos(j) + Math.sin(j)) / (Math.cos(Math.PI/4) + Math.sin(Math.PI/4));
+        if (shadow > 1) {
+          shadow = 1;
+        }
+        else if (shadow < 0.2) {
+          shadow = 0.2;
+        }
         ringPoints.push( new THREE.Vector3( Math.cos(j)*i, Math.sin(j)*i, 0 ) );
-        ringColourPoints.push( this.colour.r, this.colour.g, this.colour.b );
+        ringColourPoints.push( this.colour.r * shadow, this.colour.g * shadow, this.colour.b * shadow );
       }
       let ringLineGeometry = new THREE.BufferGeometry().setFromPoints( ringPoints );
       ringLineGeometry.setAttribute('color', new THREE.Float32BufferAttribute( ringColourPoints, 3 ));
@@ -75,14 +82,20 @@ class Planet {
   }
 
   travel() {
+    // Rotate the planet on its axis (day)
     this.sphere.rotation.z += this.rotationSpeed*0.01;
+
+    // Orbit the planet (year)
     this.orbitalPosition += this.speed * this.direction;
-
     let position = this.determineOrbit(this.orbitalPosition);
-
     this.sphere.position.x = position.x;
     this.sphere.position.y = position.y;
     this.sphere.position.z = position.z;
+
+    // Align ring shadows
+    this.ringLines.forEach((item, index, object) => {
+      item.rotation.z = (this.sphere.rotation.z * -1) + this.orbitalPosition - Math.PI/4;
+    });
   }
   
   determineOrbit(orbitalPosition) {
