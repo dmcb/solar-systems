@@ -19,9 +19,11 @@ class Planet {
     this.surfaceTexture = Math.round(randomFromSeed()*6+1);
     this.ringSize = fakeGaussianRandom(-9,10)*this.size*2;
     this.ringDistance = fakeGaussianRandom()*4;
+    this.ringRotation = fakeGaussianRandom(-5)*90;
     if (this.ringSize < 1) {
       this.ringSize = 0;
       this.ringDistance = 0;
+      this.ringRotation = 0;
     }
     this.planetOccupiedArea = (this.size + this.ringSize + this.ringDistance) * 1.5;
     this.actualDistanceFromSun = this.projectedDistanceFromSun + this.planetOccupiedArea;
@@ -55,28 +57,31 @@ class Planet {
     // Add rings
     const ringStart = this.size + this.ringDistance;
     const ringEnd = ringStart + this.ringSize;
-    this.ringLines = [];
-    for (let i=ringStart; i < ringEnd; i = i+0.2) {
-      let ringPoints = [];
-      let ringColourPoints = [];
-      for (let j=0; j < 2*Math.PI; j = j+Math.PI/32) {
-        let shadow = 1 - (Math.cos(j) + Math.sin(j)) / (Math.cos(Math.PI/4) + Math.sin(Math.PI/4));
-        if (shadow > 1) {
-          shadow = 1;
-        }
-        else if (shadow < 0.2) {
-          shadow = 0.2;
-        }
-        ringPoints.push( new THREE.Vector3( Math.cos(j)*i, Math.sin(j)*i, 0 ) );
-        ringColourPoints.push( this.colour.r * shadow, this.colour.g * shadow, this.colour.b * shadow );
-      }
-      let ringLineGeometry = new THREE.BufferGeometry().setFromPoints( ringPoints );
-      ringLineGeometry.setAttribute('color', new THREE.Float32BufferAttribute( ringColourPoints, 3 ));
-      let ringLineMaterial = new THREE.LineBasicMaterial( { vertexColors: true, transparent: true, opacity: fakeGaussianRandom()*0.5 });
-      let ringLine = new THREE.Line( ringLineGeometry, ringLineMaterial );
-      this.ringLines.push(ringLine);
-      this.sphere.add(ringLine);
-    }
+    // this.ringLines = [];
+    // for (let i=ringStart; i < ringEnd; i = i+0.2) {
+    //   let ringPoints = [];
+    //   let ringColourPoints = [];
+    //   for (let j=0; j < 2*Math.PI; j = j+Math.PI/32) {
+    //     let shadow = 1 - (Math.cos(j) + Math.sin(j)) / (Math.cos(Math.PI/4) + Math.sin(Math.PI/4));
+    //     if (shadow > 1) {
+    //       shadow = 1;
+    //     }
+    //     else if (shadow < 0.2) {
+    //       shadow = 0.2;
+    //     }
+    //     ringPoints.push( new THREE.Vector3( Math.cos(j)*i, Math.sin(j)*i, 0 ) );
+    //     ringColourPoints.push( this.colour.r * shadow, this.colour.g * shadow, this.colour.b * shadow );
+    //   }
+    //   let ringLineGeometry = new THREE.BufferGeometry().setFromPoints( ringPoints );
+    //   ringLineGeometry.setAttribute('color', new THREE.Float32BufferAttribute( ringColourPoints, 3 ));
+    //   let ringLineMaterial = new THREE.LineBasicMaterial( { vertexColors: true, transparent: true, opacity: fakeGaussianRandom()*0.5 });
+    //   let ringLine = new THREE.Line( ringLineGeometry, ringLineMaterial );
+    const ringGeometry = new THREE.RingGeometry(ringStart, ringEnd, 32);
+    const ringMaterial = new THREE.MeshPhongMaterial( { color: this.colour, side: THREE.DoubleSide } );
+    this.ring = new THREE.Mesh ( ringGeometry, ringMaterial);
+    this.ring.receiveShadow = true;
+    this.ring.rotation.y = this.ringRotation;
+    this.sphere.add(this.ring);
   }
 
   nextNeighbourMinimumDistance() {
@@ -95,9 +100,7 @@ class Planet {
     this.sphere.position.z = position.z;
 
     // Align ring shadows
-    this.ringLines.forEach((item, index, object) => {
-      item.rotation.z = (this.sphere.rotation.z * -1) + this.orbitalPosition - Math.PI/4;
-    });
+    // this.ring.rotation.z = (this.sphere.rotation.z * -1) + this.orbitalPosition - Math.PI/4;
   }
   
   determineOrbit(orbitalPosition) {
