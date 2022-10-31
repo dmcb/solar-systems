@@ -17,14 +17,15 @@ class Planet {
     this.orbitEccentricity = fakeGaussianRandom()*0.2;
     this.rockiness = fakeGaussianRandom();
     this.surfaceTexture = Math.round(randomFromSeed()*6+1);
-    this.ringSize = fakeGaussianRandom(-9,10)*this.size*2;
+    this.ringSize = fakeGaussianRandom(-5)*this.size*2.2;
     this.ringDistance = fakeGaussianRandom()*4;
     this.ringRotation = fakeGaussianRandom(-9,10)*90;
-    this.ringNumber = Math.floor(fakeGaussianRandom()*this.ringSize)+1;
-    if (this.ringSize < 1) {
+    this.numberOfRings = Math.floor(randomFromSeed()*10);
+    if (this.ringSize < 1 || !this.numberOfRings) {
       this.ringSize = 0;
       this.ringDistance = 0;
       this.ringRotation = 0;
+      this.numberOfRings = 0;
     }
     this.planetOccupiedArea = (this.size + this.ringSize + this.ringDistance) * 1.5;
     this.actualDistanceFromSun = this.projectedDistanceFromSun + this.planetOccupiedArea;
@@ -56,10 +57,19 @@ class Planet {
     scene.add(this.orbitLine);
 
     // Add rings
-    const ringStart = this.size + this.ringDistance;
-    const ringEnd = ringStart + this.ringSize;
     this.ringLines = [];
-    // for (let i=ringStart; i < ringEnd; i = i+0.2) {
+    for (let i=0; i < this.numberOfRings; i = i+1) {
+      let ringStart = this.size + this.ringDistance + i*(this.ringSize/this.numberOfRings);
+      let ringEnd = ringStart + (this.ringSize/this.numberOfRings);
+      console.log({ ringStart: ringStart, ringEnd: ringEnd });
+      let ringGeometry = new THREE.RingGeometry(ringStart, ringEnd, 32);
+      let ringMaterial = new THREE.MeshPhongMaterial( { color: this.colour, transparent: true, opacity: randomFromSeed()*0.8+0.2, side: THREE.DoubleSide } );
+      let ring = new THREE.Mesh ( ringGeometry, ringMaterial);
+      ring.receiveShadow = true;
+      ring.rotation.y = this.ringRotation;
+      this.ringLines.push(ring);
+      this.sphere.add(ring);
+    }
     //   let ringPoints = [];
     //   let ringColourPoints = [];
     //   for (let j=0; j < 2*Math.PI; j = j+Math.PI/32) {
@@ -77,13 +87,6 @@ class Planet {
     //   ringLineGeometry.setAttribute('color', new THREE.Float32BufferAttribute( ringColourPoints, 3 ));
     //   let ringLineMaterial = new THREE.LineBasicMaterial( { vertexColors: true, transparent: true, opacity: fakeGaussianRandom()*0.5 });
     //   let ringLine = new THREE.Line( ringLineGeometry, ringLineMaterial );
-    let ringGeometry = new THREE.RingGeometry(ringStart, ringEnd, 32);
-    let ringMaterial = new THREE.MeshPhongMaterial( { color: this.colour, side: THREE.DoubleSide } );
-    let ring = new THREE.Mesh ( ringGeometry, ringMaterial);
-    ring.receiveShadow = true;
-    ring.rotation.y = this.ringRotation;
-    this.ringLines.push(ring)
-    this.sphere.add(ring);
   }
 
   nextNeighbourMinimumDistance() {
