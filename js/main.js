@@ -31,7 +31,8 @@ function init() {
     camHeight = camWidth / windowAspectRatio;
   }
   camera = new THREE.OrthographicCamera( camWidth*-1, camWidth, camHeight, camHeight*-1, 1, 1000 );
-  camera.position.z = 20;
+  camera.position.z = solarSystemRadius;
+  camera.lookAt(new THREE.Vector3( 0, 0, 0 ));
 
   // Scene
   const sunGeometry = new THREE.SphereGeometry( 8 );
@@ -77,7 +78,37 @@ function init() {
       solarSystem.destroy();
       solarSystem = new SolarSystem(scene, solarSystemRadius);
     }
-  })
+  });
+
+  // Add camera control
+  let screenDrag = false;
+  let cameraMovement = 0;
+  let cameraMaximum = 100;
+  window.addEventListener('mousemove', (event) => {
+    if (screenDrag) {
+      cameraMovement -= (event.movementY/2);
+      if (cameraMovement > 100) {
+        cameraMovement = 100;
+      }
+      if (cameraMovement < 0) {
+        cameraMovement = 0;
+      }
+
+      camera.position.z = Math.cos(0.5 * Math.PI * -cameraMovement/cameraMaximum)*solarSystemRadius;
+      camera.position.y = Math.sin(0.5 * Math.PI * -cameraMovement/cameraMaximum)*solarSystemRadius;
+
+      camera.lookAt(new THREE.Vector3( 0, 0, 0 ));
+    }
+  });
+  window.addEventListener('mousedown', () => {
+    screenDrag = true;
+  });
+  window.addEventListener('mouseup', () => {
+    screenDrag = false;
+  });
+  window.addEventListener('mouseleave', () => {
+    screenDrag = false;
+  });
 }
 
 function animate() {
