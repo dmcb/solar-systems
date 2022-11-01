@@ -17,14 +17,15 @@ class Planet {
     this.orbitEccentricity = fakeGaussianRandom()*0.2;
     this.rockiness = fakeGaussianRandom();
     this.surfaceTexture = Math.round(randomFromSeed()*6+1);
+    this.tilt = fakeGaussianRandom(-9,10)*90;
     this.ringSize = fakeGaussianRandom(-5)*this.size*2.2;
     this.ringDistance = fakeGaussianRandom()*4;
-    this.ringRotation = fakeGaussianRandom(-9,10)*90;
+    this.ringAxis = fakeGaussianRandom(-9,10)*90;
     this.numberOfRings = Math.floor(randomFromSeed()*10);
     if (this.ringSize < 1 || !this.numberOfRings) {
       this.ringSize = 0;
       this.ringDistance = 0;
-      this.ringRotation = 0;
+      this.ringAxis = 0;
       this.numberOfRings = 0;
     }
     this.planetOccupiedArea = (this.size + this.ringSize + this.ringDistance) * 1.5;
@@ -39,11 +40,13 @@ class Planet {
     const normalMap = textureLoader.load( 'textures/0' + this.surfaceTexture + '.jpg' );
     const sphereGeometry = new THREE.SphereGeometry( this.size );
     const sphereMaterial = new THREE.MeshPhongMaterial( { color: this.colour, shininess: 1, normalMap: normalMap, normalScale: new THREE.Vector2( this.rockiness, this.rockiness ) } );
-    this.sphere = new THREE.Mesh( sphereGeometry, sphereMaterial );
-    this.sphere.receiveShadow = true;
-    this.sphere.castShadow = true;
-    this.sphere.position.set( this.actualDistanceFromSun, 0, 0);
-    scene.add(this.sphere);
+    this.planetSphere = new THREE.Mesh( sphereGeometry, sphereMaterial );
+    this.planetSphere.rotation.x = this.tilt;
+    this.planetSphere.receiveShadow = true;
+    this.planetSphere.castShadow = true;
+    this.planetPivotPoint = new THREE.Object3D();
+    scene.add(this.planetPivotPoint);
+    this.planetPivotPoint.add(this.planetSphere);
 
     // Add orbit path to scene
     const orbitLineMaterial = new THREE.LineBasicMaterial( { color: 0x333333 } );
@@ -57,18 +60,18 @@ class Planet {
     scene.add(this.orbitLine);
 
     // Add rings
-    this.ringLines = [];
+    this.planetRings = [];
     for (let i=0; i < this.numberOfRings; i = i+1) {
-      let ringStart = this.size + this.ringDistance + i*(this.ringSize/this.numberOfRings);
-      let ringEnd = ringStart + (this.ringSize/this.numberOfRings);
-      console.log({ ringStart: ringStart, ringEnd: ringEnd });
-      let ringGeometry = new THREE.RingGeometry(ringStart, ringEnd, 32);
+      let ring = {};
+      ring.ringStart = this.size + this.ringDistance + i*(this.ringSize/this.numberOfRings);
+      ring.ringEnd = ring.ringStart + (this.ringSize/this.numberOfRings);
+      let ringGeometry = new THREE.RingGeometry(ring.ringStart, ring.ringEnd, 32);
       let ringMaterial = new THREE.MeshPhongMaterial( { color: this.colour, transparent: true, opacity: randomFromSeed()*0.8+0.2, side: THREE.DoubleSide } );
-      let ring = new THREE.Mesh ( ringGeometry, ringMaterial);
-      ring.receiveShadow = true;
-      ring.rotation.y = this.ringRotation;
-      this.ringLines.push(ring);
-      this.sphere.add(ring);
+      ring.mesh = new THREE.Mesh (ringGeometry, ringMaterial);
+      ring.mesh.receiveShadow = true;
+      ring.mesh.rotation.x = this.ringAxis;
+      this.planetRings.push(ring);
+      this.planetPivotPoint.add(ring.mesh);
     }
   }
 
@@ -78,18 +81,21 @@ class Planet {
 
   travel() {
     // Rotate the planet on its axis (day)
-    this.sphere.rotation.z += this.rotationSpeed*0.01;
+    this.planetSphere.rotation.z += this.rotationSpeed*0.01;
 
     // Orbit the planet (year)
     this.orbitalPosition += this.speed * this.direction;
     let position = this.determineOrbit(this.orbitalPosition);
-    this.sphere.position.x = position.x;
-    this.sphere.position.y = position.y;
-    this.sphere.position.z = position.z;
+    this.planetPivotPoint.position.x = position.x;
+    this.planetPivotPoint.position.y = position.y;
+    this.planetPivotPoint.position.z = position.z;
 
-    // Align ring shadows
-    this.ringLines.forEach((item, index, object) => {
-      item.rotation.z = (this.sphere.rotation.z * -1);
+    // Rotate rings
+    this.planetRings.forEach((item, index, object) => {
+      // Bug here, this is trying to undo planets rotation, but ring
+      // is tilted, so this Z rotation modifier is acting on rotated disk
+      // item.mesh.rotation.z = -1 * this.planetSphere.rotation.x;
+      // item.position.setFromMatrixPosition( this.object.matrixWorld )
     });
   }
   
@@ -106,13 +112,13 @@ class Planet {
   }
 
   destroy() {
-    this.sphere.geometry.dispose();
-    this.sphere.removeFromParent();
+    this.planetSphere.geometry.dispose();
+    this.planetSphere.removeFromParent();
     this.orbitLine.geometry.dispose();
     this.orbitLine.removeFromParent();
-    this.ringLines.forEach((item, index, object) => {
-      item.geometry.dispose();
-      item.removeFromParent();
+    this.planetRings.forEach((item, index, object) => {
+      item.mesh.geometry.dispose();
+      item.mesh.removeFromParent();
     });
   }
 }
