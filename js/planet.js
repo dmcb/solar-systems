@@ -9,12 +9,13 @@ class Planet {
     this.minimumDistance = minimumDistance;
     this.maximumDistance = maximumDistance;
     this.direction = direction;
-    this.projectedDistanceFromSun = fakeGaussianRandom(-9,10)*this.maximumDistance + this.minimumDistance;
 
+    this.projectedDistanceFromSun = fakeGaussianRandom(-9,10)*this.maximumDistance + this.minimumDistance;
     this.colour = new THREE.Color( randomFromSeed()*0xffffff );
     this.size = fakeGaussianRandom(-1,3)*6+1;
     this.rotationSpeed = fakeGaussianRandom()*3;
     this.orbitEccentricity = fakeGaussianRandom()*0.2;
+    this.orbitAxis = fakeGaussianRandom()*15-7.5;
     this.rockiness = fakeGaussianRandom();
     this.surfaceTexture = Math.round(randomFromSeed()*6+1);
     this.tilt = fakeGaussianRandom(-9,10)*90;
@@ -89,20 +90,12 @@ class Planet {
     this.planetPivotPoint.position.x = position.x;
     this.planetPivotPoint.position.y = position.y;
     this.planetPivotPoint.position.z = position.z;
-
-    // Rotate rings
-    this.planetRings.forEach((item, index, object) => {
-      // Bug here, this is trying to undo planets rotation, but ring
-      // is tilted, so this Z rotation modifier is acting on rotated disk
-      // item.mesh.rotation.z = -1 * this.planetSphere.rotation.x;
-      // item.position.setFromMatrixPosition( this.object.matrixWorld )
-    });
   }
   
   determineOrbit(orbitalPosition) {
     let x = this.actualDistanceFromSun;
     let y = this.actualDistanceFromSun * Math.sqrt(1.0 - Math.pow(this.orbitEccentricity, 1));
-    let z = Math.sin(0) * this.actualDistanceFromSun;
+    let z = Math.sin(2 * Math.PI * this.orbitAxis/360 ) * this.actualDistanceFromSun;
 
     return { 
       x: Math.cos(orbitalPosition) * x,
