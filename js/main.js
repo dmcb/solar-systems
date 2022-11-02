@@ -3,7 +3,7 @@ import * as THREE from 'https://cdnjs.cloudflare.com/ajax/libs/three.js/0.145.0/
 import { SolarSystem } from './solarSystem.js';
 import { seed, updateSeed } from './utility.js';
 
-let scene, camera, renderer, solarSystem;
+let scene, camera, renderer, solarSystem, solarSystemRadius, screenDrag;
 
 init();
 animate();
@@ -20,7 +20,7 @@ function init() {
   scene.add( ambientLight );
 
   // Camera
-  const solarSystemRadius = 160;
+  solarSystemRadius = 160;
   let camWidth = solarSystemRadius;
   let camHeight = solarSystemRadius;
   let windowAspectRatio = window.innerWidth / window.innerHeight;
@@ -81,47 +81,42 @@ function init() {
   });
 
   // Add camera control
-  let screenDrag = false;
-  let cameraVerticalMovement = 0;
-  let cameraVerticalMaximum = 100;
-  let cameraHorizontalMovement = 0;
-  let cameraHorizontalMaximum = 180;
-
-  window.addEventListener('mousemove', (event) => {
-    if (screenDrag) {
-      cameraVerticalMovement -= (event.movementY/2);
-      if (cameraVerticalMovement > 100) {
-        cameraVerticalMovement = 100;
-      }
-      if (cameraVerticalMovement < 0) {
-        cameraVerticalMovement = 0;
-      }
-
-      cameraHorizontalMovement -= (event.movementX/2);
-
-      camera.position.z = Math.cos(0.5 * Math.PI * -cameraVerticalMovement/cameraVerticalMaximum)*solarSystemRadius;
-      camera.position.y = Math.sin(0.5 * Math.PI * -cameraVerticalMovement/cameraVerticalMaximum)*solarSystemRadius;
-
-      scene.rotation.z = 0.5 * Math.PI * cameraHorizontalMovement / cameraHorizontalMaximum;
-
-      camera.up = new THREE.Vector3(0,1,0);
-      camera.lookAt(new THREE.Vector3( 0, 0, 0 ));
-    }
-  });
-  window.addEventListener('mousedown', () => {
-    screenDrag = true;
-  });
-  window.addEventListener('mouseup', () => {
-    screenDrag = false;
-  });
-  window.addEventListener('mouseleave', () => {
-    screenDrag = false;
-  });
+  screenDrag = false;
+  window.addEventListener('pointermove', moveCamera);
+  window.addEventListener('pointerdown', function() { screenDrag = true });
+  window.addEventListener('pointerup', function() { screenDrag = false });
+  window.addEventListener('pointerleave', function() { screenDrag = false });
 }
 
 function animate() {
   requestAnimationFrame( animate );
   solarSystem.travel();
   renderer.render( scene, camera );
+}
+
+function moveCamera(event) {
+  if (screenDrag) {
+    let newZ, newY;
+    let rads = Math.atan2(
+      camera.position.z-(solarSystemRadius*3*event.movementY/window.innerHeight), 
+      camera.position.y-(solarSystemRadius*3*event.movementY/window.innerHeight)
+    );
+
+    newZ = Math.sin(rads)*solarSystemRadius;
+    newY = Math.cos(rads)*solarSystemRadius;
+    
+    if (newZ > solarSystemRadius) { newZ = solarSystemRadius }
+    if (newZ < 0) { newZ = 0 }
+    if (newY < -solarSystemRadius) { newY = -solarSystemRadius }
+    if (newY > 0) { newY = 0 }
+
+    camera.position.z = newZ;
+    camera.position.y = newY;
+
+    scene.rotation.z += 0.5 * Math.PI * 4 * event.movementX / window.innerWidth;
+
+    camera.up = new THREE.Vector3(0,1,0);
+    camera.lookAt(new THREE.Vector3( 0, 0, 0 ));
+  }
 }
 
