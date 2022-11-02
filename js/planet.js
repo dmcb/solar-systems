@@ -14,15 +14,15 @@ class Planet {
     this.colour = new THREE.Color( randomFromSeed()*0xffffff );
     this.size = fakeGaussianRandom(-1,3)*6+1;
     this.rotationSpeed = fakeGaussianRandom()*3;
-    this.orbitEccentricity = fakeGaussianRandom()*0.2;
-    this.orbitAxis = fakeGaussianRandom()*15-7.5;
+    this.orbitEccentricity = fakeGaussianRandom()*0;
+    this.orbitAxis = fakeGaussianRandom()*20-10;
     this.rockiness = fakeGaussianRandom();
     this.surfaceTexture = Math.round(randomFromSeed()*6+1);
     this.tilt = fakeGaussianRandom(-9,10)*90;
     this.ringSize = fakeGaussianRandom(-5)*this.size*2.2;
     this.ringDistance = fakeGaussianRandom()*4;
     this.ringAxis = fakeGaussianRandom(-9,10)*90;
-    this.numberOfRings = Math.floor(randomFromSeed()*10);
+    this.numberOfRings = Math.floor(fakeGaussianRandom()*10);
     if (this.ringSize < 1 || !this.numberOfRings) {
       this.ringSize = 0;
       this.ringDistance = 0;

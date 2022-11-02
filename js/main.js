@@ -82,21 +82,29 @@ function init() {
 
   // Add camera control
   let screenDrag = false;
-  let cameraMovement = 0;
-  let cameraMaximum = 100;
+  let cameraVerticalMovement = 0;
+  let cameraVerticalMaximum = 100;
+  let cameraHorizontalMovement = 0;
+  let cameraHorizontalMaximum = 180;
+
   window.addEventListener('mousemove', (event) => {
     if (screenDrag) {
-      cameraMovement -= (event.movementY/2);
-      if (cameraMovement > 100) {
-        cameraMovement = 100;
+      cameraVerticalMovement -= (event.movementY/2);
+      if (cameraVerticalMovement > 100) {
+        cameraVerticalMovement = 100;
       }
-      if (cameraMovement < 0) {
-        cameraMovement = 0;
+      if (cameraVerticalMovement < 0) {
+        cameraVerticalMovement = 0;
       }
 
-      camera.position.z = Math.cos(0.5 * Math.PI * -cameraMovement/cameraMaximum)*solarSystemRadius;
-      camera.position.y = Math.sin(0.5 * Math.PI * -cameraMovement/cameraMaximum)*solarSystemRadius;
+      cameraHorizontalMovement -= (event.movementX/2);
 
+      camera.position.z = Math.cos(0.5 * Math.PI * -cameraVerticalMovement/cameraVerticalMaximum)*solarSystemRadius;
+      camera.position.y = Math.sin(0.5 * Math.PI * -cameraVerticalMovement/cameraVerticalMaximum)*solarSystemRadius;
+
+      scene.rotation.z = 0.5 * Math.PI * cameraHorizontalMovement / cameraHorizontalMaximum;
+
+      camera.up = new THREE.Vector3(0,1,0);
       camera.lookAt(new THREE.Vector3( 0, 0, 0 ));
     }
   });
