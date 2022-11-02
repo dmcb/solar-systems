@@ -2,6 +2,7 @@ body {
   font-family: 'Raleway', sans-serif;
   background-color: black;
   overflow: hidden;
+  touch-action: none;
 }
 
 button#seed {

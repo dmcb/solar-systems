@@ -85,7 +85,8 @@ function init() {
   window.addEventListener('pointermove', moveCamera);
   window.addEventListener('pointerdown', function(event) { screenDrag = true; screenPosition = {x: event.pageX, y: event.pageY}});
   window.addEventListener('pointerup', function() { screenDrag = false });
-  window.addEventListener('pointerleave', function() { screenDrag = false });
+  window.addEventListener('pointerout', function() { screenDrag = false });
+  window.addEventListener('pointercancel', function() { screenDrag = false });
 }
 
 function animate() {
