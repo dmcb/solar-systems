@@ -3,7 +3,7 @@ import * as THREE from 'https://cdnjs.cloudflare.com/ajax/libs/three.js/0.145.0/
 import { SolarSystem } from './solarSystem.js';
 import { seed, updateSeed } from './utility.js';
 
-let scene, camera, renderer, solarSystem, solarSystemRadius, screenDrag;
+let scene, camera, renderer, solarSystem, solarSystemRadius, screenDrag, screenPosition;
 
 init();
 animate();
@@ -83,7 +83,7 @@ function init() {
   // Add camera control
   screenDrag = false;
   window.addEventListener('pointermove', moveCamera);
-  window.addEventListener('pointerdown', function() { screenDrag = true });
+  window.addEventListener('pointerdown', function(event) { screenDrag = true; screenPosition = {x: event.pageX, y: event.pageY}});
   window.addEventListener('pointerup', function() { screenDrag = false });
   window.addEventListener('pointerleave', function() { screenDrag = false });
 }
@@ -96,10 +96,14 @@ function animate() {
 
 function moveCamera(event) {
   if (screenDrag) {
+    let currentScreenPosition = {x: event.pageX, y: event.pageY};
+    let screenMovement = {x: currentScreenPosition.x - screenPosition.x, y: currentScreenPosition.y - screenPosition.y};
+    screenPosition = currentScreenPosition;
+
     let newZ, newY;
     let rads = Math.atan2(
-      camera.position.z-(solarSystemRadius*3*event.movementY/window.innerHeight), 
-      camera.position.y-(solarSystemRadius*3*event.movementY/window.innerHeight)
+      camera.position.z-(solarSystemRadius*3*screenMovement.y/window.innerHeight), 
+      camera.position.y-(solarSystemRadius*3*screenMovement.y/window.innerHeight)
     );
 
     newZ = Math.sin(rads)*solarSystemRadius;
@@ -113,7 +117,7 @@ function moveCamera(event) {
     camera.position.z = newZ;
     camera.position.y = newY;
 
-    scene.rotation.z += 0.5 * Math.PI * 4 * event.movementX / window.innerWidth;
+    scene.rotation.z += 0.5 * Math.PI * 4 * screenMovement.x / window.innerWidth;
 
     camera.up = new THREE.Vector3(0,1,0);
     camera.lookAt(new THREE.Vector3( 0, 0, 0 ));
