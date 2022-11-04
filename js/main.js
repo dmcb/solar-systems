@@ -5,7 +5,7 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 import { SolarSystem } from './solarSystem.js';
 import { seed, updateSeed } from './utility.js';
 
-let scene, camera, raycaster, composer, renderer, solarSystem, solarSystemRadius, screenDrag, screenPosition;
+let scene, camera, raycaster, composer, renderer, solarSystem, solarSystemRadius, screenTouches, screenDrag, screenPosition;
 
 init();
 animate();
@@ -98,13 +98,14 @@ function init() {
     }
   });
 
-  // Add camera control
+  // Add touch controls
   screenDrag = false;
+  screenTouches = [];
   window.addEventListener('pointermove', pointerMove);
   window.addEventListener('pointerdown', pointerDown);
-  window.addEventListener('pointerup', function() { screenDrag = false });
-  window.addEventListener('pointerout', function() { screenDrag = false });
-  window.addEventListener('pointercancel', function() { screenDrag = false });
+  window.addEventListener('pointerup', pointerEnd);
+  window.addEventListener('pointerout', pointerEnd);
+  window.addEventListener('pointercancel', pointerEnd);
 }
 
 function animate() {
@@ -114,7 +115,7 @@ function animate() {
 }
 
 function pointerMove(event) {
-  if (screenDrag) {
+  if (screenDrag == event.pointerId) {
     let currentScreenPosition = {x: event.pageX, y: event.pageY};
     let screenMovement = {x: currentScreenPosition.x - screenPosition.x, y: currentScreenPosition.y - screenPosition.y};
     screenPosition = currentScreenPosition;
@@ -159,8 +160,8 @@ function pointerDown(event) {
     }
   });
 
-  if (!selection) {
-    screenDrag = true;
+  if (!selection && !screenDrag) {
+    screenDrag = event.pointerId;
     screenPosition = {
       x: event.pageX,
       y: event.pageY
@@ -168,3 +169,8 @@ function pointerDown(event) {
   }
 }
 
+function pointerEnd(event) {
+  if (screenDrag = event.pointerId) {
+    screenDrag = false;
+  }
+}
