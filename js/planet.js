@@ -1,4 +1,4 @@
-import * as THREE from 'https://cdnjs.cloudflare.com/ajax/libs/three.js/0.145.0/three.module.js';
+import * as THREE from 'three';
 import { fakeGaussianRandom, randomFromSeed } from './utility.js';
 
 const exaggeratedDistanceFromSunModifier = 1.2;

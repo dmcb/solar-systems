@@ -1,5 +1,4 @@
-import * as THREE from 'https://cdnjs.cloudflare.com/ajax/libs/three.js/0.145.0/three.module.js';
-
+import * as THREE from 'three';
 import { SolarSystem } from './solarSystem.js';
 import { seed, updateSeed } from './utility.js';
 
