@@ -112,10 +112,12 @@ function animate() {
   solarSystem.travel();
   if (cameraFocus) {
     let focusObject = scene.getObjectById(cameraFocus);
-    camera.position.x = focusObject.parent.position.x;
-    camera.position.y = focusObject.parent.position.y;
+    let cameraPosition = new THREE.Vector3(focusObject.parent.position.x, focusObject.parent.position.y, focusObject.parent.position.z);
+    cameraPosition.applyAxisAngle(new THREE.Vector3( 0, 0, 1 ), scene.rotation.z);
+    camera.position.x = cameraPosition.x;
+    camera.position.y = cameraPosition.y;
     camera.position.z = focusObject.geometry.parameters.radius + 10;
-    camera.lookAt(focusObject.parent.position);
+    camera.lookAt(cameraPosition);
   }
   composer.render();
 }
