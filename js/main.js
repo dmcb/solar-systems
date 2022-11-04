@@ -1,8 +1,11 @@
 import * as THREE from 'three';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { SolarSystem } from './solarSystem.js';
 import { seed, updateSeed } from './utility.js';
 
-let scene, camera, renderer, solarSystem, solarSystemRadius, screenDrag, screenPosition;
+let scene, camera, composer, renderer, solarSystem, solarSystemRadius, screenDrag, screenPosition;
 
 init();
 animate();
@@ -34,7 +37,7 @@ function init() {
   camera.lookAt(new THREE.Vector3( 0, 0, 0 ));
 
   // Scene
-  const sunGeometry = new THREE.SphereGeometry( 8 );
+  const sunGeometry = new THREE.SphereGeometry( 7 );
   const sunMaterial = new THREE.MeshBasicMaterial( { color: 0xffffcc } );
   let sun = new THREE.Mesh( sunGeometry, sunMaterial );
   sun.position.set( 0, 0, 0);
@@ -47,6 +50,18 @@ function init() {
   renderer.shadowMap.type = THREE.BasicShadowMap;
   renderer.setPixelRatio( window.devicePixelRatio );
   renderer.setSize( window.innerWidth, window.innerHeight );
+
+  const renderScene = new RenderPass( scene, camera );
+
+  const bloomPass = new UnrealBloomPass( new THREE.Vector2( window.innerWidth, window.innerHeight ), 1.5, 0.4, 0.85 );
+  bloomPass.threshold = 0.95;
+  bloomPass.strength = 1.5;
+  bloomPass.radius = 0.5;
+
+  composer = new EffectComposer( renderer );
+  composer.addPass( renderScene );
+  composer.addPass( bloomPass );
+
   document.body.appendChild( renderer.domElement );
 
 
@@ -64,6 +79,7 @@ function init() {
     }
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
+    composer.setSize(window.innerWidth, window.innerHeight);
   });
 
   // Add seed label and button
@@ -91,7 +107,7 @@ function init() {
 function animate() {
   requestAnimationFrame( animate );
   solarSystem.travel();
-  renderer.render( scene, camera );
+  composer.render();
 }
 
 function moveCamera(event) {
