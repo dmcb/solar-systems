@@ -5,7 +5,7 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 import { SolarSystem } from './solarSystem.js';
 import { seed, updateSeed } from './utility.js';
 
-let scene, camera, raycaster, composer, renderer, solarSystem, solarSystemRadius, screenTouches, screenDrag, screenPosition;
+let scene, camera, raycaster, composer, renderer, solarSystem, solarSystemRadius, cameraDrag, cameraFocus, pointerPosition;
 
 init();
 animate();
@@ -99,8 +99,7 @@ function init() {
   });
 
   // Add touch controls
-  screenDrag = false;
-  screenTouches = [];
+  cameraDrag = false;
   window.addEventListener('pointermove', pointerMove);
   window.addEventListener('pointerdown', pointerDown);
   window.addEventListener('pointerup', pointerEnd);
@@ -111,14 +110,21 @@ function init() {
 function animate() {
   requestAnimationFrame( animate );
   solarSystem.travel();
+  if (cameraFocus) {
+    let focusObject = scene.getObjectById(cameraFocus);
+    camera.position.x = focusObject.parent.position.x;
+    camera.position.y = focusObject.parent.position.y;
+    camera.position.z = focusObject.geometry.parameters.radius + 10;
+    camera.lookAt(focusObject.parent.position);
+  }
   composer.render();
 }
 
 function pointerMove(event) {
-  if (screenDrag == event.pointerId) {
-    let currentScreenPosition = {x: event.pageX, y: event.pageY};
-    let screenMovement = {x: currentScreenPosition.x - screenPosition.x, y: currentScreenPosition.y - screenPosition.y};
-    screenPosition = currentScreenPosition;
+  if (cameraDrag == event.pointerId && !cameraFocus) {
+    let currentPointerPosition = {x: event.pageX, y: event.pageY};
+    let screenMovement = {x: currentPointerPosition.x - pointerPosition.x, y: currentPointerPosition.y - pointerPosition.y};
+    pointerPosition = currentPointerPosition;
 
     let newZ, newY;
     let rads = Math.atan2(
@@ -145,24 +151,30 @@ function pointerMove(event) {
 }
 
 function pointerDown(event) {
+  if (cameraFocus) {
+    cameraFocus = false;
+    camera.position.x = 0;
+    camera.position.y = 0;
+    camera.position.z = solarSystemRadius;
+    camera.lookAt(new THREE.Vector3( 0, 0, 0 ));
+  }
+
   let pointer = new THREE.Vector2();
   pointer.x = ( event.clientX / window.innerWidth ) * 2 - 1;
   pointer.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
 
   raycaster.setFromCamera( pointer, camera );
-  let selection = false;
+  
   const intersects = raycaster.intersectObjects( scene.children );
   intersects.forEach((item, index, object) => {
     if (item.object.name == "sun" || item.object.name == "planet") {
-      selection = true;
-      console.log(item);
-      // camera.lookAt(item.point);
+      cameraFocus = item.object.id;
     }
   });
 
-  if (!selection && !screenDrag) {
-    screenDrag = event.pointerId;
-    screenPosition = {
+  if (!cameraFocus && !cameraDrag) {
+    cameraDrag = event.pointerId;
+    pointerPosition = {
       x: event.pageX,
       y: event.pageY
     }
@@ -170,7 +182,7 @@ function pointerDown(event) {
 }
 
 function pointerEnd(event) {
-  if (screenDrag = event.pointerId) {
-    screenDrag = false;
+  if (cameraDrag == event.pointerId) {
+    cameraDrag = false;
   }
 }
