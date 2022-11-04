@@ -18,8 +18,6 @@ class SolarSystem {
         this.planets.push(planet);
       }
     }
-
-    console.log(this.planets.length);
   }
 
   travel() {

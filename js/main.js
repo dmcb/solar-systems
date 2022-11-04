@@ -5,13 +5,14 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 import { SolarSystem } from './solarSystem.js';
 import { seed, updateSeed } from './utility.js';
 
-let scene, camera, composer, renderer, solarSystem, solarSystemRadius, screenDrag, screenPosition;
+let scene, camera, raycaster, composer, renderer, solarSystem, solarSystemRadius, screenDrag, screenPosition;
 
 init();
 animate();
 
 function init() {
   scene = new THREE.Scene();
+  raycaster = new THREE.Raycaster();
 
   // Lights
   const sunLight = new THREE.PointLight( 0xffffff, 1, 0, 0 );
@@ -36,28 +37,30 @@ function init() {
   camera.position.z = solarSystemRadius;
   camera.lookAt(new THREE.Vector3( 0, 0, 0 ));
 
-  // Scene
+  // Sun
   const sunGeometry = new THREE.SphereGeometry( 7 );
   const sunMaterial = new THREE.MeshBasicMaterial( { color: 0xffffcc } );
   let sun = new THREE.Mesh( sunGeometry, sunMaterial );
+  sun.name = "sun";
   sun.position.set( 0, 0, 0);
   scene.add(sun);
   solarSystem = new SolarSystem(scene, solarSystemRadius);
 
-  // Add renderer
+  // Renderer
   renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.BasicShadowMap;
   renderer.setPixelRatio( window.devicePixelRatio );
   renderer.setSize( window.innerWidth, window.innerHeight );
-
   const renderScene = new RenderPass( scene, camera );
 
+  // Bloom
   const bloomPass = new UnrealBloomPass( new THREE.Vector2( window.innerWidth, window.innerHeight ), 1.5, 0.4, 0.85 );
   bloomPass.threshold = 0.95;
   bloomPass.strength = 1.5;
   bloomPass.radius = 0.5;
 
+  // Compose render and bloom
   composer = new EffectComposer( renderer );
   composer.addPass( renderScene );
   composer.addPass( bloomPass );
@@ -97,8 +100,8 @@ function init() {
 
   // Add camera control
   screenDrag = false;
-  window.addEventListener('pointermove', moveCamera);
-  window.addEventListener('pointerdown', function(event) { screenDrag = true; screenPosition = {x: event.pageX, y: event.pageY}});
+  window.addEventListener('pointermove', pointerMove);
+  window.addEventListener('pointerdown', pointerDown);
   window.addEventListener('pointerup', function() { screenDrag = false });
   window.addEventListener('pointerout', function() { screenDrag = false });
   window.addEventListener('pointercancel', function() { screenDrag = false });
@@ -110,7 +113,7 @@ function animate() {
   composer.render();
 }
 
-function moveCamera(event) {
+function pointerMove(event) {
   if (screenDrag) {
     let currentScreenPosition = {x: event.pageX, y: event.pageY};
     let screenMovement = {x: currentScreenPosition.x - screenPosition.x, y: currentScreenPosition.y - screenPosition.y};
@@ -137,6 +140,31 @@ function moveCamera(event) {
 
     camera.up = new THREE.Vector3(0,1,0);
     camera.lookAt(new THREE.Vector3( 0, 0, 0 ));
+  }
+}
+
+function pointerDown(event) {
+  let pointer = new THREE.Vector2();
+  pointer.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+  pointer.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+
+  raycaster.setFromCamera( pointer, camera );
+  let selection = false;
+  const intersects = raycaster.intersectObjects( scene.children );
+  intersects.forEach((item, index, object) => {
+    if (item.object.name == "sun" || item.object.name == "planet") {
+      selection = true;
+      console.log(item);
+      // camera.lookAt(item.point);
+    }
+  });
+
+  if (!selection) {
+    screenDrag = true;
+    screenPosition = {
+      x: event.pageX,
+      y: event.pageY
+    }
   }
 }
 

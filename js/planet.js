@@ -42,6 +42,7 @@ class Planet {
     const sphereGeometry = new THREE.SphereGeometry( this.size );
     const sphereMaterial = new THREE.MeshPhongMaterial( { color: this.colour, shininess: 1, normalMap: normalMap, normalScale: new THREE.Vector2( this.rockiness, this.rockiness ) } );
     this.planetSphere = new THREE.Mesh( sphereGeometry, sphereMaterial );
+    this.planetSphere.name = "planet";
     this.planetSphere.rotation.x = this.tilt;
     this.planetSphere.receiveShadow = true;
     this.planetSphere.castShadow = true;
