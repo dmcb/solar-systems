@@ -1,2 +1,2 @@
 **Run locally**
-`docker run -p 8080:80 -v "$(pwd)":/usr/share/nginx/html:ro -d nginx`
+`docker run --rm -it -p 5173:5173 -v "$(pwd)":/usr/src/app -w /usr/src/app node:18-buster yarn vite --host`
