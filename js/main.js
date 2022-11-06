@@ -4,6 +4,7 @@ import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { SolarSystem } from './solarSystem.js';
 import { seed, updateSeed } from './utility.js';
+import { getCameraBounds, setCameraBounds, setCameraPosition, setCameraTarget, resetCamera } from './camera.js';
 
 let scene, camera, raycaster, composer, renderer, solarSystem, solarSystemRadius, cameraDrag, cameraFocus, pointerPosition;
 
@@ -24,18 +25,9 @@ function init() {
 
   // Camera
   solarSystemRadius = 160;
-  let camWidth = solarSystemRadius;
-  let camHeight = solarSystemRadius;
-  let windowAspectRatio = window.innerWidth / window.innerHeight;
-  if (window.innerWidth > window.innerHeight)  {
-    camWidth = camHeight * windowAspectRatio;
-  }
-  else {
-    camHeight = camWidth / windowAspectRatio;
-  }
-  camera = new THREE.OrthographicCamera( camWidth*-1, camWidth, camHeight, camHeight*-1, 1, 1000 );
-  camera.position.z = solarSystemRadius;
-  camera.lookAt(new THREE.Vector3( 0, 0, 0 ));
+  const bounds = getCameraBounds(solarSystemRadius);
+  camera = new THREE.OrthographicCamera(bounds.left, bounds.right, bounds.top, bounds.bottom, 1, 1000 );
+  setCameraPosition(camera, solarSystemRadius);
 
   // Sun
   const sunGeometry = new THREE.SphereGeometry( 7 );
@@ -71,16 +63,7 @@ function init() {
   // UI
   // Update camera on window resize
   window.addEventListener('resize', () => {
-    windowAspectRatio = window.innerWidth / window.innerHeight;
-    if (window.innerWidth > window.innerHeight)  {
-      camera.left = solarSystemRadius * -windowAspectRatio;
-      camera.right =  solarSystemRadius * windowAspectRatio;
-    }
-    else {
-      camera.top = solarSystemRadius / windowAspectRatio;
-      camera.bottom = solarSystemRadius / -windowAspectRatio;
-    }
-    camera.updateProjectionMatrix();
+    setCameraBounds(camera, solarSystemRadius);
     renderer.setSize(window.innerWidth, window.innerHeight);
     composer.setSize(window.innerWidth, window.innerHeight);
   });
@@ -114,10 +97,10 @@ function animate() {
     let focusObject = scene.getObjectById(cameraFocus);
     let cameraPosition = new THREE.Vector3(focusObject.parent.position.x, focusObject.parent.position.y, focusObject.parent.position.z);
     cameraPosition.applyAxisAngle(new THREE.Vector3( 0, 0, 1 ), scene.rotation.z);
-    camera.position.x = cameraPosition.x;
-    camera.position.y = cameraPosition.y;
-    camera.position.z = focusObject.geometry.parameters.radius + 10;
+    setCameraBounds(camera, focusObject.geometry.parameters.radius*2.5);
+    setCameraPosition(camera, solarSystemRadius, cameraPosition.x, cameraPosition.y, focusObject.geometry.parameters.radius*5);
     camera.lookAt(cameraPosition);
+    camera.updateProjectionMatrix();
   }
   composer.render();
 }
@@ -142,43 +125,38 @@ function pointerMove(event) {
     if (newY < -solarSystemRadius) { newY = -solarSystemRadius }
     if (newY > 0) { newY = 0 }
 
-    camera.position.z = newZ;
-    camera.position.y = newY;
-
+    setCameraPosition(camera, solarSystemRadius, 0, newY, newZ);
+    setCameraTarget(camera);
     scene.rotation.z += 0.5 * Math.PI * 4 * screenMovement.x / window.innerWidth;
-
-    camera.up = new THREE.Vector3(0,1,0);
-    camera.lookAt(new THREE.Vector3( 0, 0, 0 ));
   }
 }
 
 function pointerDown(event) {
+  // If camera is focused on a planet, a tap will undo it
   if (cameraFocus) {
     cameraFocus = false;
-    camera.position.x = 0;
-    camera.position.y = 0;
-    camera.position.z = solarSystemRadius;
-    camera.lookAt(new THREE.Vector3( 0, 0, 0 ));
+    resetCamera(camera, solarSystemRadius);
   }
+  else {
+    let pointer = new THREE.Vector2();
+    pointer.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+    pointer.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
 
-  let pointer = new THREE.Vector2();
-  pointer.x = ( event.clientX / window.innerWidth ) * 2 - 1;
-  pointer.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+    raycaster.setFromCamera( pointer, camera );
+    
+    const intersects = raycaster.intersectObjects( scene.children );
+    intersects.forEach((item, index, object) => {
+      if (!cameraFocus && (item.object.name == "sun" || item.object.name == "planet")) {
+        cameraFocus = item.object.id;
+      }
+    });
 
-  raycaster.setFromCamera( pointer, camera );
-  
-  const intersects = raycaster.intersectObjects( scene.children );
-  intersects.forEach((item, index, object) => {
-    if (item.object.name == "sun" || item.object.name == "planet") {
-      cameraFocus = item.object.id;
-    }
-  });
-
-  if (!cameraFocus && !cameraDrag) {
-    cameraDrag = event.pointerId;
-    pointerPosition = {
-      x: event.pageX,
-      y: event.pageY
+    if (!cameraFocus && !cameraDrag) {
+      cameraDrag = event.pointerId;
+      pointerPosition = {
+        x: event.pageX,
+        y: event.pageY
+      }
     }
   }
 }
