@@ -1,28 +1,29 @@
 import * as THREE from 'three';
-import { fakeGaussianRandom, randomFromSeed } from './utility.js';
+import Seed from './utils/seed.js';
 
 const exaggeratedDistanceFromSunModifier = 1.2;
 const speedModifier = 0.005;
 
 class Planet {
   constructor(minimumDistance, maximumDistance, direction) {
+    this.seed = new Seed();
     this.minimumDistance = minimumDistance;
     this.maximumDistance = maximumDistance;
     this.direction = direction;
 
-    this.projectedDistanceFromSun = fakeGaussianRandom(-9,10)*this.maximumDistance + this.minimumDistance;
-    this.colour = new THREE.Color( randomFromSeed()*0xffffff );
-    this.size = fakeGaussianRandom(-1,3)*6+1;
-    this.rotationSpeed = fakeGaussianRandom()*3;
-    this.orbitEccentricity = fakeGaussianRandom()*0;
-    this.orbitAxis = fakeGaussianRandom()*20-10;
-    this.rockiness = fakeGaussianRandom();
-    this.surfaceTexture = Math.round(randomFromSeed()*6+1);
-    this.tilt = fakeGaussianRandom(-9,10)*90;
-    this.ringSize = fakeGaussianRandom(-5)*this.size*2.2;
-    this.ringDistance = fakeGaussianRandom()*4;
-    this.ringAxis = fakeGaussianRandom(-9,10)*90;
-    this.numberOfRings = Math.floor(fakeGaussianRandom()*10);
+    this.projectedDistanceFromSun = this.seed.fakeGaussianRandom(-9,10)*this.maximumDistance + this.minimumDistance;
+    this.colour = new THREE.Color( this.seed.getRandom()*0xffffff );
+    this.size = this.seed.fakeGaussianRandom(-1,3)*6+1;
+    this.rotationSpeed = this.seed.fakeGaussianRandom()*3;
+    this.orbitEccentricity = this.seed.fakeGaussianRandom()*0;
+    this.orbitAxis = this.seed.fakeGaussianRandom()*20-10;
+    this.rockiness = this.seed.fakeGaussianRandom();
+    this.surfaceTexture = Math.round(this.seed.getRandom()*6+1);
+    this.tilt = this.seed.fakeGaussianRandom(-9,10)*90;
+    this.ringSize = this.seed.fakeGaussianRandom(-5)*this.size*2.2;
+    this.ringDistance = this.seed.fakeGaussianRandom()*4;
+    this.ringAxis = this.seed.fakeGaussianRandom(-9,10)*90;
+    this.numberOfRings = Math.floor(this.seed.fakeGaussianRandom()*10);
     if (this.ringSize < 1 || !this.numberOfRings) {
       this.ringSize = 0;
       this.ringDistance = 0;
@@ -31,7 +32,7 @@ class Planet {
     }
     this.planetOccupiedArea = (this.size + this.ringSize + this.ringDistance) * 1.5;
     this.actualDistanceFromSun = this.projectedDistanceFromSun + this.planetOccupiedArea;
-    this.orbitalPosition = randomFromSeed()*2*Math.PI;
+    this.orbitalPosition = this.seed.getRandom()*2*Math.PI;
     this.speed = speedModifier * Math.pow(16, exaggeratedDistanceFromSunModifier) * (1 / Math.pow(this.actualDistanceFromSun, exaggeratedDistanceFromSunModifier));
   }
 
@@ -68,7 +69,7 @@ class Planet {
       ring.ringStart = this.size + this.ringDistance + i*(this.ringSize/this.numberOfRings);
       ring.ringEnd = ring.ringStart + (this.ringSize/this.numberOfRings);
       let ringGeometry = new THREE.RingGeometry(ring.ringStart, ring.ringEnd, 32);
-      let ringMaterial = new THREE.MeshPhongMaterial( { color: this.colour, transparent: true, opacity: randomFromSeed()*0.8+0.2, side: THREE.DoubleSide } );
+      let ringMaterial = new THREE.MeshPhongMaterial( { color: this.colour, transparent: true, opacity: this.seed.getRandom()*0.8+0.2, side: THREE.DoubleSide } );
       ring.mesh = new THREE.Mesh (ringGeometry, ringMaterial);
       ring.mesh.receiveShadow = true;
       ring.mesh.rotation.x = this.ringAxis;

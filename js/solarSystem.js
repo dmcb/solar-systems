@@ -1,12 +1,13 @@
 import { Planet } from './planet.js';
-import { randomFromSeed } from './utility.js';
+import Seed from './utils/seed.js';
 
 class SolarSystem {
   constructor(scene, solarSystemRadius) {
+    this.seed = new Seed();
     this.planets = [];
     this.minimumDistance = 16;
     this.maximumDistance = solarSystemRadius;
-    this.direction = randomFromSeed();
+    this.direction = this.seed.getRandom();
     if (this.direction >= 0.5) this.direction = 1;
     else this.direction = -1;
   

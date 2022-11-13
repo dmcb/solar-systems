@@ -3,15 +3,16 @@ import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { SolarSystem } from './solarSystem.js';
-import { seed, updateSeed } from './utility.js';
+import Seed from './utils/seed.js';
 import { getCameraBounds, setCameraBounds, setCameraPosition, setCameraTarget, resetCamera } from './camera.js';
 
-let scene, camera, raycaster, composer, renderer, solarSystem, solarSystemRadius, cameraDrag, cameraFocus, pointerPosition;
+let seed, scene, camera, raycaster, composer, renderer, solarSystem, solarSystemRadius, cameraDrag, cameraFocus, pointerPosition;
 
 init();
 animate();
 
 function init() {
+  seed = new Seed();
   scene = new THREE.Scene();
   raycaster = new THREE.Raycaster();
 
@@ -70,11 +71,11 @@ function init() {
 
   // Add seed label and button
   let seedButton = document.getElementById('seed');
-  seedButton.innerHTML = 'Seed: ' + seed;
+  seedButton.innerHTML = 'Seed: ' + seed.value;
   seedButton.addEventListener('click', event => {
     let newSeed = prompt("Enter seed");
     if (newSeed) {
-      updateSeed(newSeed)
+      seed.updateSeed(newSeed)
       seedButton.innerHTML = 'Seed: ' + newSeed;
       solarSystem.destroy();
       solarSystem = new SolarSystem(scene, solarSystemRadius);
