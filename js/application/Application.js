@@ -1,14 +1,12 @@
 import * as THREE from 'three';
-import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
-import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
-import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 
 import Seed from './utils/Seed.js';
-import Time from './utils/time.js';
+import Time from './utils/Time.js';
+import Viewport from './utils/Viewport.js';
 import SeedButton from './ui/SeedButton.js';
 import SolarSystem from './objects/SolarSystem.js';
+import Renderer from './Renderer.js';
 import Camera from './Camera.js';
-import Viewport from './utils/Viewport.js';
 
 let instance = null;
 
@@ -26,8 +24,10 @@ export default class Application {
     this.time = new Time();
     this.viewport = new Viewport();
     this.scene = new THREE.Scene();
-    this.raycaster = new THREE.Raycaster();
     this.camera = new Camera();
+    this.renderer = new Renderer();
+
+    this.raycaster = new THREE.Raycaster();
     this.seedButton = new SeedButton();
 
     // Lights
@@ -47,29 +47,6 @@ export default class Application {
     this.scene.add(this.sun);
     this.solarSystem = new SolarSystem();
 
-    // Renderer
-    this.renderer = new THREE.WebGLRenderer({ 
-      canvas: this.canvas,
-      alpha: true, 
-      antialias: true 
-    });
-    this.renderer.shadowMap.enabled = true;
-    this.renderer.shadowMap.type = THREE.BasicShadowMap;
-    this.renderer.setPixelRatio( this.viewport.pixelRatio );
-    this.renderer.setSize( this.viewport.width, this.viewport.height );
-    this.renderScene = new RenderPass( this.scene, this.camera.instance );
-
-    // Bloom
-    this.bloomPass = new UnrealBloomPass( new THREE.Vector2( this.viewport.width, this.viewport.height ), 1.5, 0.4, 0.85 );
-    this.bloomPass.threshold = 0.95;
-    this.bloomPass.strength = 1.5;
-    this.bloomPass.radius = 0.5;
-
-    // Compose render and bloom
-    this.composer = new EffectComposer( this.renderer );
-    this.composer.addPass( this.renderScene );
-    this.composer.addPass( this.bloomPass );
-
     // Add touch controls
     this.cameraDrag = false;
     window.addEventListener('pointermove', (event) => this.pointerMove(event));
@@ -82,14 +59,12 @@ export default class Application {
       this.reset();
     });
 
-    this.time.on('tick', () => {
-      this.update();
+    this.viewport.on('resize', () => {
+      this.resize();
     });
 
-    this.viewport.on('resize', () => {
-      this.camera.setBounds();
-      this.renderer.setSize(this.viewport.width, this.viewport.height);
-      this.composer.setSize(this.viewport.width, this.viewport.height);
+    this.time.on('tick', () => {
+      this.update();
     });
   }
 
@@ -160,6 +135,11 @@ export default class Application {
     this.solarSystem = new SolarSystem();
   }
 
+  resize() {
+    this.camera.setBounds();
+    this.renderer.resize();
+  }
+
   update() {
     this.solarSystem.update();
     if (this.cameraFocus) {
@@ -170,6 +150,6 @@ export default class Application {
       this.camera.setPosition(cameraPosition.x, cameraPosition.y, focusObject.geometry.parameters.radius*5);
       this.camera.setTarget(cameraPosition.x, cameraPosition.y, cameraPosition.z);
     }
-    this.composer.render();
+    this.renderer.update();
   }
 }
