@@ -87,8 +87,7 @@ export default class Application {
     });
 
     this.viewport.on('resize', () => {
-      console.log('resize');
-      this.camera.setCameraBounds();
+      this.camera.setBounds();
       this.renderer.setSize(this.viewport.width, this.viewport.height);
       this.composer.setSize(this.viewport.width, this.viewport.height);
     });
@@ -114,8 +113,8 @@ export default class Application {
       if (newY < -this.solarSystemRadius) { newY = -this.solarSystemRadius }
       if (newY > 0) { newY = 0 }
 
-      this.camera.setCameraPosition(0, newY, newZ);
-      this.camera.setCameraTarget();
+      this.camera.setPosition(0, newY, newZ);
+      this.camera.setTarget();
       this.scene.rotation.z += 0.5 * Math.PI * 4 * screenMovement.x / this.viewport.width;
     }
   }
@@ -124,7 +123,7 @@ export default class Application {
     // If camera is focused on a planet, a tap will undo it
     if (this.cameraFocus) {
       this.cameraFocus = false;
-      this.camera.resetCamera();
+      this.camera.reset();
     }
     else {
       let pointer = new THREE.Vector2();
@@ -167,9 +166,9 @@ export default class Application {
       let focusObject = this.scene.getObjectById(this.cameraFocus);
       let cameraPosition = new THREE.Vector3(focusObject.parent.position.x, focusObject.parent.position.y, focusObject.parent.position.z);
       cameraPosition.applyAxisAngle(new THREE.Vector3( 0, 0, 1 ), this.scene.rotation.z);
-      this.camera.setCameraBounds(focusObject.geometry.parameters.radius*2.5);
-      this.camera.setCameraPosition(cameraPosition.x, cameraPosition.y, focusObject.geometry.parameters.radius*5);
-      this.camera.setCameraTarget(cameraPosition.x, cameraPosition.y, cameraPosition.z);
+      this.camera.setBounds(focusObject.geometry.parameters.radius*2.5);
+      this.camera.setPosition(cameraPosition.x, cameraPosition.y, focusObject.geometry.parameters.radius*5);
+      this.camera.setTarget(cameraPosition.x, cameraPosition.y, cameraPosition.z);
     }
     this.composer.render();
   }

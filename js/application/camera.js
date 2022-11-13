@@ -5,40 +5,44 @@ export default class Camera {
   constructor() {
     this.application = new Application();
     this.solarSystemRadius = this.application.solarSystemRadius;
+    this.viewport = this.application.viewport;
 
-    this.bounds = this.getCameraBounds();
+    this.bounds = {};
+    this.getBounds();
     this.instance = new THREE.OrthographicCamera(this.bounds.left, this.bounds.right, this.bounds.top, this.bounds.bottom, 1, 1000 );
-    this.setCameraPosition();
+    this.setPosition();
   }
 
-  getCameraBounds(range) {
+  getBounds(range) {
     if (range === undefined) {
       range = this.solarSystemRadius;
     }
-    const windowAspectRatio = window.innerWidth / window.innerHeight;
     let camWidth = range;
     let camHeight = range;
 
-    if (window.innerWidth > window.innerHeight)  {
-      camWidth = range * windowAspectRatio;
+    if (this.viewport.width > this.viewport.height)  {
+      camWidth = range * this.viewport.aspectRatio;
     }
     else {
-      camHeight = range / windowAspectRatio;
+      camHeight = range / this.viewport.aspectRatio;
     }
 
-    return { left: -camWidth, right: camWidth, top: camHeight, bottom: -camHeight }
+    this.bounds.left = -camWidth;
+    this.bounds.right = camWidth;
+    this.bounds.top = camHeight;
+    this.bounds.bottom = -camHeight;
   }
 
-  setCameraBounds(range) {
-    const bounds = this.getCameraBounds(range);
-    this.instance.left = bounds.left;
-    this.instance.right = bounds.right;
-    this.instance.top = bounds.top;
-    this.instance.bottom = bounds.bottom;
+  setBounds(range) {
+    this.getBounds(range);
+    this.instance.left = this.bounds.left;
+    this.instance.right = this.bounds.right;
+    this.instance.top = this.bounds.top;
+    this.instance.bottom = this.bounds.bottom;
     this.instance.updateProjectionMatrix();
   }
 
-  setCameraPosition(x, y, z) {
+  setPosition(x, y, z) {
     if (x === undefined) x = 0;
     if (y === undefined) y = 0;
     if (z === undefined) z = this.solarSystemRadius;
@@ -48,7 +52,7 @@ export default class Camera {
     this.instance.updateProjectionMatrix();
   }
 
-  setCameraTarget(x, y, z) {
+  setTarget(x, y, z) {
     if (x === undefined) x = 0;
     if (y === undefined) y = 0;
     if (z === undefined) z = 0;
@@ -57,10 +61,10 @@ export default class Camera {
     this.instance.updateProjectionMatrix();
   }
 
-  resetCamera() {
-    this.setCameraBounds();
-    this.setCameraPosition();
-    this.setCameraTarget();
+  reset() {
+    this.setBounds();
+    this.setPosition();
+    this.setTarget();
     this.instance.updateProjectionMatrix();
   }
 }
