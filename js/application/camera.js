@@ -1,51 +1,64 @@
 import * as THREE from 'three';
+import Application from './Application.js';
 
-export function getCameraBounds(range) {
-  const windowAspectRatio = window.innerWidth / window.innerHeight;
-  let camWidth = range;
-  let camHeight = range;
-
-  if (window.innerWidth > window.innerHeight)  {
-    camWidth = range * windowAspectRatio;
-  }
-  else {
-    camHeight = range / windowAspectRatio;
+export default class Camera {
+  constructor() {
+    this.application = new Application();
+    this.bounds = this.getCameraBounds();
+    this.instance = new THREE.OrthographicCamera(this.bounds.left, this.bounds.right, this.bounds.top, this.bounds.bottom, 1, 1000 );
+    this.setCameraPosition();
   }
 
-  return { left: -camWidth, right: camWidth, top: camHeight, bottom: -camHeight }
-}
+  getCameraBounds(range) {
+    if (range === undefined) {
+      range = this.application.solarSystemRadius;
+    }
+    const windowAspectRatio = window.innerWidth / window.innerHeight;
+    let camWidth = range;
+    let camHeight = range;
 
-export function setCameraBounds(camera, range) {
-  const bounds = getCameraBounds(range);
-  camera.left = bounds.left;
-  camera.right = bounds.right;
-  camera.top = bounds.top;
-  camera.bottom = bounds.bottom;
-  camera.updateProjectionMatrix();
-}
+    if (window.innerWidth > window.innerHeight)  {
+      camWidth = range * windowAspectRatio;
+    }
+    else {
+      camHeight = range / windowAspectRatio;
+    }
 
-export function setCameraPosition(camera, solarSystemRadius, x, y, z) {
-  if (x === undefined) x = 0;
-  if (y === undefined) y = 0;
-  if (z === undefined) z = solarSystemRadius;
-  camera.position.x = x;
-  camera.position.y = y;
-  camera.position.z = z;
-  camera.updateProjectionMatrix();
-}
+    return { left: -camWidth, right: camWidth, top: camHeight, bottom: -camHeight }
+  }
 
-export function setCameraTarget(camera, x, y, z) {
-  if (x === undefined) x = 0;
-  if (y === undefined) y = 0;
-  if (z === undefined) z = 0;
-  camera.up = new THREE.Vector3(0,1,0);
-  camera.lookAt(new THREE.Vector3(x,y,z));
-  camera.updateProjectionMatrix();
-}
+  setCameraBounds(range) {
+    const bounds = this.getCameraBounds(range);
+    this.instance.left = bounds.left;
+    this.instance.right = bounds.right;
+    this.instance.top = bounds.top;
+    this.instance.bottom = bounds.bottom;
+    this.instance.updateProjectionMatrix();
+  }
 
-export function resetCamera(camera, solarSystemRadius) {
-  setCameraBounds(camera, solarSystemRadius);
-  setCameraPosition(camera, solarSystemRadius);
-  setCameraTarget(camera);
-  camera.updateProjectionMatrix();
+  setCameraPosition(x, y, z) {
+    if (x === undefined) x = 0;
+    if (y === undefined) y = 0;
+    if (z === undefined) z = this.application.solarSystemRadius;
+    this.instance.position.x = x;
+    this.instance.position.y = y;
+    this.instance.position.z = z;
+    this.instance.updateProjectionMatrix();
+  }
+
+  setCameraTarget(x, y, z) {
+    if (x === undefined) x = 0;
+    if (y === undefined) y = 0;
+    if (z === undefined) z = 0;
+    this.instance.up = new THREE.Vector3(0,1,0);
+    this.instance.lookAt(new THREE.Vector3(x,y,z));
+    this.instance.updateProjectionMatrix();
+  }
+
+  resetCamera() {
+    this.setCameraBounds();
+    this.setCameraPosition();
+    this.setCameraTarget();
+    this.instance.updateProjectionMatrix();
+  }
 }

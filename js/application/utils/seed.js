@@ -4,7 +4,8 @@ let instance = null;
 
 export default class Seed {
   constructor () {
-    if (instance) {
+    if (instance) 
+    {
       return instance;
     }
     instance = this;

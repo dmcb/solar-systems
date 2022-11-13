@@ -4,14 +4,26 @@ import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import SolarSystem from './SolarSystem.js';
 import Seed from './utils/Seed.js';
-import { getCameraBounds, setCameraBounds, setCameraPosition, setCameraTarget, resetCamera } from './camera.js';
+import Camera from './Camera.js';
 
-export default class Application {
-  constructor(canvas) {
+let instance = null;
+
+export default class Application 
+{
+  constructor(canvas)
+  {
+    if (instance) 
+    {
+      return instance;
+    }
+    instance = this;
+
+    this.solarSystemRadius = 160;
     this.seed = new Seed();
     this.scene = new THREE.Scene();
     this.raycaster = new THREE.Raycaster();
     this.canvas = canvas;
+    this.camera = new Camera();
 
     // Lights
     this.sunLight = new THREE.PointLight( 0xffffff, 1, 0, 0 );
@@ -21,11 +33,6 @@ export default class Application {
     this.ambientLight = new THREE.AmbientLight( 0xffffff, 0.2 );
     this.scene.add( this.ambientLight );
 
-    // Camera
-    this.solarSystemRadius = 160;
-    this.bounds = getCameraBounds(this.solarSystemRadius);
-    this.camera = new THREE.OrthographicCamera(this.bounds.left, this.bounds.right, this.bounds.top, this.bounds.bottom, 1, 1000 );
-    setCameraPosition(this.camera, this.solarSystemRadius);
 
     // Sun
     this.sunGeometry = new THREE.SphereGeometry( 7 );
@@ -42,7 +49,7 @@ export default class Application {
     this.renderer.shadowMap.type = THREE.BasicShadowMap;
     this.renderer.setPixelRatio( window.devicePixelRatio );
     this.renderer.setSize( window.innerWidth, window.innerHeight );
-    this.renderScene = new RenderPass( this.scene, this.camera );
+    this.renderScene = new RenderPass( this.scene, this.camera.instance );
 
     // Bloom
     this.bloomPass = new UnrealBloomPass( new THREE.Vector2( window.innerWidth, window.innerHeight ), 1.5, 0.4, 0.85 );
@@ -58,7 +65,7 @@ export default class Application {
     // UI
     // Update camera on window resize
     window.addEventListener('resize', () => {
-      setCameraBounds(this.camera, this.solarSystemRadius);
+      this.camera.setCameraBounds();
       this.renderer.setSize(window.innerWidth, window.innerHeight);
       this.composer.setSize(window.innerWidth, window.innerHeight);
     });
@@ -95,10 +102,9 @@ export default class Application {
       let focusObject = this.scene.getObjectById(this.cameraFocus);
       let cameraPosition = new THREE.Vector3(focusObject.parent.position.x, focusObject.parent.position.y, focusObject.parent.position.z);
       cameraPosition.applyAxisAngle(new THREE.Vector3( 0, 0, 1 ), this.scene.rotation.z);
-      setCameraBounds(this.camera, focusObject.geometry.parameters.radius*2.5);
-      setCameraPosition(this.camera, this.solarSystemRadius, cameraPosition.x, cameraPosition.y, focusObject.geometry.parameters.radius*5);
-      this.camera.lookAt(cameraPosition);
-      this.camera.updateProjectionMatrix();
+      this.camera.setCameraBounds(focusObject.geometry.parameters.radius*2.5);
+      this.camera.setCameraPosition(cameraPosition.x, cameraPosition.y, focusObject.geometry.parameters.radius*5);
+      this.camera.setCameraTarget(cameraPosition.x, cameraPosition.y, cameraPosition.z);
     }
     this.composer.render();
   }
@@ -111,8 +117,8 @@ export default class Application {
 
       let newZ, newY;
       let rads = Math.atan2(
-        this.camera.position.z-(this.solarSystemRadius*3*screenMovement.y/window.innerHeight), 
-        this.camera.position.y-(this.solarSystemRadius*3*screenMovement.y/window.innerHeight)
+        this.camera.instance.position.z-(this.solarSystemRadius*3*screenMovement.y/window.innerHeight), 
+        this.camera.instance.position.y-(this.solarSystemRadius*3*screenMovement.y/window.innerHeight)
       );
 
       newZ = Math.sin(rads)*this.solarSystemRadius;
@@ -123,8 +129,8 @@ export default class Application {
       if (newY < -this.solarSystemRadius) { newY = -this.solarSystemRadius }
       if (newY > 0) { newY = 0 }
 
-      setCameraPosition(this.camera, this.solarSystemRadius, 0, newY, newZ);
-      setCameraTarget(this.camera);
+      this.camera.setCameraPosition(0, newY, newZ);
+      this.camera.setCameraTarget();
       this.scene.rotation.z += 0.5 * Math.PI * 4 * screenMovement.x / window.innerWidth;
     }
   }
@@ -133,14 +139,14 @@ export default class Application {
     // If camera is focused on a planet, a tap will undo it
     if (this.cameraFocus) {
       this.cameraFocus = false;
-      resetCamera(this.camera, this.solarSystemRadius);
+      this.camera.resetCamera();
     }
     else {
       let pointer = new THREE.Vector2();
       pointer.x = ( event.clientX / window.innerWidth ) * 2 - 1;
       pointer.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
 
-      this.raycaster.setFromCamera( pointer, this.camera );
+      this.raycaster.setFromCamera( pointer, this.camera.instance );
       
       const intersects = this.raycaster.intersectObjects( this.scene.children );
       intersects.forEach((item, index, object) => {
