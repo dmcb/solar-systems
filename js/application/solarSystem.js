@@ -1,7 +1,7 @@
-import { Planet } from './planet.js';
-import Seed from './utils/seed.js';
+import Planet from './Planet.js';
+import Seed from './utils/Seed.js';
 
-class SolarSystem {
+export default class SolarSystem {
   constructor(scene, solarSystemRadius) {
     this.seed = new Seed();
     this.planets = [];
@@ -34,5 +34,3 @@ class SolarSystem {
     this.planets = [];
   }
 }
-
-export { SolarSystem };

@@ -2,8 +2,8 @@ import * as THREE from 'three';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
-import { SolarSystem } from './solarSystem.js';
-import Seed from './utils/seed.js';
+import SolarSystem from './SolarSystem.js';
+import Seed from './utils/Seed.js';
 import { getCameraBounds, setCameraBounds, setCameraPosition, setCameraTarget, resetCamera } from './camera.js';
 
 export default class Application {

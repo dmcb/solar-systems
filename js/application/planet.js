@@ -1,11 +1,11 @@
 import * as THREE from 'three';
-import Seed from './utils/seed.js';
+import Seed from './utils/Seed.js';
 
-const exaggeratedDistanceFromSunModifier = 1.2;
-const speedModifier = 0.005;
-
-class Planet {
+export default class Planet {
   constructor(minimumDistance, maximumDistance, direction) {
+    const exaggeratedDistanceFromSunModifier = 1.2;
+    const speedModifier = 0.005;
+
     this.seed = new Seed();
     this.minimumDistance = minimumDistance;
     this.maximumDistance = maximumDistance;
@@ -117,5 +117,3 @@ class Planet {
     });
   }
 }
-
-export { Planet };
