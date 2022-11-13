@@ -8,6 +8,7 @@ import Time from './utils/time.js';
 import SeedButton from './ui/SeedButton.js';
 import SolarSystem from './objects/SolarSystem.js';
 import Camera from './Camera.js';
+import Viewport from './utils/Viewport.js';
 
 let instance = null;
 
@@ -23,6 +24,7 @@ export default class Application {
     this.solarSystemRadius = 160;
     this.seed = new Seed();
     this.time = new Time();
+    this.viewport = new Viewport();
     this.scene = new THREE.Scene();
     this.raycaster = new THREE.Raycaster();
     this.camera = new Camera();
@@ -53,12 +55,12 @@ export default class Application {
     });
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.BasicShadowMap;
-    this.renderer.setPixelRatio( window.devicePixelRatio );
-    this.renderer.setSize( window.innerWidth, window.innerHeight );
+    this.renderer.setPixelRatio( this.viewport.pixelRatio );
+    this.renderer.setSize( this.viewport.width, this.viewport.height );
     this.renderScene = new RenderPass( this.scene, this.camera.instance );
 
     // Bloom
-    this.bloomPass = new UnrealBloomPass( new THREE.Vector2( window.innerWidth, window.innerHeight ), 1.5, 0.4, 0.85 );
+    this.bloomPass = new UnrealBloomPass( new THREE.Vector2( this.viewport.width, this.viewport.height ), 1.5, 0.4, 0.85 );
     this.bloomPass.threshold = 0.95;
     this.bloomPass.strength = 1.5;
     this.bloomPass.radius = 0.5;
@@ -67,14 +69,6 @@ export default class Application {
     this.composer = new EffectComposer( this.renderer );
     this.composer.addPass( this.renderScene );
     this.composer.addPass( this.bloomPass );
-
-    // UI
-    // Update camera on window resize
-    window.addEventListener('resize', () => {
-      this.camera.setCameraBounds();
-      this.renderer.setSize(window.innerWidth, window.innerHeight);
-      this.composer.setSize(window.innerWidth, window.innerHeight);
-    });
 
     // Add touch controls
     this.cameraDrag = false;
@@ -86,11 +80,18 @@ export default class Application {
 
     this.seed.on('set', () => {
       this.reset();
-    })
+    });
 
     this.time.on('tick', () => {
       this.update();
-    })
+    });
+
+    this.viewport.on('resize', () => {
+      console.log('resize');
+      this.camera.setCameraBounds();
+      this.renderer.setSize(this.viewport.width, this.viewport.height);
+      this.composer.setSize(this.viewport.width, this.viewport.height);
+    });
   }
 
   pointerMove(event) {
@@ -101,8 +102,8 @@ export default class Application {
 
       let newZ, newY;
       let rads = Math.atan2(
-        this.camera.instance.position.z-(this.solarSystemRadius*3*screenMovement.y/window.innerHeight), 
-        this.camera.instance.position.y-(this.solarSystemRadius*3*screenMovement.y/window.innerHeight)
+        this.camera.instance.position.z-(this.solarSystemRadius*3*screenMovement.y/this.viewport.height), 
+        this.camera.instance.position.y-(this.solarSystemRadius*3*screenMovement.y/this.viewport.height)
       );
 
       newZ = Math.sin(rads)*this.solarSystemRadius;
@@ -115,7 +116,7 @@ export default class Application {
 
       this.camera.setCameraPosition(0, newY, newZ);
       this.camera.setCameraTarget();
-      this.scene.rotation.z += 0.5 * Math.PI * 4 * screenMovement.x / window.innerWidth;
+      this.scene.rotation.z += 0.5 * Math.PI * 4 * screenMovement.x / this.viewport.width;
     }
   }
 
@@ -127,8 +128,8 @@ export default class Application {
     }
     else {
       let pointer = new THREE.Vector2();
-      pointer.x = ( event.clientX / window.innerWidth ) * 2 - 1;
-      pointer.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+      pointer.x = ( event.clientX / this.viewport.width ) * 2 - 1;
+      pointer.y = - ( event.clientY / this.viewport.height ) * 2 + 1;
 
       this.raycaster.setFromCamera( pointer, this.camera.instance );
       
