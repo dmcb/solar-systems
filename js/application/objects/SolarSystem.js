@@ -1,5 +1,5 @@
 import Planet from './Planet.js';
-import Application from './Application.js';
+import Application from '../Application.js';
 
 export default class SolarSystem {
   constructor() {
@@ -25,9 +25,9 @@ export default class SolarSystem {
     }
   }
 
-  travel() {
+  update() {
     this.planets.forEach(planet => {
-      planet.travel();
+      planet.update();
     });
   }
 

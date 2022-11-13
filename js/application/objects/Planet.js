@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import Application from './Application.js';
+import Application from '../Application.js';
 
 export default class Planet {
   constructor(minimumDistance, maximumDistance, direction) {
@@ -9,6 +9,7 @@ export default class Planet {
     this.application = new Application();
     this.seed = this.application.seed;
     this.scene = this.application.scene;
+    this.time = this.application.time;
 
     this.minimumDistance = minimumDistance;
     this.maximumDistance = maximumDistance;
@@ -17,7 +18,7 @@ export default class Planet {
     this.projectedDistanceFromSun = this.seed.fakeGaussianRandom(-9,10)*this.maximumDistance + this.minimumDistance;
     this.colour = new THREE.Color( this.seed.getRandom()*0xffffff );
     this.size = this.seed.fakeGaussianRandom(-1,3)*6+1;
-    this.rotationSpeed = this.seed.fakeGaussianRandom()*3;
+    this.rotationSpeed = this.seed.fakeGaussianRandom()*0.03;
     this.orbitEccentricity = this.seed.fakeGaussianRandom()*0;
     this.orbitAxis = this.seed.fakeGaussianRandom()*20-10;
     this.rockiness = this.seed.fakeGaussianRandom();
@@ -85,12 +86,12 @@ export default class Planet {
     return this.actualDistanceFromSun +this.planetOccupiedArea;
   }
 
-  travel() {
+  update() {
     // Rotate the planet on its axis (day)
-    this.planetSphere.rotation.z += this.rotationSpeed*0.01;
+    this.planetSphere.rotation.z += this.rotationSpeed * this.time.delta * 0.0625;
 
     // Orbit the planet (year)
-    this.orbitalPosition += this.speed * this.direction;
+    this.orbitalPosition += this.speed * this.direction * this.time.delta * 0.0625;
     let position = this.determineOrbit(this.orbitalPosition);
     this.planetPivotPoint.position.x = position.x;
     this.planetPivotPoint.position.y = position.y;
