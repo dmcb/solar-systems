@@ -4,6 +4,8 @@ import Application from './Application.js';
 export default class Camera {
   constructor() {
     this.application = new Application();
+    this.solarSystemRadius = this.application.solarSystemRadius;
+
     this.bounds = this.getCameraBounds();
     this.instance = new THREE.OrthographicCamera(this.bounds.left, this.bounds.right, this.bounds.top, this.bounds.bottom, 1, 1000 );
     this.setCameraPosition();
@@ -11,7 +13,7 @@ export default class Camera {
 
   getCameraBounds(range) {
     if (range === undefined) {
-      range = this.application.solarSystemRadius;
+      range = this.solarSystemRadius;
     }
     const windowAspectRatio = window.innerWidth / window.innerHeight;
     let camWidth = range;
@@ -39,7 +41,7 @@ export default class Camera {
   setCameraPosition(x, y, z) {
     if (x === undefined) x = 0;
     if (y === undefined) y = 0;
-    if (z === undefined) z = this.application.solarSystemRadius;
+    if (z === undefined) z = this.solarSystemRadius;
     this.instance.position.x = x;
     this.instance.position.y = y;
     this.instance.position.z = z;

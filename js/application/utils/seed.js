@@ -1,23 +1,17 @@
 import 'https://cdnjs.cloudflare.com/ajax/libs/seedrandom/3.0.5/seedrandom.min.js';
+import EventEmitter from './EventEmitter.js'
 
-let instance = null;
-
-export default class Seed {
+export default class Seed extends EventEmitter {
   constructor () {
-    if (instance) 
-    {
-      return instance;
-    }
-    instance = this;
+    super();
   
-    this.seedRandom;
-    this.value;
-    this.updateSeed(Math.random().toString(36).substring(2,7))
+    this.updateSeed(Math.random().toString(36).substring(2,7));
   }
 
   updateSeed(value) {
     this.value = value;
     this.seedRandom = new Math.seedrandom(value); 
+    this.trigger('set');
   }
 
   fakeGaussianRandom(howSkewed, howNormalized) {
@@ -37,12 +31,8 @@ export default class Seed {
     if (howSkewed != 0) {
       randomNumbers.sort(function(a, b){return a - b});
   
-      if (howSkewed > 0) {
-        randomNumbers.splice(0, howSkewed);
-      }
-      else {
-        randomNumbers.splice(howSkewed, Math.abs(howSkewed));
-      }
+      if (howSkewed > 0) randomNumbers.splice(0, howSkewed);
+      else randomNumbers.splice(howSkewed, Math.abs(howSkewed));
     }
   
     randomTotal = randomNumbers.reduce((total, current) => {

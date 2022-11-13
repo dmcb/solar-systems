@@ -1,12 +1,16 @@
 import Planet from './Planet.js';
-import Seed from './utils/Seed.js';
+import Application from './Application.js';
 
 export default class SolarSystem {
-  constructor(scene, solarSystemRadius) {
-    this.seed = new Seed();
+  constructor() {
+    this.application = new Application();
+    this.seed = this.application.seed;
+    this.scene = this.application.scene;
+    this.solarSystemRadius = this.application.solarSystemRadius;
+    
     this.planets = [];
     this.minimumDistance = 16;
-    this.maximumDistance = solarSystemRadius;
+    this.maximumDistance = this.solarSystemRadius;
     this.direction = this.seed.getRandom();
     if (this.direction >= 0.5) this.direction = 1;
     else this.direction = -1;
@@ -15,7 +19,7 @@ export default class SolarSystem {
       let planet = new Planet(this.minimumDistance, this.maximumDistance, this.direction);
       this.minimumDistance = planet.nextNeighbourMinimumDistance();
       if (this.minimumDistance < this.maximumDistance) {
-        planet.addToScene(scene);
+        planet.addToScene(this.scene);
         this.planets.push(planet);
       }
     }

@@ -2,28 +2,29 @@ import * as THREE from 'three';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
-import SolarSystem from './SolarSystem.js';
+
 import Seed from './utils/Seed.js';
+import SeedButton from './ui/SeedButton.js';
+import SolarSystem from './SolarSystem.js';
 import Camera from './Camera.js';
 
 let instance = null;
 
-export default class Application 
-{
-  constructor(canvas)
-  {
-    if (instance) 
-    {
+export default class Application {
+  constructor(canvas) {
+    if (instance) {
       return instance;
     }
     instance = this;
+    window.application = this;
 
+    this.canvas = canvas;
     this.solarSystemRadius = 160;
     this.seed = new Seed();
     this.scene = new THREE.Scene();
     this.raycaster = new THREE.Raycaster();
-    this.canvas = canvas;
     this.camera = new Camera();
+    this.seedButton = new SeedButton();
 
     // Lights
     this.sunLight = new THREE.PointLight( 0xffffff, 1, 0, 0 );
@@ -33,7 +34,6 @@ export default class Application
     this.ambientLight = new THREE.AmbientLight( 0xffffff, 0.2 );
     this.scene.add( this.ambientLight );
 
-
     // Sun
     this.sunGeometry = new THREE.SphereGeometry( 7 );
     this.sunMaterial = new THREE.MeshBasicMaterial( { color: 0xffffcc } );
@@ -41,10 +41,14 @@ export default class Application
     this.sun.name = "sun";
     this.sun.position.set( 0, 0, 0);
     this.scene.add(this.sun);
-    this.solarSystem = new SolarSystem(this.scene, this.solarSystemRadius);
+    this.solarSystem = new SolarSystem();
 
     // Renderer
-    this.renderer = new THREE.WebGLRenderer({ canvas: this.canvas, alpha: true, antialias: true });
+    this.renderer = new THREE.WebGLRenderer({ 
+      canvas: this.canvas,
+      alpha: true, 
+      antialias: true 
+    });
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.BasicShadowMap;
     this.renderer.setPixelRatio( window.devicePixelRatio );
@@ -70,19 +74,6 @@ export default class Application
       this.composer.setSize(window.innerWidth, window.innerHeight);
     });
 
-    // Add seed label and button
-    this.seedButton = document.getElementById('seed');
-    this.seedButton.innerHTML = 'Seed: ' + this.seed.value;
-    this.seedButton.addEventListener('click', event => {
-      let newSeed = prompt("Enter seed");
-      if (newSeed) {
-        this.seed.updateSeed(newSeed)
-        this.seedButton.innerHTML = 'Seed: ' + newSeed;
-        this.solarSystem.destroy();
-        this.solarSystem = new SolarSystem(this.scene, this.solarSystemRadius);
-      }
-    });
-
     // Add touch controls
     this.cameraDrag = false;
     window.addEventListener('pointermove', (event) => this.pointerMove(event));
@@ -92,6 +83,10 @@ export default class Application
     window.addEventListener('pointercancel', (event) => this.pointerEnd(event));
 
     this.animate();
+
+    this.seed.on('set', () => {
+      this.reset();
+    })
   }
 
   animate() {
@@ -169,5 +164,10 @@ export default class Application
     if (this.cameraDrag == event.pointerId) {
       this.cameraDrag = false;
     }
+  }
+
+  reset() {
+    this.solarSystem.destroy();
+    this.solarSystem = new SolarSystem();
   }
 }

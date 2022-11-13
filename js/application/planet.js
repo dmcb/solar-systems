@@ -1,12 +1,15 @@
 import * as THREE from 'three';
-import Seed from './utils/Seed.js';
+import Application from './Application.js';
 
 export default class Planet {
   constructor(minimumDistance, maximumDistance, direction) {
     const exaggeratedDistanceFromSunModifier = 1.2;
     const speedModifier = 0.005;
 
-    this.seed = new Seed();
+    this.application = new Application();
+    this.seed = this.application.seed;
+    this.scene = this.application.scene;
+
     this.minimumDistance = minimumDistance;
     this.maximumDistance = maximumDistance;
     this.direction = direction;
@@ -36,7 +39,7 @@ export default class Planet {
     this.speed = speedModifier * Math.pow(16, exaggeratedDistanceFromSunModifier) * (1 / Math.pow(this.actualDistanceFromSun, exaggeratedDistanceFromSunModifier));
   }
 
-  addToScene(scene) {
+  addToScene() {
     // Add planet to scene
     const textureLoader = new THREE.TextureLoader();
     const normalMap = textureLoader.load( 'textures/0' + this.surfaceTexture + '.jpg' );
@@ -48,7 +51,7 @@ export default class Planet {
     this.planetSphere.receiveShadow = true;
     this.planetSphere.castShadow = true;
     this.planetPivotPoint = new THREE.Object3D();
-    scene.add(this.planetPivotPoint);
+    this.scene.add(this.planetPivotPoint);
     this.planetPivotPoint.add(this.planetSphere);
 
     // Add orbit path to scene
@@ -60,7 +63,7 @@ export default class Planet {
     }
     const orbitLineGeometry = new THREE.BufferGeometry().setFromPoints( orbitPoints );
     this.orbitLine = new THREE.Line( orbitLineGeometry, orbitLineMaterial );
-    scene.add(this.orbitLine);
+    this.scene.add(this.orbitLine);
 
     // Add rings
     this.planetRings = [];
