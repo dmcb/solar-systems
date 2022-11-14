@@ -12,40 +12,31 @@ let instance = null;
 
 export default class Application {
   constructor(canvas) {
+    // Singleton
     if (instance) {
       return instance;
     }
     instance = this;
+
+    // Global access
     window.application = this;
 
+    // Options
     this.canvas = canvas;
-    this.solarSystemRadius = 160;
+
+    // Setup
     this.seed = new Seed();
     this.time = new Time();
-    this.viewport = new Viewport();
     this.scene = new THREE.Scene();
+    this.solarSystemRadius = 160;
+    this.solarSystem = new SolarSystem();
+    this.viewport = new Viewport();
     this.camera = new Camera();
     this.renderer = new Renderer();
 
+    // Add UI
     this.raycaster = new THREE.Raycaster();
     this.seedButton = new SeedButton();
-
-    // Lights
-    this.sunLight = new THREE.PointLight( 0xffffff, 1, 0, 0 );
-    this.sunLight.position.set( 0, 0, 0 );
-    this.sunLight.castShadow = true;
-    this.scene.add( this.sunLight );
-    this.ambientLight = new THREE.AmbientLight( 0xffffff, 0.2 );
-    this.scene.add( this.ambientLight );
-
-    // Sun
-    this.sunGeometry = new THREE.SphereGeometry( 7 );
-    this.sunMaterial = new THREE.MeshBasicMaterial( { color: 0xffffcc } );
-    this.sun = new THREE.Mesh( this.sunGeometry, this.sunMaterial );
-    this.sun.name = "sun";
-    this.sun.position.set( 0, 0, 0);
-    this.scene.add(this.sun);
-    this.solarSystem = new SolarSystem();
 
     // Add touch controls
     this.cameraDrag = false;

@@ -1,3 +1,4 @@
+import Sun from './Sun.js';
 import Planet from './Planet.js';
 import Application from '../Application.js';
 
@@ -7,14 +8,24 @@ export default class SolarSystem {
     this.seed = this.application.seed;
     this.scene = this.application.scene;
     this.solarSystemRadius = this.application.solarSystemRadius;
+
+    this.setInstance();
+  }
     
+  setInstance() {
+    this.suns = [];
     this.planets = [];
     this.minimumDistance = 16;
     this.maximumDistance = this.solarSystemRadius;
     this.direction = this.seed.getRandom();
     if (this.direction >= 0.5) this.direction = 1;
     else this.direction = -1;
+
+    // Add suns
+    let sun = new Sun();
+    this.suns.push(sun);
   
+    // Add planets
     while (this.minimumDistance < this.maximumDistance) {
       let planet = new Planet(this.minimumDistance, this.maximumDistance, this.direction);
       this.minimumDistance = planet.nextNeighbourMinimumDistance();
@@ -32,6 +43,11 @@ export default class SolarSystem {
   }
 
   destroy() {
+    this.suns.forEach((item, index, object) => {
+      item.destroy();
+    });
+    this.suns = [];
+
     this.planets.forEach((item, index, object) => {
       item.destroy();
     });
