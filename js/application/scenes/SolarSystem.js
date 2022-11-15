@@ -58,6 +58,11 @@ export default class SolarSystem {
     this.planets = [];
   }
 
+  reset() {
+    this.destroy();
+    this.create();
+  }
+
   changeFocus(objectId) {
     // Upscale planet?
   }

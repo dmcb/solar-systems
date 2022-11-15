@@ -62,8 +62,7 @@ export default class Application {
   }
 
   reset() {
-    this.solarSystem.destroy();
-    this.solarSystem.create();
+    this.solarSystem.reset();
   }
 
   resize() {

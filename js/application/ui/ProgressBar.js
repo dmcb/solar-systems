@@ -19,7 +19,9 @@ export default class ProgressBar {
     this.bar.style.width = percent;
 
     if (percent == "100%") {
-      this.element.remove();
+      setTimeout(() => {
+        this.element.remove();
+      }, 300);
     }
   }
 }
