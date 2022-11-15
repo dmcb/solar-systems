@@ -9,6 +9,7 @@ import Renderer from './Renderer.js';
 import Camera from './Camera.js';
 import SeedButton from './ui/SeedButton.js';
 import Controls from './ui/Controls.js';
+import ProgressBar from './ui/ProgressBar.js';
 
 import sources from './data/sources.js';
 
@@ -32,6 +33,7 @@ export default class Application {
     this.seed = new Seed();
     this.time = new Time();
     this.scene = new THREE.Scene();
+    this.progressBar = new ProgressBar();
     this.resources = new Resources(sources);
     this.solarSystemRadius = 160;
     this.solarSystem = new SolarSystem();

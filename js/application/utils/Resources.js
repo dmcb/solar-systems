@@ -1,11 +1,13 @@
 import * as THREE from 'three';
-import ProgressBar from '../ui/ProgressBar.js';
+import Application from '../Application.js';
 import EventEmitter from './EventEmitter.js';
 
 export default class Resources extends EventEmitter {
   constructor(sources) {
     super();
 
+    this.application = new Application();
+    this.progressBar = this.application.progressBar;
     this.sources = sources;
 
     this.items = {};
@@ -23,7 +25,7 @@ export default class Resources extends EventEmitter {
 
   startLoading() {
     // Add loader UI element
-    this.progressBar = new ProgressBar();
+    this.progressBar.start();
 
     // Load each source
     for (const source of this.sources) {
@@ -42,7 +44,7 @@ export default class Resources extends EventEmitter {
     this.items[source.name] = file;
 
     this.loaded++;
-    this.progressBar.updateProgress(Math.round(100*this.loaded/this.toLoad) + '%');
+    this.progressBar.update(Math.round(100*this.loaded/this.toLoad) + '%');
 
     if(this.loaded === this.toLoad) {
       this.trigger('ready');

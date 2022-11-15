@@ -7,6 +7,7 @@ export default class ProgressBar {
 
     this.element = document.createElement('div');
     this.element.id = "loader";
+    this.element.classList.remove('loading');
     this.element.innerHTML = 'Loading';
     this.bar = document.createElement('div');
     this.bar.className = "bar";
@@ -15,13 +16,15 @@ export default class ProgressBar {
     this.canvas.before(this.element);
   }
 
-  updateProgress(percent) {
+  start() {
+    this.element.classList.add('loading');
+  }
+
+  update(percent) {
     this.bar.style.width = percent;
 
     if (percent == "100%") {
-      setTimeout(() => {
-        this.element.remove();
-      }, 300);
+      this.element.classList.remove('loading');
     }
   }
 }

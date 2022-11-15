@@ -30,10 +30,17 @@ div#loader {
   background-color: white;
   padding: 0.5em;
   transform: translate(-50%, -50%);
+  opacity: 0;
+  pointer-events: none;
+  transition: 0.3s opacity;
 
   .bar {
     margin-top: 0.5em;
     background-color: #bd41a6;
     height: 2px;
+  }
+
+  &.loading {
+    opacity: 1;
   }
 }
