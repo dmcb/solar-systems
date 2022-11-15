@@ -1,5 +1,5 @@
 import 'https://cdnjs.cloudflare.com/ajax/libs/seedrandom/3.0.5/seedrandom.min.js';
-import EventEmitter from './EventEmitter.js'
+import EventEmitter from './EventEmitter.js';
 
 export default class Seed extends EventEmitter {
   constructor () {

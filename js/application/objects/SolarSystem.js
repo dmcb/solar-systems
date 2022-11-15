@@ -53,4 +53,8 @@ export default class SolarSystem {
     });
     this.planets = [];
   }
+
+  changeFocus(objectId) {
+    // Upscale planet?
+  }
 }

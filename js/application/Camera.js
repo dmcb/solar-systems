@@ -5,6 +5,7 @@ export default class Camera {
   constructor() {
     this.application = new Application();
     this.solarSystemRadius = this.application.solarSystemRadius;
+    this.scene = this.application.scene;
     this.viewport = this.application.viewport;
 
     this.bounds = {};
@@ -66,5 +67,23 @@ export default class Camera {
     this.setPosition();
     this.setTarget();
     this.instance.updateProjectionMatrix();
+  }
+
+  update() {
+    if (this.focus) {
+      let focusObject = this.scene.getObjectById(this.focus);
+      let cameraPosition = new THREE.Vector3(focusObject.parent.position.x, focusObject.parent.position.y, focusObject.parent.position.z);
+      cameraPosition.applyAxisAngle(new THREE.Vector3( 0, 0, 1 ), this.scene.rotation.z);
+      this.setBounds(focusObject.geometry.parameters.radius*2.5);
+      this.setPosition(cameraPosition.x, cameraPosition.y, this.solarSystemRadius);
+      this.setTarget(cameraPosition.x, cameraPosition.y, cameraPosition.z);
+    }
+  }
+
+  changeFocus(objectId) {
+    this.focus = objectId;
+    if (!this.focus) {
+      this.reset();
+    }
   }
 }
