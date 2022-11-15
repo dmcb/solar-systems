@@ -10,6 +10,7 @@ export default class Planet {
     this.seed = this.application.seed;
     this.scene = this.application.scene;
     this.time = this.application.time;
+    this.resources = this.application.resources;
 
     this.minimumDistance = minimumDistance;
     this.maximumDistance = maximumDistance;
@@ -43,7 +44,7 @@ export default class Planet {
   addToScene() {
     // Add planet to scene
     const textureLoader = new THREE.TextureLoader();
-    const normalMap = textureLoader.load( 'textures/0' + this.surfaceTexture + '.jpg' );
+    const normalMap = this.resources.items['normalMap0' + this.surfaceTexture];
     const sphereGeometry = new THREE.SphereGeometry( this.size );
     const sphereMaterial = new THREE.MeshPhongMaterial( { color: this.colour, shininess: 1, normalMap: normalMap, normalScale: new THREE.Vector2( this.rockiness, this.rockiness ) } );
     this.planetSphere = new THREE.Mesh( sphereGeometry, sphereMaterial );

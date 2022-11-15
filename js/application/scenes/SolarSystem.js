@@ -1,5 +1,5 @@
-import Sun from './Sun.js';
-import Planet from './Planet.js';
+import Sun from '../objects/Sun.js';
+import Planet from '../objects/Planet.js';
 import Application from '../Application.js';
 
 export default class SolarSystem {
@@ -8,13 +8,17 @@ export default class SolarSystem {
     this.seed = this.application.seed;
     this.scene = this.application.scene;
     this.solarSystemRadius = this.application.solarSystemRadius;
+    this.resources = this.application.resources;
 
-    this.setInstance();
-  }
-    
-  setInstance() {
     this.suns = [];
     this.planets = [];
+
+    this.resources.on('ready', () => {
+      this.create();
+    });
+  }
+
+  create() {
     this.minimumDistance = 16;
     this.maximumDistance = this.solarSystemRadius;
     this.direction = this.seed.getRandom();
@@ -24,8 +28,8 @@ export default class SolarSystem {
     // Add suns
     let sun = new Sun();
     this.suns.push(sun);
-  
-    // Add planets
+
+    // Add planets   
     while (this.minimumDistance < this.maximumDistance) {
       let planet = new Planet(this.minimumDistance, this.maximumDistance, this.direction);
       this.minimumDistance = planet.nextNeighbourMinimumDistance();

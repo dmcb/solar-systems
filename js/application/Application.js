@@ -3,11 +3,14 @@ import * as THREE from 'three';
 import Seed from './utils/Seed.js';
 import Time from './utils/Time.js';
 import Viewport from './utils/Viewport.js';
-import SolarSystem from './objects/SolarSystem.js';
+import Resources from './utils/Resources.js';
+import SolarSystem from './scenes/SolarSystem.js';
 import Renderer from './Renderer.js';
 import Camera from './Camera.js';
 import SeedButton from './ui/SeedButton.js';
 import Controls from './ui/Controls.js';
+
+import sources from './data/sources.js';
 
 let instance = null;
 
@@ -29,14 +32,12 @@ export default class Application {
     this.seed = new Seed();
     this.time = new Time();
     this.scene = new THREE.Scene();
+    this.resources = new Resources(sources);
     this.solarSystemRadius = 160;
     this.solarSystem = new SolarSystem();
     this.viewport = new Viewport();
     this.camera = new Camera();
     this.renderer = new Renderer();
-
-    // Add UI
-    this.seedButton = new SeedButton();
     this.controls = new Controls();
 
     this.seed.on('set', () => {
@@ -54,11 +55,15 @@ export default class Application {
     this.controls.on('focus', (objectId) => {
       this.changeFocus(objectId); 
     });
+
+    this.resources.on('ready', () => {
+      this.seedButton = new SeedButton();
+    })
   }
 
   reset() {
     this.solarSystem.destroy();
-    this.solarSystem = new SolarSystem();
+    this.solarSystem.create();
   }
 
   resize() {
