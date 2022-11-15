@@ -16,8 +16,24 @@ button#seed {
   color: #000;
   cursor: pointer;
   transition: 0.3s background-color;
+
+  &:hover {
+    background-color: #bd41a6;
+  }
 }
 
-button#seed:hover {
-  background-color: #bd41a6;
+div#loader {
+  border-radius: 0.5em;
+  position: fixed;
+  top: 50vh;
+  left: 50vw;
+  background-color: white;
+  padding: 0.5em;
+  transform: translate(-50%, -50%);
+
+  .bar {
+    margin-top: 0.5em;
+    background-color: #bd41a6;
+    height: 2px;
+  }
 }

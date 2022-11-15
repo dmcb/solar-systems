@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import ProgressBar from '../ui/ProgressBar.js';
 import EventEmitter from './EventEmitter.js';
 
 export default class Resources extends EventEmitter {
@@ -22,6 +22,9 @@ export default class Resources extends EventEmitter {
   }
 
   startLoading() {
+    // Add loader UI element
+    this.progressBar = new ProgressBar();
+
     // Load each source
     for (const source of this.sources) {
       if(source.type === 'texture') {
@@ -39,7 +42,7 @@ export default class Resources extends EventEmitter {
     this.items[source.name] = file;
 
     this.loaded++;
-    console.log(Math.round(100*this.loaded/this.toLoad) + '%');
+    this.progressBar.updateProgress(Math.round(100*this.loaded/this.toLoad) + '%');
 
     if(this.loaded === this.toLoad) {
       this.trigger('ready');
