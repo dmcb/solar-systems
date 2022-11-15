@@ -10,6 +10,7 @@ export default class ProgressBar {
     this.element.innerHTML = 'Loading';
     this.bar = document.createElement('div');
     this.bar.className = "bar";
+    this.bar.style.width = 0;
     this.element.appendChild(this.bar);
     this.canvas.before(this.element);
   }
