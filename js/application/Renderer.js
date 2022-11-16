@@ -31,7 +31,7 @@ export default class Renderer {
 
     // Bloom
     this.bloomPass = new UnrealBloomPass(new THREE.Vector2(this.viewport.width, this.viewport.height), 1.5, 0.4, 0.85);
-    this.bloomPass.threshold = 0.95;
+    this.bloomPass.threshold = 0.29;
     this.bloomPass.strength = 1.5;
     this.bloomPass.radius = 0.5;
 

@@ -43,7 +43,6 @@ export default class Planet {
 
   addToScene() {
     // Add planet to scene
-    const textureLoader = new THREE.TextureLoader();
     const normalMap = this.resources.items['normalMap0' + this.surfaceTexture];
     const sphereGeometry = new THREE.SphereGeometry( this.size );
     const sphereMaterial = new THREE.MeshPhongMaterial( { color: this.colour, shininess: 1, normalMap: normalMap, normalScale: new THREE.Vector2( this.rockiness, this.rockiness ) } );
@@ -76,6 +75,7 @@ export default class Planet {
       let ringGeometry = new THREE.RingGeometry(ring.ringStart, ring.ringEnd, 32);
       let ringMaterial = new THREE.MeshPhongMaterial( { color: this.colour, transparent: true, opacity: this.seed.getRandom()*0.8+0.2, side: THREE.DoubleSide } );
       ring.mesh = new THREE.Mesh (ringGeometry, ringMaterial);
+      ring.mesh.name = "ring";
       ring.mesh.receiveShadow = true;
       ring.mesh.rotation.x = this.ringAxis;
       this.planetRings.push(ring);

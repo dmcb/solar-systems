@@ -1,3 +1,4 @@
+import * as THREE from 'three';
 import Sun from '../objects/Sun.js';
 import Planet from '../objects/Planet.js';
 import Application from '../Application.js';
@@ -19,14 +20,18 @@ export default class SolarSystem {
   }
 
   create() {
-    this.minimumDistance = 16;
     this.maximumDistance = this.solarSystemRadius;
     this.direction = this.seed.getRandom();
     if (this.direction >= 0.5) this.direction = 1;
     else this.direction = -1;
 
+    // Add ambient light
+    this.ambientLight = new THREE.AmbientLight(0xffffff, 0.15);
+    this.scene.add( this.ambientLight );
+
     // Add suns
     let sun = new Sun();
+    this.minimumDistance = sun.size*2.5;
     this.suns.push(sun);
 
     // Add planets   
