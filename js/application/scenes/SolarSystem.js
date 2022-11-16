@@ -33,6 +33,16 @@ export default class SolarSystem {
     let sun = new Sun();
     this.minimumDistance = sun.size*3;
     this.suns.push(sun);
+    let secondSun = new Sun();
+    if (sun.size + secondSun.size < 14) {
+      sun.addToScene(this.scene, true);
+      secondSun.addToScene(this.scene, true);
+      this.suns.push(secondSun);
+      this.minimumDistance += secondSun.size + 10;
+    }
+    else {
+      sun.addToScene(this.scene);
+    }
 
     // Add planets   
     while (this.minimumDistance < this.maximumDistance) {
@@ -46,6 +56,13 @@ export default class SolarSystem {
   }
 
   update() {
+    if (this.suns.length > 1) {
+      // This is where suns will orbit eachother
+      // For now a dumb static thing
+      const totalSunsWidth = this.suns[0].size + this.suns[1].size + 10;
+      this.suns[0].sun.position.x = -totalSunsWidth/2;
+      this.suns[1].sun.position.x = this.suns[0].size + this.suns[1].size + 10 - totalSunsWidth/2;
+    }
     this.planets.forEach(planet => {
       planet.update();
     });

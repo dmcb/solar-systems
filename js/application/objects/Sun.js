@@ -14,9 +14,11 @@ export default class Sun {
     this.brightness = (1.5 / Math.pow(16 / this.size, 0.5));
     this.surfaceColour = this.kelvin_to_rgb(this.kelvin);
     this.illuminationColour = this.kelvin_to_rgb(this.temperedKelvin);
+  }
 
+  addToScene(binarySystem) {
     this.addSun();
-    this.addSunlight();
+    this.addSunlight(binarySystem);
   }
 
   addSun() {
@@ -28,7 +30,10 @@ export default class Sun {
     this.scene.add(this.sun);
   }
 
-  addSunlight() {
+  addSunlight(binarySystem) {
+    if (binarySystem) {
+      this.brightness = this.brightness/2;
+    }
     this.sunLight = new THREE.PointLight(this.illuminationColour, this.brightness, this.solarSystemRadius*1.5);
     this.sunLight.position.set( 0, 0, 0 );
     this.sunLight.castShadow = true;
