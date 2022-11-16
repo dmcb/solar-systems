@@ -31,7 +31,7 @@ export default class SolarSystem {
 
     // Add suns
     let sun = new Sun();
-    this.minimumDistance = sun.size*2.5;
+    this.minimumDistance = sun.size*3;
     this.suns.push(sun);
 
     // Add planets   

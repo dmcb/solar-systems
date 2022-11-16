@@ -9,7 +9,7 @@ export default class Sun {
     this.seed = this.application.seed;
 
     this.kelvin = this.seed.fakeGaussianRandom(-1,3)*15000;
-    this.temperedKelvin = this.kelvin*0.6 + 15000*0.2;
+    this.temperedKelvin = this.kelvin*0.7 + 15000*0.15;
     this.size = this.seed.fakeGaussianRandom(-2)*14+2;
     this.brightness = (1.5 / Math.pow(16 / this.size, 0.5));
     this.surfaceColour = this.kelvin_to_rgb(this.kelvin);
