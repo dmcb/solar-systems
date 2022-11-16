@@ -9,30 +9,31 @@ export default class Sun {
     this.seed = this.application.seed;
 
     this.kelvin = this.seed.fakeGaussianRandom(-1,3)*15000;
-    this.temperedKelvin = this.kelvin*0.7 + 15000*0.15;
+    this.temperedKelvin = this.kelvin*0.9 + 15000*0.05;
     this.size = this.seed.fakeGaussianRandom(-2)*14+2;
+    this.mass = Math.pow(this.size/2,3)*Math.PI*4/3;
     this.brightness = (1.5 / Math.pow(16 / this.size, 0.5));
     this.surfaceColour = this.kelvin_to_rgb(this.kelvin);
     this.illuminationColour = this.kelvin_to_rgb(this.temperedKelvin);
   }
 
-  addToScene(binarySystem) {
-    this.addSun();
+  addToScene(pivotPoint, binarySystem) {
+    this.addSun(pivotPoint);
     this.addSunlight(binarySystem);
   }
 
-  addSun() {
+  addSun(pivotPoint) {
     this.sunGeometry = new THREE.SphereGeometry( this.size );
     this.sunMaterial = new THREE.MeshBasicMaterial({color: this.surfaceColour, toneMapped: false });
     this.sun = new THREE.Mesh(this.sunGeometry, this.sunMaterial);
     this.sun.name = "sun";
     this.sun.position.set( 0, 0, 0);
-    this.scene.add(this.sun);
+    pivotPoint.add(this.sun);
   }
 
   addSunlight(binarySystem) {
     if (binarySystem) {
-      this.brightness = this.brightness/2;
+      this.brightness = this.brightness/1.5;
     }
     this.sunLight = new THREE.PointLight(this.illuminationColour, this.brightness, this.solarSystemRadius*1.5);
     this.sunLight.position.set( 0, 0, 0 );
@@ -41,9 +42,9 @@ export default class Sun {
   }
 
   destroy() {
+    this.sunLight.removeFromParent();
     this.sunGeometry.dispose();
     this.sun.removeFromParent();
-    this.sunLight.removeFromParent();
   }
 
   kelvin_to_rgb(kelvin){
