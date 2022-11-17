@@ -25,14 +25,15 @@ button#seed {
 div#loader {
   border-radius: 0.5em;
   position: fixed;
-  top: 50vh;
-  left: 50vw;
+  top: 50%;
+  left: 50%;
   background-color: white;
   padding: 0.5em;
   transform: translate(-50%, -50%);
   opacity: 0;
   pointer-events: none;
-  transition: 0.3s opacity;
+  transition: 1s opacity;
+  z-index: 1;
 
   .bar {
     margin-top: 0.5em;
