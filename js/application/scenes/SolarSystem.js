@@ -38,6 +38,7 @@ export default class SolarSystem {
     this.suns.push(sun);
     let secondSun = new Sun();
     if (sun.size + secondSun.size < 13) {
+      this.sunDistance = this.seed.fakeGaussianRandom(3)*23+2;
       sun.addToScene(this.sunPivotPoint, true);
       secondSun.addToScene(this.sunPivotPoint, true);
       this.suns.push(secondSun);
@@ -60,7 +61,7 @@ export default class SolarSystem {
 
   placeSuns() {
     // Space out suns
-    this.solarRadius = this.suns[0].size + this.suns[1].size + 20;
+    this.solarRadius = this.suns[0].size + this.suns[1].size + this.sunDistance;
     this.suns[1].sun.position.x = this.solarRadius;
     this.minimumDistance = this.solarRadius * 1.5;
     // Find center of mass
@@ -73,7 +74,7 @@ export default class SolarSystem {
   }
 
   orbitSuns() {
-      this.sunPivotPoint.rotation.z += this.direction * this.time.delta * 1/this.solarRadius * 0.01;
+      this.sunPivotPoint.rotation.z += this.direction * this.time.delta * 1/this.solarRadius * 0.007;
   }
 
   update() {
