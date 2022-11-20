@@ -71,8 +71,15 @@ export default class Camera {
 
   update() {
     if (this.focus) {
+      let cameraPosition;
       let focusObject = this.scene.getObjectById(this.focus);
-      let cameraPosition = new THREE.Vector3(focusObject.parent.position.x, focusObject.parent.position.y, focusObject.parent.position.z);
+      if (focusObject.name == "planet") {
+        cameraPosition = new THREE.Vector3(focusObject.parent.position.x, focusObject.parent.position.y, focusObject.parent.position.z);
+      }
+      else {
+        cameraPosition = new THREE.Vector3(focusObject.position.x, focusObject.position.y, focusObject.position.z)
+        cameraPosition.applyAxisAngle(new THREE.Vector3( 0, 0, 1 ), focusObject.parent.rotation.z);
+      }
       cameraPosition.applyAxisAngle(new THREE.Vector3( 0, 0, 1 ), this.scene.rotation.z);
       this.setBounds(focusObject.geometry.parameters.radius*2.5);
       this.setPosition(cameraPosition.x, cameraPosition.y, this.solarSystemRadius);

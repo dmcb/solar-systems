@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 
+import Debug from './utils/Debug.js';
 import Seed from './utils/Seed.js';
 import Time from './utils/Time.js';
 import Viewport from './utils/Viewport.js';
@@ -30,6 +31,7 @@ export default class Application {
     this.canvas = canvas;
 
     // Setup
+    this.debug = new Debug();
     this.seed = new Seed();
     this.time = new Time();
     this.scene = new THREE.Scene();

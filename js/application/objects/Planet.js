@@ -113,11 +113,14 @@ export default class Planet {
 
   destroy() {
     this.planetSphere.geometry.dispose();
+    this.planetSphere.material.dispose();
     this.planetSphere.removeFromParent();
     this.orbitLine.geometry.dispose();
+    this.orbitLine.material.dispose();
     this.orbitLine.removeFromParent();
     this.planetRings.forEach((item, index, object) => {
       item.mesh.geometry.dispose();
+      item.mesh.material.dispose();
       item.mesh.removeFromParent();
     });
   }

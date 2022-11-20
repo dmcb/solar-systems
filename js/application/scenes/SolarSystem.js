@@ -11,6 +11,13 @@ export default class SolarSystem {
     this.time = this.application.time;
     this.solarSystemRadius = this.application.solarSystemRadius;
     this.resources = this.application.resources;
+    this.debug = this.application.debug;
+
+    // Debug
+    if(this.debug.active)
+    {
+        this.debugFolder = this.debug.ui.addFolder('Planets');
+    }
 
     this.suns = [];
     this.planets = [];
