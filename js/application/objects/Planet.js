@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import Application from '../Application.js';
 
 export default class Planet {
-  constructor(minimumDistance, maximumDistance, direction) {
+  constructor(planetNumber, minimumDistance, maximumDistance, direction) {
     const exaggeratedDistanceFromSunModifier = 1.2;
     const speedModifier = 0.005;
 
@@ -11,6 +11,7 @@ export default class Planet {
     this.scene = this.application.scene;
     this.time = this.application.time;
     this.resources = this.application.resources;
+    this.debug = this.application.debug;
 
     this.minimumDistance = minimumDistance;
     this.maximumDistance = maximumDistance;
@@ -39,6 +40,128 @@ export default class Planet {
     this.actualDistanceFromSun = this.projectedDistanceFromSun + this.planetOccupiedArea;
     this.orbitalPosition = this.seed.getRandom()*2*Math.PI;
     this.speed = speedModifier * Math.pow(16, exaggeratedDistanceFromSunModifier) * (1 / Math.pow(this.actualDistanceFromSun, exaggeratedDistanceFromSunModifier));
+ 
+    // Debug
+    if(this.debug.active) {
+      this.debugFolder = this.debug.ui.addFolder('Planet ' + planetNumber).close();
+
+      this.debugFolder
+        .addColor(this, 'colour')
+        .onChange(() => {
+          this.removeFromScene();
+          this.addToScene();
+        });
+
+      this.debugFolder
+        .add(this, 'size')
+        .name('size')
+        .min(1)
+        .max(7)
+        .step(0.001)
+        .onChange(() => {
+          this.removeFromScene();
+          this.addToScene();
+        });
+
+      this.debugFolder
+        .add(this, 'rotationSpeed')
+        .name('rotationSpeed')
+        .min(0)
+        .max(0.03)
+        .step(0.001)
+        .onChange(() => {
+          this.removeFromScene();
+          this.addToScene();
+        });
+
+      this.debugFolder
+        .add(this, 'orbitAxis')
+        .name('orbitAxis')
+        .min(-10)
+        .max(10)
+        .step(0.001)
+        .onChange(() => {
+          this.removeFromScene();
+          this.addToScene();
+        });
+
+      this.debugFolder
+        .add(this, 'rockiness')
+        .name('rockiness')
+        .min(0)
+        .max(1)
+        .step(0.001)
+        .onChange(() => {
+          this.removeFromScene();
+          this.addToScene();
+        });
+
+      this.debugFolder
+        .add(this, 'surfaceTexture')
+        .name('surfaceTexture')
+        .min(1)
+        .max(7)
+        .step(1)
+        .onChange(() => {
+          this.removeFromScene();
+          this.addToScene();
+        });
+
+      this.debugFolder
+        .add(this, 'tilt')
+        .name('tilt')
+        .min(0)
+        .max(90)
+        .step(0.001)
+        .onChange(() => {
+          this.removeFromScene();
+          this.addToScene();
+        });
+
+      this.debugFolder
+        .add(this, 'ringSize')
+        .name('ringSize')
+        .min(0)
+        .max(2.2)
+        .step(0.001)
+        .onChange(() => {
+          this.removeFromScene();
+          this.addToScene();
+        });
+
+      this.debugFolder
+        .add(this, 'ringDistance')
+        .name('ringDistance')
+        .min(0)
+        .max(4)
+        .step(0.001)
+        .onChange(() => {
+          this.removeFromScene();
+          this.addToScene();
+        });
+
+      this.debugFolder
+        .add(this, 'ringAxis')
+        .name('ringAxis')
+        .min(0)
+        .max(90)
+        .step(0.001)
+        .onChange(() => {
+          this.removeFromScene();
+          this.addToScene();
+        });
+
+      this.debugFolder
+        .add(this, 'numberOfRings')
+        .name('numberOfRings')
+        .min(0)
+        .max(10)
+        .step(1)
+        .onChange(() => {
+          this.removeFromScene();
+          this.addToScene();
+        });
+    }
   }
 
   addToScene() {
@@ -83,6 +206,28 @@ export default class Planet {
     }
   }
 
+  removeFromScene() {
+    if (this.planetSphere) {
+      this.planetSphere.geometry.dispose();
+      this.planetSphere.material.dispose();
+      this.planetSphere.removeFromParent();
+    }
+
+    if (this.orbitLine) {
+      this.orbitLine.geometry.dispose();
+      this.orbitLine.material.dispose();
+      this.orbitLine.removeFromParent();
+    }
+    
+    if (this.planetRings) {
+      this.planetRings.forEach((item, index, object) => {
+        item.mesh.geometry.dispose();
+        item.mesh.material.dispose();
+        item.mesh.removeFromParent();
+      });
+    }
+  }
+
   nextNeighbourMinimumDistance() {
     return this.actualDistanceFromSun +this.planetOccupiedArea;
   }
@@ -112,16 +257,10 @@ export default class Planet {
   }
 
   destroy() {
-    this.planetSphere.geometry.dispose();
-    this.planetSphere.material.dispose();
-    this.planetSphere.removeFromParent();
-    this.orbitLine.geometry.dispose();
-    this.orbitLine.material.dispose();
-    this.orbitLine.removeFromParent();
-    this.planetRings.forEach((item, index, object) => {
-      item.mesh.geometry.dispose();
-      item.mesh.material.dispose();
-      item.mesh.removeFromParent();
-    });
+    if (this.debug.active) {
+      this.debugFolder.destroy();
+    }
+
+    this.removeFromScene();
   }
 }

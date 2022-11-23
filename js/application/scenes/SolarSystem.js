@@ -11,13 +11,6 @@ export default class SolarSystem {
     this.time = this.application.time;
     this.solarSystemRadius = this.application.solarSystemRadius;
     this.resources = this.application.resources;
-    this.debug = this.application.debug;
-
-    // Debug
-    if(this.debug.active)
-    {
-        this.debugFolder = this.debug.ui.addFolder('Planets');
-    }
 
     this.suns = [];
     this.planets = [];
@@ -55,13 +48,18 @@ export default class SolarSystem {
       sun.addToScene(this.sunPivotPoint);
     }
 
-    // Add planets   
+    // Add planets
+    let planetNumber = 1;
     while (this.minimumDistance < this.maximumDistance) {
-      let planet = new Planet(this.minimumDistance, this.maximumDistance, this.direction);
+      let planet = new Planet(planetNumber, this.minimumDistance, this.maximumDistance, this.direction);
+      planetNumber++;
       this.minimumDistance = planet.nextNeighbourMinimumDistance();
       if (this.minimumDistance < this.maximumDistance) {
         planet.addToScene(this.scene);
         this.planets.push(planet);
+      }
+      else {
+        planet.destroy();
       }
     }
   }

@@ -11,13 +11,14 @@ export default class Controls extends EventEmitter {
     this.scene = this.application.scene;
     this.camera = this.application.camera;
     this.viewport = this.application.viewport;
+    this.canvas = this.application.canvas;
 
     this.cameraDrag = false;
-    window.addEventListener('pointermove', (event) => this.pointerMove(event));
-    window.addEventListener('pointerdown', (event) => this.pointerDown(event));
-    window.addEventListener('pointerup', (event) => this.pointerEnd(event));
-    window.addEventListener('pointerout', (event) => this.pointerEnd(event));
-    window.addEventListener('pointercancel', (event) => this.pointerEnd(event));
+    this.canvas.addEventListener('pointermove', (event) => this.pointerMove(event));
+    this.canvas.addEventListener('pointerdown', (event) => this.pointerDown(event));
+    this.canvas.addEventListener('pointerup', (event) => this.pointerEnd(event));
+    this.canvas.addEventListener('pointerout', (event) => this.pointerEnd(event));
+    this.canvas.addEventListener('pointercancel', (event) => this.pointerEnd(event));
   }
 
   pointerMove(event) {

@@ -72,23 +72,22 @@ export default class Camera {
   update() {
     if (this.focus) {
       let cameraPosition;
-      let focusObject = this.scene.getObjectById(this.focus);
-      if (focusObject.name == "planet") {
-        cameraPosition = new THREE.Vector3(focusObject.parent.position.x, focusObject.parent.position.y, focusObject.parent.position.z);
+      if (this.focus.name == "planet") {
+        cameraPosition = new THREE.Vector3(this.focus.parent.position.x, this.focus.parent.position.y, this.focus.parent.position.z);
       }
-      else {
-        cameraPosition = new THREE.Vector3(focusObject.position.x, focusObject.position.y, focusObject.position.z)
-        cameraPosition.applyAxisAngle(new THREE.Vector3( 0, 0, 1 ), focusObject.parent.rotation.z);
+      else if (this.focus.name == "sun") {
+        cameraPosition = new THREE.Vector3(this.focus.position.x, this.focus.position.y, this.focus.position.z)
+        cameraPosition.applyAxisAngle(new THREE.Vector3( 0, 0, 1 ), this.focus.parent.rotation.z);
       }
       cameraPosition.applyAxisAngle(new THREE.Vector3( 0, 0, 1 ), this.scene.rotation.z);
-      this.setBounds(focusObject.geometry.parameters.radius*2.5);
+      this.setBounds(this.focus.geometry.parameters.radius*2.5);
       this.setPosition(cameraPosition.x, cameraPosition.y, this.solarSystemRadius);
       this.setTarget(cameraPosition.x, cameraPosition.y, cameraPosition.z);
     }
   }
 
   changeFocus(objectId) {
-    this.focus = objectId;
+    this.focus = this.scene.getObjectById(objectId);
     if (!this.focus) {
       this.reset();
     }
