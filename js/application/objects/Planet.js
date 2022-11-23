@@ -26,8 +26,8 @@ export default class Planet {
     this.rockiness = this.seed.fakeGaussianRandom();
     this.surfaceTexture = Math.round(this.seed.getRandom()*6+1);
     this.tilt = this.seed.fakeGaussianRandom(-9,10)*90;
-    this.ringSize = this.seed.fakeGaussianRandom(-5)*this.size*2.2;
-    this.ringDistance = this.seed.fakeGaussianRandom()*4;
+    this.ringSize = this.seed.fakeGaussianRandom(-5)*this.size*2.8;
+    this.ringDistance = this.seed.fakeGaussianRandom()*4+0.5;
     this.ringAxis = this.seed.fakeGaussianRandom(-9,10)*90;
     this.numberOfRings = Math.floor(this.seed.fakeGaussianRandom()*10);
     if (this.ringSize < 1 || !this.numberOfRings) {
@@ -41,6 +41,12 @@ export default class Planet {
     this.orbitalPosition = this.seed.getRandom()*2*Math.PI;
     this.speed = speedModifier * Math.pow(16, exaggeratedDistanceFromSunModifier) * (1 / Math.pow(this.actualDistanceFromSun, exaggeratedDistanceFromSunModifier));
  
+    const tappableSphereGeometry = new THREE.SphereGeometry(18);
+    const tappableSphereMaterial = new THREE.MeshBasicMaterial({visible: false});
+    this.planetPivotPoint = new THREE.Mesh(tappableSphereGeometry, tappableSphereMaterial);
+    this.planetPivotPoint.name = "planet";
+    this.scene.add(this.planetPivotPoint);
+
     // Debug
     if(this.debug.active) {
       this.debugFolder = this.debug.ui.addFolder('Planet ' + planetNumber).close();
@@ -122,7 +128,7 @@ export default class Planet {
         .add(this, 'ringSize')
         .name('ringSize')
         .min(0)
-        .max(2.2)
+        .max(2.8)
         .step(0.001)
         .onChange(() => {
           this.removeFromScene();
@@ -132,8 +138,8 @@ export default class Planet {
       this.debugFolder
         .add(this, 'ringDistance')
         .name('ringDistance')
-        .min(0)
-        .max(4)
+        .min(0.5)
+        .max(4.5)
         .step(0.001)
         .onChange(() => {
           this.removeFromScene();
@@ -170,12 +176,10 @@ export default class Planet {
     const sphereGeometry = new THREE.SphereGeometry( this.size );
     const sphereMaterial = new THREE.MeshPhongMaterial( { color: this.colour, shininess: 1, normalMap: normalMap, normalScale: new THREE.Vector2( this.rockiness, this.rockiness ) } );
     this.planetSphere = new THREE.Mesh( sphereGeometry, sphereMaterial );
-    this.planetSphere.name = "planet";
+    this.planetSphere.name = "planetCore";
     this.planetSphere.rotation.x = this.tilt;
     this.planetSphere.receiveShadow = true;
     this.planetSphere.castShadow = true;
-    this.planetPivotPoint = new THREE.Object3D();
-    this.scene.add(this.planetPivotPoint);
     this.planetPivotPoint.add(this.planetSphere);
 
     // Add orbit path to scene
@@ -196,7 +200,7 @@ export default class Planet {
       ring.ringStart = this.size + this.ringDistance + i*(this.ringSize/this.numberOfRings);
       ring.ringEnd = ring.ringStart + (this.ringSize/this.numberOfRings);
       let ringGeometry = new THREE.RingGeometry(ring.ringStart, ring.ringEnd, 32);
-      let ringMaterial = new THREE.MeshPhongMaterial( { color: this.colour, transparent: true, opacity: this.seed.getRandom()*0.8+0.2, side: THREE.DoubleSide } );
+      let ringMaterial = new THREE.MeshPhongMaterial({ color: this.colour, transparent: true, opacity: this.seed.getRandom()*0.8+0.2, side: THREE.DoubleSide });
       ring.mesh = new THREE.Mesh (ringGeometry, ringMaterial);
       ring.mesh.name = "ring";
       ring.mesh.receiveShadow = true;
@@ -262,5 +266,9 @@ export default class Planet {
     }
 
     this.removeFromScene();
+
+    this.planetPivotPoint.geometry.dispose();
+    this.planetPivotPoint.material.dispose();
+    this.planetPivotPoint.removeFromParent();
   }
 }

@@ -71,16 +71,14 @@ export default class Camera {
 
   update() {
     if (this.focus) {
-      let cameraPosition;
+      const cameraPosition = new THREE.Vector3(this.focus.position.x, this.focus.position.y, this.focus.position.z)
+      cameraPosition.applyAxisAngle(new THREE.Vector3( 0, 0, 1 ), this.focus.parent.rotation.z);
+      let cameraBounds = this.focus.geometry.parameters.radius*2;
       if (this.focus.name == "planet") {
-        cameraPosition = new THREE.Vector3(this.focus.parent.position.x, this.focus.parent.position.y, this.focus.parent.position.z);
+        const planetCore = this.focus.getObjectByName("planetCore");
+        cameraBounds = planetCore.geometry.parameters.radius*2;
       }
-      else if (this.focus.name == "sun") {
-        cameraPosition = new THREE.Vector3(this.focus.position.x, this.focus.position.y, this.focus.position.z)
-        cameraPosition.applyAxisAngle(new THREE.Vector3( 0, 0, 1 ), this.focus.parent.rotation.z);
-      }
-      cameraPosition.applyAxisAngle(new THREE.Vector3( 0, 0, 1 ), this.scene.rotation.z);
-      this.setBounds(this.focus.geometry.parameters.radius*2.5);
+      this.setBounds(cameraBounds);
       this.setPosition(cameraPosition.x, cameraPosition.y, this.solarSystemRadius);
       this.setTarget(cameraPosition.x, cameraPosition.y, cameraPosition.z);
     }
