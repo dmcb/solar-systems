@@ -31,8 +31,8 @@ export default class Seed extends EventEmitter {
     if (howSkewed != 0) {
       randomNumbers.sort(function(a, b){return a - b});
   
-      if (howSkewed > 0) randomNumbers.splice(0, howSkewed);
-      else randomNumbers.splice(howSkewed, Math.abs(howSkewed));
+      if (howSkewed > 0) randomNumbers.splice(0, Math.floor(howSkewed));
+      else randomNumbers.splice(Math.floor(howSkewed), Math.abs(Math.floor(howSkewed)));
     }
   
     randomTotal = randomNumbers.reduce((total, current) => {
