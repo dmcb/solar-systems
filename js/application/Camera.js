@@ -72,12 +72,17 @@ export default class Camera {
   update() {
     if (this.focus) {
       const cameraPosition = new THREE.Vector3(this.focus.position.x, this.focus.position.y, this.focus.position.z)
-      cameraPosition.applyAxisAngle(new THREE.Vector3( 0, 0, 1 ), this.focus.parent.rotation.z);
       let cameraBounds = this.focus.geometry.parameters.radius*2;
       if (this.focus.name == "planet") {
         const planetCore = this.focus.getObjectByName("planetCore");
         cameraBounds = planetCore.geometry.parameters.radius*2;
       }
+      else if (this.focus.name == "sun") {
+        // Reverse binary sun rotation to focus on sun
+        cameraPosition.applyAxisAngle(new THREE.Vector3( 0, 0, 1 ), this.focus.parent.rotation.z);
+      }
+      // Reverse solar system camera rotation to focus on sun or planet
+      cameraPosition.applyAxisAngle(new THREE.Vector3( 0, 0, 1 ), this.scene.rotation.z);
       this.setBounds(cameraBounds);
       this.setPosition(cameraPosition.x, cameraPosition.y, this.solarSystemRadius);
       this.setTarget(cameraPosition.x, cameraPosition.y, cameraPosition.z);

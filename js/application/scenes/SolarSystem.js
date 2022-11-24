@@ -79,7 +79,7 @@ export default class SolarSystem {
   }
 
   orbitSuns() {
-      this.sunPivotPoint.rotation.z += this.direction * this.time.delta * 1/this.solarRadius * 0.005;
+      this.sunPivotPoint.rotation.z += this.direction * this.time.delta * 1/this.solarRadius * 0.0035;
   }
 
   update() {

@@ -3,9 +3,6 @@ import Application from '../Application.js';
 
 export default class Planet {
   constructor(planetNumber, minimumDistance, maximumDistance, direction) {
-    const exaggeratedDistanceFromSunModifier = 1.2;
-    const speedModifier = 0.005;
-
     this.application = new Application();
     this.seed = this.application.seed;
     this.scene = this.application.scene;
@@ -13,19 +10,29 @@ export default class Planet {
     this.resources = this.application.resources;
     this.debug = this.application.debug;
 
+    this.planetNumber = planetNumber;
     this.minimumDistance = minimumDistance;
     this.maximumDistance = maximumDistance;
     this.direction = direction;
 
+    this.generateProperties();
+    this.addTouchPoint();
+    this.addDebug();
+  }
+
+  generateProperties() {
+    const exaggeratedDistanceFromSunModifier = 1.2;
+    const speedModifier = 0.005;
+
     this.projectedDistanceFromSun = this.seed.fakeGaussianRandom(-9,10)*this.maximumDistance + this.minimumDistance;
     this.colour = new THREE.Color( this.seed.getRandom()*0xffffff );
-    this.size = this.seed.fakeGaussianRandom(-1,3)*6+1;
+    this.size = this.seed.fakeGaussianRandom(-2,4)*6+1;
     this.rotationSpeed = this.seed.fakeGaussianRandom()*0.03;
     this.orbitEccentricity = this.seed.fakeGaussianRandom()*0;
     this.orbitAxis = this.seed.fakeGaussianRandom()*20-10;
     this.rockiness = this.seed.fakeGaussianRandom();
     this.surfaceTexture = Math.round(this.seed.getRandom()*6+1);
-    this.tilt = this.seed.fakeGaussianRandom(-9,10)*90;
+    this.tilt = this.seed.fakeGaussianRandom()*180-90;
     this.hasRings = this.seed.fakeGaussianRandom(this.size-5,8);
     if (this.hasRings >= 0.5) this.hasRings = true;
     else this.hasRings = false;
@@ -43,16 +50,121 @@ export default class Planet {
     this.actualDistanceFromSun = this.projectedDistanceFromSun + this.planetOccupiedArea;
     this.orbitalPosition = this.seed.getRandom()*2*Math.PI;
     this.speed = speedModifier * Math.pow(16, exaggeratedDistanceFromSunModifier) * (1 / Math.pow(this.actualDistanceFromSun, exaggeratedDistanceFromSunModifier));
- 
+  }
+
+  addTouchPoint() {
     const tappableSphereGeometry = new THREE.SphereGeometry(18);
     const tappableSphereMaterial = new THREE.MeshBasicMaterial({visible: false});
     this.planetPivotPoint = new THREE.Mesh(tappableSphereGeometry, tappableSphereMaterial);
     this.planetPivotPoint.name = "planet";
     this.scene.add(this.planetPivotPoint);
+  }
 
-    // Debug
+  addToScene() {
+    // Add planet to scene
+    const normalMap = this.resources.items['normalMap0' + this.surfaceTexture];
+    const sphereGeometry = new THREE.SphereGeometry( this.size );
+    const sphereMaterial = new THREE.MeshPhongMaterial( { color: this.colour, shininess: 1, normalMap: normalMap, normalScale: new THREE.Vector2( this.rockiness, this.rockiness ) } );
+    this.planetSphere = new THREE.Mesh( sphereGeometry, sphereMaterial );
+    this.planetSphere.name = "planetCore";
+    this.planetSphere.rotation.x = this.tilt;
+    this.planetSphere.receiveShadow = true;
+    this.planetSphere.castShadow = true;
+    this.planetPivotPoint.add(this.planetSphere);
+
+    // Add orbit path to scene
+    const orbitLineMaterial = new THREE.LineBasicMaterial({ color: 0x222222 });
+    const orbitPoints = [];
+    for (let i=0; i < 2*Math.PI; i = i+Math.PI/32) {
+      let position = this.determineOrbit(i);
+      orbitPoints.push( new THREE.Vector3(position.x, position.y, position.z));
+    }
+    const orbitLineGeometry = new THREE.BufferGeometry().setFromPoints( orbitPoints );
+    this.orbitLine = new THREE.Line( orbitLineGeometry, orbitLineMaterial );
+    this.scene.add(this.orbitLine);
+
+    // Add rings
+    this.planetRings = [];
+    for (let i=0; i < this.numberOfRings; i = i+1) {
+      let ring = {};
+      ring.ringStart = this.size + this.ringDistance + i*(this.ringSize);
+      ring.ringEnd = ring.ringStart + this.ringSize;
+      let ringGeometry = new THREE.RingGeometry(ring.ringStart, ring.ringEnd, 32);
+      let ringMaterial = new THREE.MeshPhongMaterial({ color: this.colour, transparent: true, opacity: this.seed.getRandom()*0.8+0.2, side: THREE.DoubleSide });
+      ring.mesh = new THREE.Mesh (ringGeometry, ringMaterial);
+      ring.mesh.name = "ring";
+      ring.mesh.receiveShadow = true;
+      ring.mesh.rotation.x = this.ringAxis;
+      this.planetRings.push(ring);
+      this.planetPivotPoint.add(ring.mesh);
+    }
+  }
+
+  removeFromScene() {
+    if (this.planetSphere) {
+      this.planetSphere.geometry.dispose();
+      this.planetSphere.material.dispose();
+      this.planetSphere.removeFromParent();
+    }
+
+    if (this.orbitLine) {
+      this.orbitLine.geometry.dispose();
+      this.orbitLine.material.dispose();
+      this.orbitLine.removeFromParent();
+    }
+    
+    if (this.planetRings) {
+      this.planetRings.forEach((item, index, object) => {
+        item.mesh.geometry.dispose();
+        item.mesh.material.dispose();
+        item.mesh.removeFromParent();
+      });
+    }
+  }
+
+  nextNeighbourMinimumDistance() {
+    return this.actualDistanceFromSun +this.planetOccupiedArea;
+  }
+
+  update() {
+    // Rotate the planet on its axis (day)
+    this.planetSphere.rotation.z += this.rotationSpeed * this.time.delta * 0.0625;
+
+    // Orbit the planet (year)
+    this.orbitalPosition += this.speed * this.direction * this.time.delta * 0.0625;
+    let position = this.determineOrbit(this.orbitalPosition);
+    this.planetPivotPoint.position.x = position.x;
+    this.planetPivotPoint.position.y = position.y;
+    this.planetPivotPoint.position.z = position.z;
+  }
+  
+  determineOrbit(orbitalPosition) {
+    let x = this.actualDistanceFromSun;
+    let y = this.actualDistanceFromSun * Math.sqrt(1.0 - Math.pow(this.orbitEccentricity, 1));
+    let z = Math.sin(2 * Math.PI * this.orbitAxis/360 ) * this.actualDistanceFromSun;
+
+    return { 
+      x: Math.cos(orbitalPosition) * x,
+      y: Math.sin(orbitalPosition) * y,
+      z: Math.cos(orbitalPosition + 0) * z
+    }
+  }
+
+  destroy() {
+    if (this.debug.active) {
+      this.debugFolder.destroy();
+    }
+
+    this.removeFromScene();
+
+    this.planetPivotPoint.geometry.dispose();
+    this.planetPivotPoint.material.dispose();
+    this.planetPivotPoint.removeFromParent();
+  }
+
+  addDebug() {
     if(this.debug.active) {
-      this.debugFolder = this.debug.ui.addFolder('Planet ' + planetNumber).close();
+      this.debugFolder = this.debug.ui.addFolder('Planet ' + this.planetNumber).close();
 
       this.debugFolder
         .addColor(this, 'colour')
@@ -171,107 +283,5 @@ export default class Planet {
           this.addToScene();
         });
     }
-  }
-
-  addToScene() {
-    // Add planet to scene
-    const normalMap = this.resources.items['normalMap0' + this.surfaceTexture];
-    const sphereGeometry = new THREE.SphereGeometry( this.size );
-    const sphereMaterial = new THREE.MeshPhongMaterial( { color: this.colour, shininess: 1, normalMap: normalMap, normalScale: new THREE.Vector2( this.rockiness, this.rockiness ) } );
-    this.planetSphere = new THREE.Mesh( sphereGeometry, sphereMaterial );
-    this.planetSphere.name = "planetCore";
-    this.planetSphere.rotation.x = this.tilt;
-    this.planetSphere.receiveShadow = true;
-    this.planetSphere.castShadow = true;
-    this.planetPivotPoint.add(this.planetSphere);
-
-    // Add orbit path to scene
-    const orbitLineMaterial = new THREE.LineBasicMaterial( { color: 0x333333 } );
-    const orbitPoints = [];
-    for (let i=0; i < 2*Math.PI; i = i+Math.PI/32) {
-      let position = this.determineOrbit(i);
-      orbitPoints.push( new THREE.Vector3( position.x, position.y, position.z ) );
-    }
-    const orbitLineGeometry = new THREE.BufferGeometry().setFromPoints( orbitPoints );
-    this.orbitLine = new THREE.Line( orbitLineGeometry, orbitLineMaterial );
-    this.scene.add(this.orbitLine);
-
-    // Add rings
-    this.planetRings = [];
-    for (let i=0; i < this.numberOfRings; i = i+1) {
-      let ring = {};
-      ring.ringStart = this.size + this.ringDistance + i*(this.ringSize);
-      ring.ringEnd = ring.ringStart + this.ringSize;
-      let ringGeometry = new THREE.RingGeometry(ring.ringStart, ring.ringEnd, 32);
-      let ringMaterial = new THREE.MeshPhongMaterial({ color: this.colour, transparent: true, opacity: this.seed.getRandom()*0.8+0.2, side: THREE.DoubleSide });
-      ring.mesh = new THREE.Mesh (ringGeometry, ringMaterial);
-      ring.mesh.name = "ring";
-      ring.mesh.receiveShadow = true;
-      ring.mesh.rotation.x = this.ringAxis;
-      this.planetRings.push(ring);
-      this.planetPivotPoint.add(ring.mesh);
-    }
-  }
-
-  removeFromScene() {
-    if (this.planetSphere) {
-      this.planetSphere.geometry.dispose();
-      this.planetSphere.material.dispose();
-      this.planetSphere.removeFromParent();
-    }
-
-    if (this.orbitLine) {
-      this.orbitLine.geometry.dispose();
-      this.orbitLine.material.dispose();
-      this.orbitLine.removeFromParent();
-    }
-    
-    if (this.planetRings) {
-      this.planetRings.forEach((item, index, object) => {
-        item.mesh.geometry.dispose();
-        item.mesh.material.dispose();
-        item.mesh.removeFromParent();
-      });
-    }
-  }
-
-  nextNeighbourMinimumDistance() {
-    return this.actualDistanceFromSun +this.planetOccupiedArea;
-  }
-
-  update() {
-    // Rotate the planet on its axis (day)
-    this.planetSphere.rotation.z += this.rotationSpeed * this.time.delta * 0.0625;
-
-    // Orbit the planet (year)
-    this.orbitalPosition += this.speed * this.direction * this.time.delta * 0.0625;
-    let position = this.determineOrbit(this.orbitalPosition);
-    this.planetPivotPoint.position.x = position.x;
-    this.planetPivotPoint.position.y = position.y;
-    this.planetPivotPoint.position.z = position.z;
-  }
-  
-  determineOrbit(orbitalPosition) {
-    let x = this.actualDistanceFromSun;
-    let y = this.actualDistanceFromSun * Math.sqrt(1.0 - Math.pow(this.orbitEccentricity, 1));
-    let z = Math.sin(2 * Math.PI * this.orbitAxis/360 ) * this.actualDistanceFromSun;
-
-    return { 
-      x: Math.cos(orbitalPosition) * x,
-      y: Math.sin(orbitalPosition) * y,
-      z: Math.cos(orbitalPosition + 0) * z
-    }
-  }
-
-  destroy() {
-    if (this.debug.active) {
-      this.debugFolder.destroy();
-    }
-
-    this.removeFromScene();
-
-    this.planetPivotPoint.geometry.dispose();
-    this.planetPivotPoint.material.dispose();
-    this.planetPivotPoint.removeFromParent();
   }
 }
