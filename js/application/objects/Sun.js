@@ -2,52 +2,110 @@ import * as THREE from 'three';
 import Application from '../Application.js';
 
 export default class Sun {
-  constructor() {
+  constructor(sunNumber) {
     this.application = new Application();
     this.scene = this.application.scene;
+    this.solarSystem = this.application.solarSystem;
     this.solarSystemRadius = this.application.solarSystemRadius;
     this.seed = this.application.seed;
+    this.debug = this.application.debug;
 
+    this.sunNumber = sunNumber;
+
+    this.generateProperties();
+    this.addTouchPoint();
+    this.addDebug();
+  }
+
+  generateProperties() {
     this.kelvin = this.seed.fakeGaussianRandom(-1,3)*13000;
-    this.temperedKelvin = this.kelvin*0.9 + 13000*0.05;
     this.size = this.seed.fakeGaussianRandom(-1)*14+0.5;
+  }
+
+  addTouchPoint() {
+    const tappableSphereGeometry = new THREE.SphereGeometry(18);
+    const tappableSphereMaterial = new THREE.MeshBasicMaterial({visible: false});
+    this.sunPivotPoint = new THREE.Mesh(tappableSphereGeometry, tappableSphereMaterial);
+    this.sunPivotPoint.name = "sun";
+    this.scene.add(this.sunPivotPoint);
+  }
+
+  addToScene() {
+    this.temperedKelvin = this.kelvin*0.9 + 13000*0.05;
     this.mass = Math.pow(this.size/2,3)*Math.PI*4/3;
     this.brightness = (1.5 / Math.pow(16 / this.size, 0.5));
-    this.surfaceColour = this.kelvin_to_rgb(this.kelvin);
-    this.illuminationColour = this.kelvin_to_rgb(this.temperedKelvin);
-  }
+    this.surfaceColour = this.kelvinToRGB(this.kelvin);
+    this.illuminationColour = this.kelvinToRGB(this.temperedKelvin);
 
-  addToScene(pivotPoint, binarySystem) {
-    this.addSun(pivotPoint);
-    this.addSunlight(binarySystem);
-  }
-
-  addSun(pivotPoint) {
     this.sunGeometry = new THREE.SphereGeometry( this.size );
     this.sunMaterial = new THREE.MeshBasicMaterial({color: this.surfaceColour, toneMapped: false });
     this.sun = new THREE.Mesh(this.sunGeometry, this.sunMaterial);
-    this.sun.name = "sun";
+    this.sun.name = "sunCore";
     this.sun.position.set( 0, 0, 0);
-    pivotPoint.add(this.sun);
-  }
+    this.sunPivotPoint.add(this.sun);
+    const sunsPivotPoint = this.scene.getObjectByName('sunsPivotPoint');
+    sunsPivotPoint.add(this.sunPivotPoint);
 
-  addSunlight(binarySystem) {
-    if (binarySystem) {
-      this.brightness = this.brightness/1.5;
-    }
     this.sunLight = new THREE.PointLight(this.illuminationColour, this.brightness, this.solarSystemRadius*1.5);
     this.sunLight.position.set( 0, 0, 0 );
     this.sunLight.castShadow = true;
     this.sun.add( this.sunLight );
   }
 
-  destroy() {
-    this.sunLight.removeFromParent();
-    this.sunGeometry.dispose();
-    this.sun.removeFromParent();
+  removeFromScene() {
+    if (this.sun) {
+      this.sun.geometry.dispose();
+      this.sun.material.dispose();
+      this.sun.removeFromParent();
+    }
+    if (this.sunLight) {
+      this.sunLight.removeFromParent();
+    }
   }
 
-  kelvin_to_rgb(kelvin){
+  destroy() {
+    if (this.debug.active) {
+      this.debugFolder.destroy();
+    }
+
+    this.removeFromScene();
+
+    this.sunPivotPoint.geometry.dispose();
+    this.sunPivotPoint.material.dispose();
+    this.sunPivotPoint.removeFromParent();
+  }
+
+  addDebug() {
+    if(this.debug.active) {
+      this.debugFolder = this.debug.ui.addFolder('Sun ' + this.sunNumber).close();
+
+      this.debugFolder
+        .add(this, 'kelvin')
+        .name('kelvin')
+        .min(0)
+        .max(13000)
+        .step(1)
+        .onChange(() => {
+          this.removeFromScene();
+          this.addToScene();
+          this.solarSystem.placeSuns();
+        });
+
+      this.debugFolder
+        .add(this, 'size')
+        .name('size')
+        .min(0.5)
+        .max(14.5)
+        .step(0.001)
+        .onChange(() => {
+          this.removeFromScene();
+          this.addToScene();
+          this.solarSystem.placeSuns();
+        });
+    }
+  }
+
+  kelvinToRGB(kelvin){
     kelvin = kelvin / 100;
     let r,g,b;
   

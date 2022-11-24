@@ -31,21 +31,22 @@ export default class SolarSystem {
     this.scene.add( this.ambientLight );
 
     // Add suns
-    this.sunPivotPoint = new THREE.Object3D();
-    this.scene.add(this.sunPivotPoint);
-    let sun = new Sun();
+    this.sunsPivotPoint = new THREE.Object3D();
+    this.sunsPivotPoint.name = "sunsPivotPoint";
+    this.scene.add(this.sunsPivotPoint);
+    let sun = new Sun(1);
     this.minimumDistance = sun.size*3;
+    sun.addToScene();
     this.suns.push(sun);
-    let secondSun = new Sun();
+    let secondSun = new Sun(2);
     if (sun.size + secondSun.size < 13) {
       this.sunDistance = this.seed.fakeGaussianRandom(3)*23+2;
-      sun.addToScene(this.sunPivotPoint, true);
-      secondSun.addToScene(this.sunPivotPoint, true);
+      secondSun.addToScene();
       this.suns.push(secondSun);
       this.placeSuns();
     }
     else {
-      sun.addToScene(this.sunPivotPoint);
+      secondSun.destroy();
     }
 
     // Add planets
@@ -65,21 +66,23 @@ export default class SolarSystem {
   }
 
   placeSuns() {
-    // Space out suns
-    this.solarRadius = this.suns[0].size + this.suns[1].size + this.sunDistance;
-    this.suns[1].sun.position.x = this.solarRadius;
-    this.minimumDistance = this.solarRadius * 1.5;
-    // Find center of mass
-    const centerOfMass = this.suns[1].mass*this.suns[1].sun.position.x/(this.suns[0].mass + this.suns[1].mass);
-    // Move suns around center of mass
-    this.suns[0].sun.position.x = -centerOfMass;
-    this.suns[0].distanceFromCenter = Math.abs(this.suns[0].sun.position.x);
-    this.suns[1].sun.position.x = this.suns[1].sun.position.x - centerOfMass;
-    this.suns[1].distanceFromCenter = Math.abs(this.suns[1].sun.position.x);
+    if (this.suns.length > 1) {
+      // Space out suns
+      this.solarRadius = this.suns[0].size + this.suns[1].size + this.sunDistance;
+      this.suns[1].sunPivotPoint.position.x = this.solarRadius;
+      this.minimumDistance = this.solarRadius * 1.5;
+      // Find center of mass
+      const centerOfMass = this.suns[1].mass*this.suns[1].sunPivotPoint.position.x/(this.suns[0].mass + this.suns[1].mass);
+      // Move suns around center of mass
+      this.suns[0].sunPivotPoint.position.x = -centerOfMass;
+      this.suns[0].distanceFromCenter = Math.abs(this.suns[0].sunPivotPoint.position.x);
+      this.suns[1].sunPivotPoint.position.x = this.suns[1].sunPivotPoint.position.x - centerOfMass;
+      this.suns[1].distanceFromCenter = Math.abs(this.suns[1].sunPivotPoint.position.x);
+    }
   }
 
   orbitSuns() {
-      this.sunPivotPoint.rotation.z += this.direction * this.time.delta * 1/this.solarRadius * 0.0035;
+      this.sunsPivotPoint.rotation.z += this.direction * this.time.delta * 1/this.solarRadius * 0.0035;
   }
 
   update() {
