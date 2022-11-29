@@ -96,6 +96,7 @@ export default class SolarSystem {
 
   destroy() {
     this.ambientLight.removeFromParent();
+    this.sunsPivotPoint.removeFromParent();
     this.suns.forEach((item, index, object) => {
       item.destroy();
     });
