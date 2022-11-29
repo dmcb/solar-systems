@@ -59,12 +59,12 @@ export default class Controls extends EventEmitter {
       pointer.x = ( event.clientX / this.viewport.width ) * 2 - 1;
       pointer.y = - ( event.clientY / this.viewport.height ) * 2 + 1;
 
-      raycaster.setFromCamera( pointer, this.camera.instance );
+      raycaster.setFromCamera(pointer, this.camera.instance);
       
       const intersects = raycaster.intersectObjects( this.scene.children );
       let match;
       intersects.forEach((item, index, object) => {
-        if (item.object.name == "sun" || item.object.name == "planet") {
+        if (!match && (item.object.name == "sun" || item.object.name == "planet")) {
           match = item.object.id;
         }
       });
