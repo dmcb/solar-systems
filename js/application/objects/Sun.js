@@ -19,7 +19,7 @@ export default class Sun {
 
   generateProperties() {
     this.kelvin = this.seed.fakeGaussianRandom(-1,3)*13000;
-    this.size = this.seed.fakeGaussianRandom(-1)*14+0.5;
+    this.size = this.seed.fakeGaussianRandom(-2)*14+0.5;
   }
 
   addTouchPoint() {

@@ -24,20 +24,20 @@ export default class Planet {
     const exaggeratedDistanceFromSunModifier = 1.2;
     const speedModifier = 0.005;
 
-    this.projectedDistanceFromSun = this.seed.fakeGaussianRandom(-9,10)*this.maximumDistance + this.minimumDistance;
+    this.projectedDistanceFromSun = this.seed.fakeGaussianRandom(-12,13)*this.maximumDistance + this.minimumDistance;
     this.colour = new THREE.Color( this.seed.getRandom()*0xffffff );
     this.size = this.seed.fakeGaussianRandom(-2,4)*6+1;
-    this.rotationSpeed = this.seed.fakeGaussianRandom()*0.03;
+    this.rotationSpeed = this.seed.fakeGaussianRandom()*0.02;
     this.orbitEccentricity = this.seed.fakeGaussianRandom()*0;
     this.orbitAxis = this.seed.fakeGaussianRandom()*20-10;
     this.rockiness = this.seed.fakeGaussianRandom();
     this.surfaceTexture = Math.round(this.seed.getRandom()*6+1);
     this.tilt = (this.seed.fakeGaussianRandom()*180-90) * Math.PI/180;
-    this.hasRings = this.seed.fakeGaussianRandom(this.size-5,8);
+    this.hasRings = this.seed.fakeGaussianRandom(this.size-5,12);
     if (this.hasRings >= 0.5) this.hasRings = true;
     else this.hasRings = false;
-    this.ringSize = this.seed.fakeGaussianRandom()*1.3;
-    this.ringDistance = this.seed.fakeGaussianRandom()*4+0.5;
+    this.ringSize = this.seed.fakeGaussianRandom(-1)*1.3;
+    this.ringDistance = this.seed.fakeGaussianRandom(-1)*4+0.5;
     this.ringTilt = (this.seed.fakeGaussianRandom()*180-90) * Math.PI/180;
     this.numberOfRings = Math.floor(this.seed.fakeGaussianRandom(this.size-3)*10);
     if (!this.hasRings || this.ringSize < 0.15 || !this.numberOfRings) {
@@ -46,7 +46,7 @@ export default class Planet {
       this.ringTilt = 0;
       this.numberOfRings = 0;
     }
-    this.planetOccupiedArea = (this.size + this.ringSize * this.numberOfRings + this.ringDistance) * 1.5;
+    this.planetOccupiedArea = (this.size + this.ringSize * this.numberOfRings + this.ringDistance) * 1.8;
     this.actualDistanceFromSun = this.projectedDistanceFromSun + this.planetOccupiedArea;
     this.orbitalPosition = this.seed.getRandom()*2*Math.PI;
     this.speed = speedModifier * Math.pow(16, exaggeratedDistanceFromSunModifier) * (1 / Math.pow(this.actualDistanceFromSun, exaggeratedDistanceFromSunModifier));
@@ -112,9 +112,6 @@ export default class Planet {
     }
 
     // Tilt planet and rings
-    // This isn't quite working
-    // const vector = new THREE.Vector3(0, 0, 1);
-    // vector.applyAxisAngle(new THREE.Vector3(1, 1, 1), this.tilt).normalize();
     this.planetPivotPoint.rotation.y = this.tilt;
   }
 
