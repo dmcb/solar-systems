@@ -23,14 +23,14 @@ export default class Controls extends EventEmitter {
 
   pointerMove(event) {
     if (this.cameraDrag == event.pointerId && !this.camera.focus) {
-      let currentPointerPosition = {x: event.pageX, y: event.pageY};
+      const currentPointerPosition = {x: this.normalizePointX(event.clientX), y: this.normalizePointY(event.clientY)};
       let screenMovement = {x: currentPointerPosition.x - this.pointerPosition.x, y: currentPointerPosition.y - this.pointerPosition.y};
       this.pointerPosition = currentPointerPosition;
 
       let newZ, newY;
       let rads = Math.atan2(
-        this.camera.instance.position.z-(this.solarSystemRadius*3*screenMovement.y/this.viewport.height), 
-        this.camera.instance.position.y-(this.solarSystemRadius*3*screenMovement.y/this.viewport.height)
+        this.camera.instance.position.z+(this.solarSystemRadius*screenMovement.y), 
+        this.camera.instance.position.y+(this.solarSystemRadius*screenMovement.y)
       );
 
       newZ = Math.sin(rads)*this.solarSystemRadius;
@@ -43,7 +43,7 @@ export default class Controls extends EventEmitter {
 
       this.camera.setPosition(0, newY, newZ);
       this.camera.setTarget();
-      this.scene.rotation.z += 0.5 * Math.PI * 4 * screenMovement.x / this.viewport.width;
+      this.scene.rotation.z += Math.PI * screenMovement.x;
     }
   }
 
@@ -56,8 +56,8 @@ export default class Controls extends EventEmitter {
       // Check if a sun or planet is tapped on
       let pointer = new THREE.Vector2();
       let raycaster = new THREE.Raycaster();
-      pointer.x = ( event.clientX / this.viewport.width ) * 2 - 1;
-      pointer.y = - ( event.clientY / this.viewport.height ) * 2 + 1;
+      pointer.x = this.normalizePointX(event.clientX);
+      pointer.y = this.normalizePointY(event.clientY);
 
       raycaster.setFromCamera(pointer, this.camera.instance);
       
@@ -76,8 +76,8 @@ export default class Controls extends EventEmitter {
       else if (!this.cameraDrag) {
         this.cameraDrag = event.pointerId;
         this.pointerPosition = {
-          x: event.pageX,
-          y: event.pageY
+          x: pointer.x,
+          y: pointer.y
         }
       }
     }
@@ -87,5 +87,13 @@ export default class Controls extends EventEmitter {
     if (this.cameraDrag == event.pointerId) {
       this.cameraDrag = false;
     }
+  }
+
+  normalizePointX(x) {
+    return (x / this.viewport.width) * 2 - 1;
+  }
+
+  normalizePointY(y) {
+    return - (y / this.viewport.height) * 2 + 1;
   }
 }
