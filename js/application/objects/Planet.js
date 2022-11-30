@@ -32,18 +32,18 @@ export default class Planet {
     this.orbitAxis = this.seed.fakeGaussianRandom()*20-10;
     this.rockiness = this.seed.fakeGaussianRandom();
     this.surfaceTexture = Math.round(this.seed.getRandom()*6+1);
-    this.tilt = this.seed.fakeGaussianRandom()*180-90;
+    this.tilt = (this.seed.fakeGaussianRandom()*180-90) * Math.PI/180;
     this.hasRings = this.seed.fakeGaussianRandom(this.size-5,8);
     if (this.hasRings >= 0.5) this.hasRings = true;
     else this.hasRings = false;
     this.ringSize = this.seed.fakeGaussianRandom()*1.3;
     this.ringDistance = this.seed.fakeGaussianRandom()*4+0.5;
-    this.ringAxis = this.seed.fakeGaussianRandom(-9,10)*90;
+    this.ringTilt = (this.seed.fakeGaussianRandom()*180-90) * Math.PI/180;
     this.numberOfRings = Math.floor(this.seed.fakeGaussianRandom(this.size-3)*10);
     if (!this.hasRings || this.ringSize < 0.15 || !this.numberOfRings) {
       this.ringSize = 0;
       this.ringDistance = 0;
-      this.ringAxis = 0;
+      this.ringTilt = 0;
       this.numberOfRings = 0;
     }
     this.planetOccupiedArea = (this.size + this.ringSize * this.numberOfRings + this.ringDistance) * 1.5;
@@ -67,10 +67,22 @@ export default class Planet {
     const sphereMaterial = new THREE.MeshPhongMaterial( { color: this.colour, shininess: 1, normalMap: normalMap, normalScale: new THREE.Vector2( this.rockiness, this.rockiness ) } );
     this.planetSphere = new THREE.Mesh( sphereGeometry, sphereMaterial );
     this.planetSphere.name = "planetCore";
-    this.planetSphere.rotation.x = this.tilt;
     this.planetSphere.receiveShadow = true;
     this.planetSphere.castShadow = true;
     this.planetPivotPoint.add(this.planetSphere);
+    
+    // Debug axis
+    if (this.debug.active) {
+      const axisLineMaterial = new THREE.LineBasicMaterial({ color: 0x666666 });
+      let axisPoints = [];
+      const axisPoint1 = new THREE.Vector3(0, 0, this.size*-3);
+      const axisPoint2 = new THREE.Vector3(0, 0, this.size*3);
+      axisPoints.push(axisPoint1);
+      axisPoints.push(axisPoint2); 
+      const axisLineGeometry = new THREE.BufferGeometry().setFromPoints(axisPoints);
+      this.axisLine = new THREE.Line(axisLineGeometry, axisLineMaterial);
+      this.planetPivotPoint.add(this.axisLine);
+    }
 
     // Add orbit path to scene
     const orbitLineMaterial = new THREE.LineBasicMaterial({ color: 0x222222 });
@@ -94,13 +106,24 @@ export default class Planet {
       ring.mesh = new THREE.Mesh (ringGeometry, ringMaterial);
       ring.mesh.name = "ring";
       ring.mesh.receiveShadow = true;
-      ring.mesh.rotation.x = this.ringAxis;
+      ring.mesh.rotation.x = this.ringTilt;
       this.planetRings.push(ring);
       this.planetPivotPoint.add(ring.mesh);
     }
+
+    // Tilt planet and rings
+    // This isn't quite working
+    // const vector = new THREE.Vector3(0, 0, 1);
+    // vector.applyAxisAngle(new THREE.Vector3(1, 1, 1), this.tilt).normalize();
+    this.planetPivotPoint.rotation.y = this.tilt;
   }
 
   removeFromScene() {
+    // Reset pivot rotation
+    this.planetPivotPoint.rotation.x = 0;
+    this.planetPivotPoint.rotation.y = 0;
+    this.planetPivotPoint.rotation.z = 0;
+
     if (this.planetSphere) {
       this.planetSphere.geometry.dispose();
       this.planetSphere.material.dispose();
@@ -111,6 +134,12 @@ export default class Planet {
       this.orbitLine.geometry.dispose();
       this.orbitLine.material.dispose();
       this.orbitLine.removeFromParent();
+    }
+
+    if (this.axisLine) {
+      this.axisLine.geometry.dispose();
+      this.axisLine.material.dispose();
+      this.axisLine.removeFromParent();
     }
     
     if (this.planetRings) {
@@ -231,8 +260,8 @@ export default class Planet {
       this.debugFolder
         .add(this, 'tilt')
         .name('tilt')
-        .min(0)
-        .max(90)
+        .min(-90 * Math.PI/180)
+        .max(90 * Math.PI/180)
         .step(0.001)
         .onChange(() => {
           this.removeFromScene();
@@ -262,10 +291,10 @@ export default class Planet {
         });
 
       this.debugFolder
-        .add(this, 'ringAxis')
-        .name('ringAxis')
-        .min(0)
-        .max(90)
+        .add(this, 'ringTilt')
+        .name('ringTilt')
+        .min(-90 * Math.PI/180)
+        .max(90 * Math.PI/180)
         .step(0.001)
         .onChange(() => {
           this.removeFromScene();
