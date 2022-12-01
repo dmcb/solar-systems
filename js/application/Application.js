@@ -31,6 +31,7 @@ export default class Application {
     this.canvas = canvas;
 
     // Setup
+    THREE.ColorManagement.legacyMode = false;
     this.debug = new Debug();
     this.seed = new Seed();
     this.time = new Time();

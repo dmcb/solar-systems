@@ -35,6 +35,7 @@ export default class Sun {
     this.mass = Math.pow(this.size/2,3)*Math.PI*4/3;
     this.brightness = (1.5 / Math.pow(16 / this.size, 0.5));
     this.surfaceColour = this.kelvinToRGB(this.kelvin);
+    console.log(this.surfaceColour);
     this.illuminationColour = this.kelvinToRGB(this.temperedKelvin);
 
     this.sunGeometry = new THREE.SphereGeometry( this.size );

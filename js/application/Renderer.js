@@ -1,7 +1,5 @@
 import * as THREE from 'three';
-import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
-import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
-import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { SelectiveBloomEffect, BlendFunction, EffectComposer, EffectPass, RenderPass } from 'postprocessing';
 
 import Application from './Application.js';
 
@@ -20,9 +18,12 @@ export default class Renderer {
     // Renderer
     this.renderer = new THREE.WebGLRenderer({ 
       canvas: this.canvas,
-      alpha: true, 
-      antialias: true 
+      powerPreference: "high-performance",
+      antialias: false,
+      stencil: false,
+      depth: false
     });
+    this.renderer.outputEncoding = THREE.sRGBEncoding;
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.BasicShadowMap;
     this.renderer.setPixelRatio(this.viewport.pixelRatio);
@@ -30,15 +31,19 @@ export default class Renderer {
     this.renderScene = new RenderPass(this.scene, this.camera.instance);
 
     // Bloom
-    this.bloomPass = new UnrealBloomPass(new THREE.Vector2(this.viewport.width, this.viewport.height), 1.5, 0.4, 0.85);
-    this.bloomPass.threshold = 0.29;
-    this.bloomPass.strength = 1.5;
-    this.bloomPass.radius = 0.5;
+    this.bloomPass = new SelectiveBloomEffect(this.scene, this.camera.instance, {
+      blendFunction: BlendFunction.ADD,
+			mipmapBlur: true,
+			luminanceThreshold: 0.15,
+			luminanceSmoothing: 0.05,
+			intensity: 1.5
+    });
+    this.bloomPass.inverted = true;
 
     // Compose render and bloom
     this.composer = new EffectComposer(this.renderer);
     this.composer.addPass(this.renderScene);
-    this.composer.addPass(this.bloomPass);
+    this.composer.addPass(new EffectPass(this.camera.instance, this.bloomPass));
   }
 
   resize() {
