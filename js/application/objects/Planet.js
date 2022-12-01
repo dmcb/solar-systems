@@ -101,7 +101,7 @@ export default class Planet {
       let ring = {};
       ring.ringStart = this.size + this.ringDistance + i*(this.ringSize);
       ring.ringEnd = ring.ringStart + this.ringSize;
-      let ringGeometry = new THREE.RingGeometry(ring.ringStart, ring.ringEnd, 64);
+      let ringGeometry = new THREE.RingGeometry(ring.ringStart, ring.ringEnd, 64, 32);
       let ringMaterial = new THREE.MeshPhongMaterial({ color: this.colour, transparent: true, opacity: this.seed.getRandom()*0.8+0.2, side: THREE.DoubleSide });
       ring.mesh = new THREE.Mesh (ringGeometry, ringMaterial);
       ring.mesh.name = "ring";
