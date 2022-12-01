@@ -108,7 +108,7 @@ export default {
       float cs = pow(cnoise(scaledClusterSize*vPos+noiseOffset),1.0/clusterStrength) + cnoise(scaledStarSize*vPos);
 
       float c =clamp(pow(cs, 1.0/starDensity),0.0,1.0);
-      vec4 starColor = 0.15*vec4(c, c, c, 1.0);
+      vec4 starColor = 0.08*vec4(c, c, c, 1.0);
 
       gl_FragColor = backgroundColor;
       gl_FragColor += starColor;

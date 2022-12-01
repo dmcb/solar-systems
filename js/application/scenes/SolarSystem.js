@@ -28,11 +28,11 @@ export default class SolarSystem {
     var sphereMaterial = new THREE.ShaderMaterial({
       uniforms: {
         skyRadius: { value: skyDomeRadius },
-        env_c1: { value: new THREE.Color("#000505") },
-        env_c2: { value: new THREE.Color("#090009") },
+        env_c1: { value: new THREE.Color("#000606") },
+        env_c2: { value: new THREE.Color("#100010") },
         noiseOffset: { value: new THREE.Vector3(100, 100, 100) },
-        starSize: { value: 0.001 },
-        starDensity: { value: 0.07 },
+        starSize: { value: 0.0021 },
+        starDensity: { value: 0.09 },
         clusterStrength: { value: 0 },
         clusterSize: { value: 0.8 },
       },
