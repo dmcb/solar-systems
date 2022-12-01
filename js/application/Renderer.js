@@ -36,7 +36,7 @@ export default class Renderer {
 			mipmapBlur: true,
 			luminanceThreshold: 0.15,
 			luminanceSmoothing: 0.05,
-			intensity: 1.5
+			intensity: 1.2
     });
     this.bloomPass.inverted = true;
 

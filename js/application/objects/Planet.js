@@ -63,7 +63,7 @@ export default class Planet {
   addToScene() {
     // Add planet to scene
     const normalMap = this.resources.items['normalMap0' + this.surfaceTexture];
-    const sphereGeometry = new THREE.SphereGeometry( this.size );
+    const sphereGeometry = new THREE.SphereGeometry( this.size, 36, 36 );
     const sphereMaterial = new THREE.MeshPhongMaterial( { color: this.colour, shininess: 1, normalMap: normalMap, normalScale: new THREE.Vector2( this.rockiness, this.rockiness ) } );
     this.planetSphere = new THREE.Mesh( sphereGeometry, sphereMaterial );
     this.planetSphere.name = "planetCore";
@@ -101,7 +101,7 @@ export default class Planet {
       let ring = {};
       ring.ringStart = this.size + this.ringDistance + i*(this.ringSize);
       ring.ringEnd = ring.ringStart + this.ringSize;
-      let ringGeometry = new THREE.RingGeometry(ring.ringStart, ring.ringEnd, 32);
+      let ringGeometry = new THREE.RingGeometry(ring.ringStart, ring.ringEnd, 64);
       let ringMaterial = new THREE.MeshPhongMaterial({ color: this.colour, transparent: true, opacity: this.seed.getRandom()*0.8+0.2, side: THREE.DoubleSide });
       ring.mesh = new THREE.Mesh (ringGeometry, ringMaterial);
       ring.mesh.name = "ring";

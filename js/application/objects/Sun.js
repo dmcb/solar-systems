@@ -38,7 +38,7 @@ export default class Sun {
     console.log(this.surfaceColour);
     this.illuminationColour = this.kelvinToRGB(this.temperedKelvin);
 
-    this.sunGeometry = new THREE.SphereGeometry( this.size );
+    this.sunGeometry = new THREE.SphereGeometry( this.size, 36, 36 );
     this.sunMaterial = new THREE.MeshBasicMaterial({color: this.surfaceColour, toneMapped: false });
     this.sun = new THREE.Mesh(this.sunGeometry, this.sunMaterial);
     this.sun.name = "sunCore";
