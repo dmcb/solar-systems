@@ -60,7 +60,7 @@ export default class SolarSystem {
     sun.addToScene();
     this.suns.push(sun);
     let secondSun = new Sun(2);
-    if (sun.size + secondSun.size < 13) {
+    if (sun.size + secondSun.size < 10) {
       this.sunDistance = this.seed.fakeGaussianRandom(3)*30+2;
       secondSun.addToScene();
       this.suns.push(secondSun);
