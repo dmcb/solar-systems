@@ -16,12 +16,20 @@ export default class SolarSystem {
     this.suns = [];
     this.planets = [];
 
+    this.addBackground();
+
+    this.resources.on('ready', () => {
+      this.create();
+    });
+  }
+  
+  addBackground() {
     var skyDomeRadius = 500;
     var sphereMaterial = new THREE.ShaderMaterial({
       uniforms: {
         skyRadius: { value: skyDomeRadius },
-        env_c1: { value: new THREE.Color("#000606") },
-        env_c2: { value: new THREE.Color("#060006") },
+        env_c1: { value: new THREE.Color("#000505") },
+        env_c2: { value: new THREE.Color("#090009") },
         noiseOffset: { value: new THREE.Vector3(100, 100, 100) },
         starSize: { value: 0.001 },
         starDensity: { value: 0.07 },
@@ -35,10 +43,6 @@ export default class SolarSystem {
     let starGeometry = new THREE.SphereGeometry(skyDomeRadius, 30, 30);
     var starDome = new THREE.Mesh(starGeometry, sphereMaterial);
     this.scene.add(starDome);
-
-    this.resources.on('ready', () => {
-      this.create();
-    });
   }
 
   create() {
