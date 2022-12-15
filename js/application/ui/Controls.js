@@ -14,11 +14,34 @@ export default class Controls extends EventEmitter {
     this.canvas = this.application.canvas;
 
     this.cameraDrag = false;
+    this.canvas.addEventListener('dblclick', (event) => this.dblClick(event));
     this.canvas.addEventListener('pointermove', (event) => this.pointerMove(event));
     this.canvas.addEventListener('pointerdown', (event) => this.pointerDown(event));
     this.canvas.addEventListener('pointerup', (event) => this.pointerEnd(event));
     this.canvas.addEventListener('pointerout', (event) => this.pointerEnd(event));
     this.canvas.addEventListener('pointercancel', (event) => this.pointerEnd(event));
+  }
+
+  dblClick(event) {
+    const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement;
+    if(!fullscreenElement)
+    {
+      if (this.canvas.requestFullscreen) {
+        this.canvas.requestFullscreen();
+      }
+      else if (this.canvas.webkitRequestFullscreen) {
+        this.canvas.webkitRequestFullscreen();
+      }
+    }
+    else
+    {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      }
+      else if (document.webkitExitFullscreen) {
+        document.webkitExitFullscreen();
+      }
+    }
   }
 
   pointerMove(event) {
