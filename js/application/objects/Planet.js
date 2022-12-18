@@ -31,6 +31,7 @@ export default class Planet {
     this.orbitEccentricity = this.seed.fakeGaussianRandom()*0;
     this.orbitAxis = this.seed.fakeGaussianRandom()*20-10;
     this.rockiness = this.seed.fakeGaussianRandom();
+    this.shininess = this.seed.fakeGaussianRandom(-4)*500;
     this.surfaceTexture = Math.round(this.seed.getRandom()*6+1);
     this.tilt = (this.seed.fakeGaussianRandom()*180-90) * Math.PI/180;
     this.hasRings = this.seed.fakeGaussianRandom(this.size-5,12);
@@ -63,8 +64,11 @@ export default class Planet {
   addToScene() {
     // Add planet to scene
     const normalMap = this.resources.items['normalMap0' + this.surfaceTexture];
+    normalMap.generateMipMaps = false;
+    normalMap.magFilter = THREE.NearestFilter;
+    normalMap.minFilter = THREE.NearestFilter;
     const sphereGeometry = new THREE.SphereGeometry( this.size, 36, 36 );
-    const sphereMaterial = new THREE.MeshPhongMaterial( { color: this.colour, shininess: 1, normalMap: normalMap, normalScale: new THREE.Vector2( this.rockiness, this.rockiness ) } );
+    const sphereMaterial = new THREE.MeshPhongMaterial( { color: this.colour, shininess: this.shininess, normalMap: normalMap, normalScale: new THREE.Vector2( this.rockiness, this.rockiness ) } );
     this.planetSphere = new THREE.Mesh( sphereGeometry, sphereMaterial );
     this.planetSphere.name = "planetCore";
     this.planetSphere.receiveShadow = true;
@@ -238,6 +242,17 @@ export default class Planet {
         .min(0)
         .max(1)
         .step(0.001)
+        .onChange(() => {
+          this.removeFromScene();
+          this.addToScene();
+        });
+
+        this.debugFolder
+        .add(this, 'shininess')
+        .name('shininess')
+        .min(0)
+        .max(500)
+        .step(1)
         .onChange(() => {
           this.removeFromScene();
           this.addToScene();

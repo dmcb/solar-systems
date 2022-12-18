@@ -52,7 +52,7 @@ export default class SolarSystem {
     else this.direction = -1;
 
     // Add ambient light
-    this.ambientLight = new THREE.AmbientLight(0xffffff, 0.09);
+    this.ambientLight = new THREE.AmbientLight(0xffffff, 0.07);
     this.scene.add( this.ambientLight );
 
     // Add suns
