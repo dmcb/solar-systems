@@ -25,13 +25,15 @@ export default class Planet {
     const speedModifier = 0.005;
 
     this.projectedDistanceFromSun = this.seed.fakeGaussianRandom(-12,13)*this.maximumDistance + this.minimumDistance;
-    this.colour = new THREE.Color( this.seed.getRandom()*0xffffff );
+    this.hue = this.seed.getRandom();
+    this.saturation = this.seed.fakeGaussianRandom()*0.2+0.6;
+    this.lightness = this.seed.fakeGaussianRandom()*0.2+0.4;
     this.size = this.seed.fakeGaussianRandom(-2,4)*6+1;
     this.rotationSpeed = this.seed.fakeGaussianRandom()*0.02;
     this.orbitEccentricity = this.seed.fakeGaussianRandom()*0;
     this.orbitAxis = this.seed.fakeGaussianRandom()*20-10;
     this.rockiness = this.seed.fakeGaussianRandom();
-    this.shininess = this.seed.fakeGaussianRandom(-4)*500;
+    this.iciness = this.seed.fakeGaussianRandom(-5,6)*50;
     this.surfaceTexture = Math.round(this.seed.getRandom()*6+1);
     this.tilt = (this.seed.fakeGaussianRandom()*180-90) * Math.PI/180;
     this.hasRings = this.seed.fakeGaussianRandom(this.size-5,12);
@@ -63,12 +65,15 @@ export default class Planet {
 
   addToScene() {
     // Add planet to scene
+    this.colour = new THREE.Color();
+    this.colour.setHSL(this.hue, this.saturation, this.lightness);
+    console.log(this.colour);
     const normalMap = this.resources.items['normalMap0' + this.surfaceTexture];
     normalMap.generateMipMaps = false;
     normalMap.magFilter = THREE.NearestFilter;
     normalMap.minFilter = THREE.NearestFilter;
     const sphereGeometry = new THREE.SphereGeometry( this.size, 36, 36 );
-    const sphereMaterial = new THREE.MeshPhongMaterial( { color: this.colour, shininess: this.shininess, normalMap: normalMap, normalScale: new THREE.Vector2( this.rockiness, this.rockiness ) } );
+    const sphereMaterial = new THREE.MeshPhongMaterial( { color: this.colour, specular: this.colour, shininess: this.iciness, normalMap: normalMap, normalScale: new THREE.Vector2( this.rockiness, this.rockiness ) } );
     this.planetSphere = new THREE.Mesh( sphereGeometry, sphereMaterial );
     this.planetSphere.name = "planetCore";
     this.planetSphere.receiveShadow = true;
@@ -197,7 +202,33 @@ export default class Planet {
       this.debugFolder = this.debug.ui.addFolder('Planet ' + this.planetNumber).close();
 
       this.debugFolder
-        .addColor(this, 'colour')
+        .add(this, 'hue')
+        .name('hue')
+        .min(0)
+        .max(1)
+        .step(0.001)
+        .onChange(() => {
+          this.removeFromScene();
+          this.addToScene();
+        });
+
+      this.debugFolder
+        .add(this, 'saturation')
+        .name('saturation')
+        .min(0.6)
+        .max(0.8)
+        .step(0.001)
+        .onChange(() => {
+          this.removeFromScene();
+          this.addToScene();
+        });
+
+      this.debugFolder
+        .add(this, 'lightness')
+        .name('lightness')
+        .min(0.4)
+        .max(0.6)
+        .step(0.001)
         .onChange(() => {
           this.removeFromScene();
           this.addToScene();
@@ -248,10 +279,10 @@ export default class Planet {
         });
 
         this.debugFolder
-        .add(this, 'shininess')
-        .name('shininess')
+        .add(this, 'iciness')
+        .name('iciness')
         .min(0)
-        .max(500)
+        .max(50)
         .step(1)
         .onChange(() => {
           this.removeFromScene();
