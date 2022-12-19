@@ -39,7 +39,7 @@ export default class Planet {
     this.hasRings = this.seed.fakeGaussianRandom(this.size-5,12);
     if (this.hasRings >= 0.5) this.hasRings = true;
     else this.hasRings = false;
-    this.ringSize = this.seed.fakeGaussianRandom(-1)*1.3;
+    this.ringSize = this.seed.fakeGaussianRandom(-1)*0.7;
     this.ringDistance = this.seed.fakeGaussianRandom(-1)*4+0.5;
     this.ringTilt = (this.seed.fakeGaussianRandom()*180-90) * Math.PI/180;
     this.numberOfRings = Math.floor(this.seed.fakeGaussianRandom(this.size-3)*10);
@@ -73,7 +73,7 @@ export default class Planet {
     normalMap.magFilter = THREE.NearestFilter;
     normalMap.minFilter = THREE.NearestFilter;
     const sphereGeometry = new THREE.SphereGeometry( this.size, 36, 36 );
-    const sphereMaterial = new THREE.MeshPhongMaterial( { color: this.colour, specular: this.colour, shininess: this.iciness, normalMap: normalMap, normalScale: new THREE.Vector2( this.rockiness, this.rockiness ) } );
+    const sphereMaterial = new THREE.MeshStandardMaterial( { color: this.colour, specular: this.colour, shininess: this.iciness, normalMap: normalMap, normalScale: new THREE.Vector2( this.rockiness, this.rockiness ) } );
     this.planetSphere = new THREE.Mesh( sphereGeometry, sphereMaterial );
     this.planetSphere.name = "planetCore";
     this.planetSphere.receiveShadow = true;
@@ -111,7 +111,7 @@ export default class Planet {
       ring.ringStart = this.size + this.ringDistance + i*(this.ringSize);
       ring.ringEnd = ring.ringStart + this.ringSize;
       let ringGeometry = new THREE.RingGeometry(ring.ringStart, ring.ringEnd, 64, 32);
-      let ringMaterial = new THREE.MeshPhongMaterial({ color: this.colour, transparent: true, opacity: this.seed.getRandom()*0.8+0.2, side: THREE.DoubleSide });
+      let ringMaterial = new THREE.MeshStandardMaterial({ color: this.colour, transparent: true, opacity: this.seed.getRandom()*0.8+0.2, side: THREE.DoubleSide });
       ring.mesh = new THREE.Mesh (ringGeometry, ringMaterial);
       ring.mesh.name = "ring";
       ring.mesh.receiveShadow = true;
@@ -315,7 +315,7 @@ export default class Planet {
         .add(this, 'ringSize')
         .name('ringSize')
         .min(0)
-        .max(1.3)
+        .max(0.7)
         .step(0.001)
         .onChange(() => {
           this.removeFromScene();
