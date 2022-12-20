@@ -49,6 +49,9 @@ export default class Sun {
     this.sunLight = new THREE.PointLight(this.illuminationColour, this.brightness, this.solarSystemRadius*1.5);
     this.sunLight.position.set( 0, 0, 0 );
     this.sunLight.castShadow = true;
+    this.sunLight.shadow.mapSize.width = 2048;
+    this.sunLight.shadow.mapSize.height = 2048;
+    this.sunLight.shadow.radius = this.size*3;
     this.sun.add( this.sunLight );
   }
 

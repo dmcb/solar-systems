@@ -25,7 +25,7 @@ export default class Renderer {
     });
     this.renderer.outputEncoding = THREE.sRGBEncoding;
     this.renderer.shadowMap.enabled = true;
-    this.renderer.shadowMap.type = THREE.BasicShadowMap;
+    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer.setPixelRatio(this.viewport.pixelRatio);
     this.renderer.setSize(this.viewport.width, this.viewport.height);
     this.renderScene = new RenderPass(this.scene, this.camera.instance);
