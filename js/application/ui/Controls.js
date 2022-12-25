@@ -14,6 +14,8 @@ export default class Controls extends EventEmitter {
     this.canvas = this.application.canvas;
 
     this.cameraDrag = false;
+    this.controlsEnabled = true;
+
     this.canvas.addEventListener('dblclick', (event) => this.dblClick(event));
     this.canvas.addEventListener('pointermove', (event) => this.pointerMove(event));
     this.canvas.addEventListener('pointerdown', (event) => this.pointerDown(event));
@@ -23,84 +25,90 @@ export default class Controls extends EventEmitter {
   }
 
   dblClick(event) {
-    const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement;
-    if(!fullscreenElement)
-    {
-      if (this.canvas.requestFullscreen) {
-        this.canvas.requestFullscreen();
+    if (this.controlsEnabled) {
+      const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement;
+      if (!fullscreenElement)
+      {
+        if (this.canvas.requestFullscreen) {
+          this.canvas.requestFullscreen();
+        }
+        else if (this.canvas.webkitRequestFullscreen) {
+          this.canvas.webkitRequestFullscreen();
+        }
       }
-      else if (this.canvas.webkitRequestFullscreen) {
-        this.canvas.webkitRequestFullscreen();
-      }
-    }
-    else
-    {
-      if (document.exitFullscreen) {
-        document.exitFullscreen();
-      }
-      else if (document.webkitExitFullscreen) {
-        document.webkitExitFullscreen();
+      else
+      {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        }
+        else if (document.webkitExitFullscreen) {
+          document.webkitExitFullscreen();
+        }
       }
     }
   }
 
   pointerMove(event) {
-    if (this.cameraDrag == event.pointerId && !this.camera.focus) {
-      const currentPointerPosition = {x: this.normalizePointX(event.clientX), y: this.normalizePointY(event.clientY)};
-      let screenMovement = {x: currentPointerPosition.x - this.pointerPosition.x, y: currentPointerPosition.y - this.pointerPosition.y};
-      this.pointerPosition = currentPointerPosition;
+    if (this.controlsEnabled) {
+      if (this.cameraDrag == event.pointerId && !this.camera.focus) {
+        const newPointerPosition = {x: this.normalizePointX(event.clientX), y: this.normalizePointY(event.clientY)};
+        const screenMovement = {x: newPointerPosition.x - this.currentPointerPosition.x, y: newPointerPosition.y - this.currentPointerPosition.y};
+        this.currentPointerPosition = newPointerPosition;
 
-      let newZ, newY;
-      let rads = Math.atan2(
-        this.camera.instance.position.z+(this.solarSystemRadius*screenMovement.y), 
-        this.camera.instance.position.y+(this.solarSystemRadius*screenMovement.y)
-      );
+        let newZ, newY;
+        let rads = Math.atan2(
+          this.camera.instance.position.z+(this.solarSystemRadius*screenMovement.y), 
+          this.camera.instance.position.y+(this.solarSystemRadius*screenMovement.y)
+        );
 
-      newZ = Math.sin(rads)*this.solarSystemRadius;
-      newY = Math.cos(rads)*this.solarSystemRadius;
-      
-      if (newZ > this.solarSystemRadius) { newZ = this.solarSystemRadius }
-      if (newZ < 0) { newZ = 0 }
-      if (newY < -this.solarSystemRadius) { newY = -this.solarSystemRadius }
-      if (newY > 0) { newY = 0 }
+        newZ = Math.sin(rads)*this.solarSystemRadius;
+        newY = Math.cos(rads)*this.solarSystemRadius;
+        
+        if (newZ > this.solarSystemRadius) { newZ = this.solarSystemRadius }
+        if (newZ < 0) { newZ = 0 }
+        if (newY < -this.solarSystemRadius) { newY = -this.solarSystemRadius }
+        if (newY > 0) { newY = 0 }
 
-      this.camera.setPosition(0, newY, newZ);
-      this.camera.setTarget();
-      this.scene.rotation.z += Math.PI * screenMovement.x;
+        this.camera.setPosition(0, newY, newZ);
+        this.camera.setTarget();
+        this.scene.rotation.z += Math.PI * screenMovement.x;
+      }
     }
   }
 
   pointerDown(event) {
-    // If camera is focused on a planet, a tap will undo it
-    if (this.camera.focus) {
-      this.trigger('focus');
-    }
-    else {
-      // Check if a sun or planet is tapped on
-      let pointer = new THREE.Vector2();
-      let raycaster = new THREE.Raycaster();
-      pointer.x = this.normalizePointX(event.clientX);
-      pointer.y = this.normalizePointY(event.clientY);
-
-      raycaster.setFromCamera(pointer, this.camera.instance);
-      
-      const intersects = raycaster.intersectObjects( this.scene.children );
-      let match;
-      intersects.forEach((item, index, object) => {
-        if (!match && (item.object.name == "sun" || item.object.name == "planet")) {
-          match = item.object.id;
-        }
-      });
-
-      // If there's a match, let the app know, otherwise initiate drag
-      if (match) {
-        this.trigger('focus', [match]);
+    if (this.controlsEnabled) {
+      // If camera is focused on a planet, a tap will undo it
+      if (this.camera.focus) {
+        this.trigger('focus');
       }
-      else if (!this.cameraDrag) {
-        this.cameraDrag = event.pointerId;
-        this.pointerPosition = {
-          x: pointer.x,
-          y: pointer.y
+      else {
+        // Check if a sun or planet is tapped on
+        let pointer = new THREE.Vector2();
+        let raycaster = new THREE.Raycaster();
+        pointer.x = this.normalizePointX(event.clientX);
+        pointer.y = this.normalizePointY(event.clientY);
+
+        raycaster.setFromCamera(pointer, this.camera.instance);
+        
+        const intersects = raycaster.intersectObjects( this.scene.children );
+        let match;
+        intersects.forEach((item, index, object) => {
+          if (!match && (item.object.name == "sun" || item.object.name == "planet")) {
+            match = item.object.id;
+          }
+        });
+
+        // If there's a match, let the app know, otherwise initiate drag
+        if (match) {
+          this.trigger('focus', [match]);
+        }
+        else if (!this.cameraDrag) {
+          this.cameraDrag = event.pointerId;
+          this.currentPointerPosition = {
+            x: pointer.x,
+            y: pointer.y
+          }
         }
       }
     }

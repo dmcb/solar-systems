@@ -51,7 +51,7 @@ export default class Sun {
     this.sunLight.castShadow = true;
     this.sunLight.shadow.mapSize.width = 2048;
     this.sunLight.shadow.mapSize.height = 2048;
-    this.sunLight.shadow.radius = this.size*3;
+    this.sunLight.shadow.radius = this.size * 4;
     this.sun.add( this.sunLight );
   }
 

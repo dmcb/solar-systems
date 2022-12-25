@@ -67,7 +67,6 @@ export default class Planet {
     // Add planet to scene
     this.colour = new THREE.Color();
     this.colour.setHSL(this.hue, this.saturation, this.lightness);
-    console.log(this.colour);
     const normalMap = this.resources.items['normalMap0' + this.surfaceTexture];
     normalMap.generateMipMaps = false;
     normalMap.magFilter = THREE.NearestFilter;
@@ -96,7 +95,7 @@ export default class Planet {
     // Add orbit path to scene
     const orbitLineMaterial = new THREE.LineBasicMaterial({ color: 0x222222 });
     const orbitPoints = [];
-    for (let i=0; i < 2*Math.PI; i = i+Math.PI/32) {
+    for (let i=0; i < 2*Math.PI; i = i+Math.PI/128) {
       let position = this.determineOrbit(i);
       orbitPoints.push( new THREE.Vector3(position.x, position.y, position.z));
     }

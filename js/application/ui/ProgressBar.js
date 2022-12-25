@@ -7,7 +7,6 @@ export default class ProgressBar {
 
     this.element = document.createElement('div');
     this.element.id = "loader";
-    this.element.classList.remove('loading');
     this.element.innerHTML = 'Loading';
     this.bar = document.createElement('div');
     this.bar.className = "bar";

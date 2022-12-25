@@ -14,8 +14,13 @@ export default class Resources extends EventEmitter {
     this.toLoad = this.sources.length;
     this.loaded = 0;
 
-    this.setLoaders();
-    this.startLoading();
+    if (this.toLoad) {
+      this.setLoaders();
+      this.startLoading();
+    }
+    else {
+      this.trigger('ready');
+    }
   }
 
   setLoaders() {

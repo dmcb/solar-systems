@@ -8,13 +8,11 @@ export default class Camera {
     this.scene = this.application.scene;
     this.viewport = this.application.viewport;
 
-    this.bounds = {};
-    this.getBounds();
-    this.instance = new THREE.OrthographicCamera(this.bounds.left, this.bounds.right, this.bounds.top, this.bounds.bottom, 1, 1000 );
+    this.setBounds();
     this.setPosition();
   }
 
-  getBounds(range) {
+  setBounds(range) {
     if (range === undefined) {
       range = this.solarSystemRadius;
     }
@@ -28,19 +26,16 @@ export default class Camera {
       camHeight = range / this.viewport.aspectRatio;
     }
 
-    this.bounds.left = -camWidth;
-    this.bounds.right = camWidth;
-    this.bounds.top = camHeight;
-    this.bounds.bottom = -camHeight;
-  }
-
-  setBounds(range) {
-    this.getBounds(range);
-    this.instance.left = this.bounds.left;
-    this.instance.right = this.bounds.right;
-    this.instance.top = this.bounds.top;
-    this.instance.bottom = this.bounds.bottom;
-    this.instance.updateProjectionMatrix();
+    if (!this.instance) {
+      this.instance = new THREE.OrthographicCamera(-camWidth, camWidth, camHeight, -camHeight, 1, 1000 );
+    }
+    else {
+      this.instance.left = -camWidth;
+      this.instance.right = camWidth;
+      this.instance.top = camHeight;
+      this.instance.bottom = -camHeight;
+      this.instance.updateProjectionMatrix();
+    }
   }
 
   setPosition(x, y, z) {
@@ -57,7 +52,7 @@ export default class Camera {
     if (x === undefined) x = 0;
     if (y === undefined) y = 0;
     if (z === undefined) z = 0;
-    this.instance.up = new THREE.Vector3(0,1,0);
+    this.instance.up = new THREE.Vector3(0, 1, 0);
     this.instance.lookAt(new THREE.Vector3(x,y,z));
     this.instance.updateProjectionMatrix();
   }
@@ -66,7 +61,6 @@ export default class Camera {
     this.setBounds();
     this.setPosition();
     this.setTarget();
-    this.instance.updateProjectionMatrix();
   }
 
   update() {
