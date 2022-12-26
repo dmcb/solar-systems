@@ -56,7 +56,7 @@ export default class Planet {
   }
 
   addTouchPoint() {
-    const tappableSphereGeometry = new THREE.SphereGeometry(18);
+    const tappableSphereGeometry = new THREE.SphereGeometry(12);
     const tappableSphereMaterial = new THREE.MeshBasicMaterial({visible: false});
     this.planetPivotPoint = new THREE.Mesh(tappableSphereGeometry, tappableSphereMaterial);
     this.planetPivotPoint.name = "planet";
@@ -70,8 +70,7 @@ export default class Planet {
     const normalMap = this.resources.items['normalMap0' + this.surfaceTexture];
     normalMap.generateMipMaps = false;
     normalMap.magFilter = THREE.NearestFilter;
-    normalMap.minFilter = THREE.NearestFilter;
-    const sphereGeometry = new THREE.SphereGeometry( this.size, 36, 36 );
+    const sphereGeometry = new THREE.SphereGeometry( this.size, 48, 48 );
     const sphereMaterial = new THREE.MeshStandardMaterial( { color: this.colour, specular: this.colour, shininess: this.iciness, normalMap: normalMap, normalScale: new THREE.Vector2( this.rockiness, this.rockiness ) } );
     this.planetSphere = new THREE.Mesh( sphereGeometry, sphereMaterial );
     this.planetSphere.name = "planetCore";

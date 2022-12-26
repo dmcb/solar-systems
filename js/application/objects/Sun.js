@@ -23,7 +23,7 @@ export default class Sun {
   }
 
   addTouchPoint() {
-    const tappableSphereGeometry = new THREE.SphereGeometry(18);
+    const tappableSphereGeometry = new THREE.SphereGeometry(12);
     const tappableSphereMaterial = new THREE.MeshBasicMaterial({visible: false});
     this.sunPivotPoint = new THREE.Mesh(tappableSphereGeometry, tappableSphereMaterial);
     this.sunPivotPoint.name = "sun";
@@ -37,7 +37,7 @@ export default class Sun {
     this.surfaceColour = this.kelvinToRGB(this.kelvin);
     this.illuminationColour = this.kelvinToRGB(this.temperedKelvin);
 
-    this.sunGeometry = new THREE.SphereGeometry( this.size, 36, 36 );
+    this.sunGeometry = new THREE.SphereGeometry( this.size, 48, 48 );
     this.sunMaterial = new THREE.MeshBasicMaterial({color: this.surfaceColour, toneMapped: false });
     this.sun = new THREE.Mesh(this.sunGeometry, this.sunMaterial);
     this.sun.name = "sunCore";

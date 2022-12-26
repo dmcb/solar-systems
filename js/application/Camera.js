@@ -52,20 +52,18 @@ export default class Camera {
     if (x === undefined) x = 0;
     if (y === undefined) y = 0;
     if (z === undefined) z = 0;
-    this.instance.up = new THREE.Vector3(0, 1, 0);
     this.instance.lookAt(new THREE.Vector3(x,y,z));
     this.instance.updateProjectionMatrix();
   }
 
   reset() {
     this.setBounds();
-    this.setPosition();
     this.setTarget();
   }
 
   update() {
     if (this.focus) {
-      const cameraPosition = new THREE.Vector3(this.focus.position.x, this.focus.position.y, this.focus.position.z)
+      const targetPosition = new THREE.Vector3(this.focus.position.x, this.focus.position.y, this.focus.position.z)
       let cameraBounds;
       if (this.focus.name == "planet") {
         const planetCore = this.focus.getObjectByName("planetCore");
@@ -74,14 +72,11 @@ export default class Camera {
       else if (this.focus.name == "sun") {
         const sunCore = this.focus.getObjectByName("sunCore");
         cameraBounds = sunCore.geometry.parameters.radius*2;
-        // Reverse binary sun rotation to focus on sun
-        cameraPosition.applyAxisAngle(new THREE.Vector3( 0, 0, 1 ), this.focus.parent.rotation.z);
+        // Reverse binary sun rotation to focus on correct sun position;
+        targetPosition.applyAxisAngle(new THREE.Vector3( 0, 0, 1 ), this.focus.parent.rotation.z);
       }
-      // Reverse solar system camera rotation to focus on sun or planet
-      cameraPosition.applyAxisAngle(new THREE.Vector3( 0, 0, 1 ), this.scene.rotation.z);
       this.setBounds(cameraBounds);
-      this.setPosition(cameraPosition.x, cameraPosition.y, this.solarSystemRadius);
-      this.setTarget(cameraPosition.x, cameraPosition.y, cameraPosition.z);
+      this.setTarget(targetPosition.x, targetPosition.y, targetPosition.z);
     }
   }
 

@@ -14,6 +14,8 @@ export default class Controls extends EventEmitter {
     this.canvas = this.application.canvas;
 
     this.cameraDrag = false;
+    this.cameraVerticalRotation = 0;
+    this.cameraHorizonalRotation = 0;
     this.controlsEnabled = true;
 
     this.canvas.addEventListener('dblclick', (event) => this.dblClick(event));
@@ -55,23 +57,28 @@ export default class Controls extends EventEmitter {
         const screenMovement = {x: newPointerPosition.x - this.currentPointerPosition.x, y: newPointerPosition.y - this.currentPointerPosition.y};
         this.currentPointerPosition = newPointerPosition;
 
-        let newZ, newY;
-        let rads = Math.atan2(
-          this.camera.instance.position.z+(this.solarSystemRadius*screenMovement.y), 
-          this.camera.instance.position.y+(this.solarSystemRadius*screenMovement.y)
-        );
+        this.cameraVerticalRotation -= Math.PI * screenMovement.y;
+        this.cameraHorizonalRotation -= Math.PI * screenMovement.x;
 
-        newZ = Math.sin(rads)*this.solarSystemRadius;
-        newY = Math.cos(rads)*this.solarSystemRadius;
+        // Cap vertical rotation ranges
+        if (this.cameraVerticalRotation > Math.PI * 0.5 ) this.cameraVerticalRotation = Math.PI * 0.5;
+        if (this.cameraVerticalRotation < 0 ) this.cameraVerticalRotation = 0;
+
+        // Start from base camera position
+        let cameraInitialPosition = new THREE.Vector3(0, 0, this.application.solarSystemRadius);
+        let cameraUp = new THREE.Vector3(0, 1, 0);
+
+        // Apply camera position rotations
+        cameraInitialPosition.applyAxisAngle(new THREE.Vector3(1, 0, 0), this.cameraVerticalRotation);
+        cameraInitialPosition.applyAxisAngle(new THREE.Vector3(0, 0, 1), this.cameraHorizonalRotation);
+        this.camera.instance.position.set(cameraInitialPosition.x, cameraInitialPosition.y, cameraInitialPosition.z);
+
+        // Apply camera up rotations
+        cameraUp.applyAxisAngle(new THREE.Vector3(1, 0, 0), this.cameraVerticalRotation);
+        cameraUp.applyAxisAngle(new THREE.Vector3(0, 0, 1), this.cameraHorizonalRotation);
+        this.camera.instance.up.set(cameraUp.x, cameraUp.y, cameraUp.z);
         
-        if (newZ > this.solarSystemRadius) { newZ = this.solarSystemRadius }
-        if (newZ < 0) { newZ = 0 }
-        if (newY < -this.solarSystemRadius) { newY = -this.solarSystemRadius }
-        if (newY > 0) { newY = 0 }
-
-        this.camera.setPosition(0, newY, newZ);
         this.camera.setTarget();
-        this.scene.rotation.z += Math.PI * screenMovement.x;
       }
     }
   }
