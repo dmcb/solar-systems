@@ -77,7 +77,7 @@ export default class Camera {
         const planet = this.solarSystem.planets[this.focus.planetNumber-1];
         futurePosition = planet.determineFuturePosition(800);
       }
-      const newCameraSize = celestialBody.geometry.parameters.radius*2;
+      const newCameraSize = celestialBody.geometry.parameters.radius*2.5;
       const [camWidth, camHeight] = this.getCameraDimensions(newCameraSize);
 
       // Get current position of camera

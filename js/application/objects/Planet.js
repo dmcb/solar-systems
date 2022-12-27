@@ -72,7 +72,7 @@ export default class Planet {
     normalMap.generateMipMaps = false;
     normalMap.magFilter = THREE.NearestFilter;
     const sphereGeometry = new THREE.SphereGeometry( this.size, 48, 48 );
-    const sphereMaterial = new THREE.MeshStandardMaterial( { color: this.colour, specular: this.colour, shininess: this.iciness, normalMap: normalMap, normalScale: new THREE.Vector2( this.rockiness, this.rockiness ) } );
+    const sphereMaterial = new THREE.MeshPhongMaterial( { color: this.colour, specular: this.colour, shininess: this.iciness, normalMap: normalMap, normalScale: new THREE.Vector2( this.rockiness, this.rockiness ) } );
     this.planetSphere = new THREE.Mesh( sphereGeometry, sphereMaterial );
     this.planetSphere.name = "planetCore";
     this.planetSphere.receiveShadow = true;
@@ -110,7 +110,7 @@ export default class Planet {
       ring.ringStart = this.size + this.ringDistance + i*(this.ringSize);
       ring.ringEnd = ring.ringStart + this.ringSize;
       let ringGeometry = new THREE.RingGeometry(ring.ringStart, ring.ringEnd, 64, 32);
-      let ringMaterial = new THREE.MeshStandardMaterial({ color: this.colour, transparent: true, opacity: this.seed.getRandom()*0.8+0.2, side: THREE.DoubleSide });
+      let ringMaterial = new THREE.MeshPhongMaterial({ color: this.colour, transparent: true, opacity: this.seed.getRandom()*0.8+0.2, side: THREE.DoubleSide });
       ring.mesh = new THREE.Mesh (ringGeometry, ringMaterial);
       ring.mesh.name = "ring";
       ring.mesh.receiveShadow = true;
