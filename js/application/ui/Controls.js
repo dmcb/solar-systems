@@ -14,7 +14,6 @@ export default class Controls extends EventEmitter {
     this.canvas = this.application.canvas;
 
     this.dragPointer = false;
-    this.controlsEnabled = true;
 
     this.canvas.addEventListener('dblclick', (event) => this.dblClick(event));
     this.canvas.addEventListener('pointermove', (event) => this.pointerMove(event));
@@ -25,7 +24,7 @@ export default class Controls extends EventEmitter {
   }
 
   dblClick(event) {
-    if (this.controlsEnabled) {
+    if (!this.camera.cameraTransitioning) {
       const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement;
       if (!fullscreenElement)
       {
@@ -49,7 +48,7 @@ export default class Controls extends EventEmitter {
   }
 
   pointerMove(event) {
-    if (this.controlsEnabled) {
+    if (!this.camera.cameraTransitioning) {
       if (this.dragPointer == event.pointerId && !this.camera.focus) {
         const newPointerPosition = {x: this.normalizePointX(event.clientX), y: this.normalizePointY(event.clientY)};
         const screenMovement = {x: newPointerPosition.x - this.currentPointerPosition.x, y: newPointerPosition.y - this.currentPointerPosition.y};
@@ -61,7 +60,7 @@ export default class Controls extends EventEmitter {
   }
 
   pointerDown(event) {
-    if (this.controlsEnabled) {
+    if (!this.camera.cameraTransitioning) {
       // If camera is focused on a planet, a tap will undo it
       if (this.camera.focus) {
         this.trigger('focus');

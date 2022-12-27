@@ -13,20 +13,33 @@ export default class Camera {
     this.reset();
   }
 
+  adjustRotation(x, y) {
+    this.cameraVerticalRotation -= Math.PI * y;
+    this.cameraHorizonalRotation -= Math.PI * x;
+
+    this.rotate();
+  }
+
+  getCameraDimensions(size) {
+    let camWidth = size;
+    let camHeight = size;
+
+    if (this.viewport.width > this.viewport.height)  {
+      camWidth = size * this.viewport.aspectRatio;
+    }
+    else {
+      camHeight = size / this.viewport.aspectRatio;
+    }
+
+    return [camWidth, camHeight];
+  }
+
   resize(size) {
     if (size !== undefined) {
       this.cameraSize = size;
     }
-  
-    let camWidth = this.cameraSize;
-    let camHeight = this.cameraSize;
 
-    if (this.viewport.width > this.viewport.height)  {
-      camWidth = this.cameraSize * this.viewport.aspectRatio;
-    }
-    else {
-      camHeight = this.cameraSize / this.viewport.aspectRatio;
-    }
+    const [camWidth, camHeight] = this.getCameraDimensions(this.cameraSize);
 
     if (!this.instance) {
       this.instance = new THREE.OrthographicCamera(-camWidth, camWidth, camHeight, -camHeight, 1, 1000 );
@@ -37,6 +50,68 @@ export default class Camera {
       this.instance.top = camHeight;
       this.instance.bottom = -camHeight;
       this.instance.updateProjectionMatrix();
+    }
+  }
+
+  setFocus(objectId) {
+    if (!this.focus) {
+      // Get focused body
+      this.focus = this.scene.getObjectById(objectId);
+
+      // Set camera bounds based on focused body
+      let coreObject = this.focus.getObjectByName("planetCore");
+      if (!coreObject) {
+        coreObject = this.focus.getObjectByName("sunCore");
+      }
+
+      const newCameraSize = coreObject.geometry.parameters.radius*2;
+      const [camWidth, camHeight] = this.getCameraDimensions(newCameraSize);
+
+      gsap.to(this.instance, {
+        left: -camWidth,
+        right: camWidth,
+        top: camHeight,
+        bottom: -camHeight,
+        duration: 1,
+        ease: "power4.out",
+        onStart: () => {
+          this.cameraTransitioning = true;
+        },
+        onComplete: () => {
+          this.cameraTransitioning = false;
+          this.cameraSize = newCameraSize;
+        },
+        onUpdate: () => {
+          this.instance.updateProjectionMatrix();
+        }
+      });
+    }
+    else {
+      const newCameraSize = this.solarSystemRadius;
+      const [camWidth, camHeight] = this.getCameraDimensions(newCameraSize);
+
+      gsap.to(this.instance, {
+        left: -camWidth,
+        right: camWidth,
+        top: camHeight,
+        bottom: -camHeight,
+        duration: 1,
+        ease: "power4.out",
+        onStart: () => {
+          this.cameraTransitioning = true;
+        },
+        onComplete: () => {
+          this.cameraTransitioning = false;
+          this.cameraSize = this.solarSystemRadius;
+          this.focus = false;
+          this.resize();
+          this.rotate();
+          this.setTarget();
+        },
+        onUpdate: () => {
+          this.instance.updateProjectionMatrix();
+        }
+      });
     }
   }
 
@@ -69,13 +144,6 @@ export default class Camera {
     this.rotate();
     this.setPosition();
     this.setTarget();
-  }
-
-  adjustRotation(x, y) {
-    this.cameraVerticalRotation -= Math.PI * y;
-    this.cameraHorizonalRotation -= Math.PI * x;
-
-    this.rotate();
   }
 
   rotate() {
@@ -113,47 +181,6 @@ export default class Camera {
 
         this.setTarget(targetPosition.x, targetPosition.y, targetPosition.z);
       }
-    }
-  }
-
-  changeFocus(objectId) {
-    if (!this.focus) {
-      // Get focused body
-      this.focus = this.scene.getObjectById(objectId);
-
-      // Set camera bounds based on focused body
-      let coreObject = this.focus.getObjectByName("planetCore");
-      if (!coreObject) {
-        coreObject = this.focus.getObjectByName("sunCore");
-      }
-
-      this.resize(coreObject.geometry.parameters.radius*2);
-      // gsap.to(this.instance, {
-      //   left: -this.cameraSize,
-      //   right: this.cameraSize,
-      //   top: this.cameraSize,
-      //   bottom: -this.cameraSize,
-      //   duration: 1,
-      //   ease: "power4.out",
-      //   onStart: () => {
-      //     this.cameraTransitioning = true;
-      //     this.controls.controlsEnabled = false;
-      //   },
-      //   onComplete: () => {
-      //     this.cameraTransitioning = false;
-      //     this.controls.controlsEnabled = true;
-      //   },
-      //   onUpdate: () => {
-      //     this.instance.updateProjectionMatrix();
-      //   }
-      // });
-    }
-    else {
-      this.cameraSize = this.solarSystemRadius;
-      this.focus = false;
-      this.resize();
-      this.rotate();
-      this.setTarget();
     }
   }
 }

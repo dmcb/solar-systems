@@ -138,7 +138,7 @@ export default class SolarSystem {
     this.create();
   }
 
-  changeFocus(objectId) {
+  setFocus(objectId) {
     // Upscale planet?
   }
 }

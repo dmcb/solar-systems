@@ -58,7 +58,7 @@ export default class Application {
     });
 
     this.controls.on('focus', (objectId) => {
-      this.changeFocus(objectId); 
+      this.setFocus(objectId); 
     });
 
     this.resources.on('ready', () => {
@@ -76,14 +76,14 @@ export default class Application {
     this.renderer.resize();
   }
 
+  setFocus(objectId) {
+    this.solarSystem.setFocus(objectId);
+    this.camera.setFocus(objectId);
+  }
+
   update() {
     this.solarSystem.update();
     this.camera.update();
     this.renderer.update();
-  }
-
-  changeFocus(objectId) {
-    this.solarSystem.changeFocus(objectId);
-    this.camera.changeFocus(objectId);
   }
 }
