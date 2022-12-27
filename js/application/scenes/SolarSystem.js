@@ -106,8 +106,12 @@ export default class SolarSystem {
     }
   }
 
+  determineFutureSunsOrbit(time) {
+    return this.sunsPivotPoint.rotation.z + this.direction * time * 1/this.solarRadius * 0.0035;
+  }
+
   orbitSuns() {
-      this.sunsPivotPoint.rotation.z += this.direction * this.time.delta * 1/this.solarRadius * 0.0035;
+    this.sunsPivotPoint.rotation.z += this.direction * this.time.delta * 1/this.solarRadius * 0.0035;
   }
 
   update() {

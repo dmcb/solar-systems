@@ -27,6 +27,7 @@ export default class Sun {
     const tappableSphereMaterial = new THREE.MeshBasicMaterial({visible: false});
     this.sunPivotPoint = new THREE.Mesh(tappableSphereGeometry, tappableSphereMaterial);
     this.sunPivotPoint.name = "sun";
+    this.sunPivotPoint.sunNumber = this.sunNumber;
     this.scene.add(this.sunPivotPoint);
   }
 

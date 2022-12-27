@@ -60,6 +60,7 @@ export default class Planet {
     const tappableSphereMaterial = new THREE.MeshBasicMaterial({visible: false});
     this.planetPivotPoint = new THREE.Mesh(tappableSphereGeometry, tappableSphereMaterial);
     this.planetPivotPoint.name = "planet";
+    this.planetPivotPoint.planetNumber = this.planetNumber;
     this.scene.add(this.planetPivotPoint);
   }
 
@@ -170,17 +171,18 @@ export default class Planet {
     this.planetPivotPoint.position.y = position.y;
     this.planetPivotPoint.position.z = position.z;
   }
+
+  determineFuturePosition(time) {
+    const futureOrbitalPosition = this.orbitalPosition + this.speed * this.direction * time * 0.0625;
+    return this.determineOrbit(futureOrbitalPosition);
+  }
   
   determineOrbit(orbitalPosition) {
     let x = this.actualDistanceFromSun;
     let y = this.actualDistanceFromSun * Math.sqrt(1.0 - Math.pow(this.orbitEccentricity, 1));
     let z = Math.sin(2 * Math.PI * this.orbitAxis/360 ) * this.actualDistanceFromSun;
 
-    return { 
-      x: Math.cos(orbitalPosition) * x,
-      y: Math.sin(orbitalPosition) * y,
-      z: Math.cos(orbitalPosition + 0) * z
-    }
+    return new THREE.Vector3(Math.cos(orbitalPosition) * x, Math.sin(orbitalPosition) * y, Math.cos(orbitalPosition + 0) * z);
   }
 
   destroy() {

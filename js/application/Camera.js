@@ -5,6 +5,7 @@ import Application from './Application.js';
 export default class Camera {
   constructor() {
     this.application = new Application();
+    this.solarSystem = this.application.solarSystem;
     this.solarSystemRadius = this.application.solarSystemRadius;
     this.controls = this.application.controls;
     this.scene = this.application.scene;
@@ -54,28 +55,43 @@ export default class Camera {
   }
 
   setFocus(objectId) {
+    this.cameraTransitioning = true;
+
     if (!this.focus) {
       // Get focused body
       this.focus = this.scene.getObjectById(objectId);
 
-      // Set camera bounds based on focused body
-      let coreObject = this.focus.getObjectByName("planetCore");
-      if (!coreObject) {
-        coreObject = this.focus.getObjectByName("sunCore");
+      // Get camera bounds and camera positioning based on celestial body
+      let celestialBody;
+      let futurePosition;
+      let targetPosition = new THREE.Vector3();
+      if (this.focus.name == "sun") {
+        celestialBody = this.focus.getObjectByName("sunCore");
+        futurePosition = new THREE.Vector3(this.focus.position.x, this.focus.position.y, this.focus.position.z)
+        futurePosition.applyAxisAngle(new THREE.Vector3( 0, 0, 1 ), this.solarSystem.determineFutureSunsOrbit(800));
       }
-
-      const newCameraSize = coreObject.geometry.parameters.radius*2;
+      else if (this.focus.name == "planet") {
+        celestialBody = this.focus.getObjectByName("planetCore");
+        const planet = this.solarSystem.planets[this.focus.planetNumber-1];
+        futurePosition = planet.determineFuturePosition(800);
+      }
+      const newCameraSize = celestialBody.geometry.parameters.radius*2;
       const [camWidth, camHeight] = this.getCameraDimensions(newCameraSize);
+
+      // Get current position of camera
+      this.preFocusPosition = new THREE.Vector3(this.instance.position.x, this.instance.position.y, this.instance.position.z);
+      
+      // Get future position of celestial body
+      targetPosition.addVectors(this.preFocusPosition, futurePosition);
 
       gsap.to(this.instance, {
         left: -camWidth,
         right: camWidth,
         top: camHeight,
         bottom: -camHeight,
-        duration: 1,
-        ease: "power4.out",
+        duration: 0.8,
         onStart: () => {
-          this.cameraTransitioning = true;
+          
         },
         onComplete: () => {
           this.cameraTransitioning = false;
@@ -84,6 +100,12 @@ export default class Camera {
         onUpdate: () => {
           this.instance.updateProjectionMatrix();
         }
+      });
+      gsap.to(this.instance.position, {
+        x: targetPosition.x,
+        y: targetPosition.y,
+        z: targetPosition.z,
+        duration: 0.8,
       });
     }
     else {
@@ -95,22 +117,26 @@ export default class Camera {
         right: camWidth,
         top: camHeight,
         bottom: -camHeight,
-        duration: 1,
+        duration: 0.8,
         ease: "power4.out",
         onStart: () => {
-          this.cameraTransitioning = true;
+
         },
         onComplete: () => {
+          this.focus = false;
           this.cameraTransitioning = false;
           this.cameraSize = this.solarSystemRadius;
-          this.focus = false;
-          this.resize();
-          this.rotate();
-          this.setTarget();
         },
         onUpdate: () => {
           this.instance.updateProjectionMatrix();
         }
+      });
+      gsap.to(this.instance.position, {
+        x: this.preFocusPosition.x,
+        y: this.preFocusPosition.y,
+        z: this.preFocusPosition.z,
+        duration: 0.8,
+        ease: "power4.out",
       });
     }
   }
@@ -169,18 +195,19 @@ export default class Camera {
   }
 
   update() {
-    if (!this.cameraTransitioning) {
-      if (this.focus) {
-        // Focus on target position
-        let targetPosition = new THREE.Vector3(this.focus.position.x, this.focus.position.y, this.focus.position.z)
-        
-        // Reverse binary sun rotation to focus on correct sun position
-        if (this.focus.name == "sun") {
-          targetPosition.applyAxisAngle(new THREE.Vector3( 0, 0, 1 ), this.focus.parent.rotation.z);
-        }
-
-        this.setTarget(targetPosition.x, targetPosition.y, targetPosition.z);
+    if (!this.cameraTransitioning && this.focus) {
+      // Get target position
+      let targetPosition = new THREE.Vector3(this.focus.position.x, this.focus.position.y, this.focus.position.z)
+      
+      // Reverse binary sun rotation to focus on correct sun position
+      if (this.focus.name == "sun") {
+        targetPosition.applyAxisAngle(new THREE.Vector3( 0, 0, 1 ), this.focus.parent.rotation.z);
       }
+
+      // Calculate new camera position
+      let alteredCameraPosition = new THREE.Vector3();
+      alteredCameraPosition.addVectors(targetPosition, this.preFocusPosition);
+      this.setPosition(alteredCameraPosition.x, alteredCameraPosition.y, alteredCameraPosition.z);
     }
   }
 }
