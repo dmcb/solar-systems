@@ -120,7 +120,6 @@ export default class Camera {
         top: camHeight,
         bottom: -camHeight,
         duration: 0.8,
-        ease: "power4.out",
         onStart: () => {
 
         },
@@ -138,7 +137,6 @@ export default class Camera {
         y: this.preFocusPosition.y,
         z: this.preFocusPosition.z,
         duration: 0.8,
-        ease: "power4.out",
       });
     }
   }
