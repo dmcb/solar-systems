@@ -67,8 +67,10 @@ export default class Camera {
       let targetPosition = new THREE.Vector3();
       if (this.focus.name == "sun") {
         celestialBody = this.focus.getObjectByName("sunCore");
-        futurePosition = new THREE.Vector3(this.focus.position.x, this.focus.position.y, this.focus.position.z)
-        futurePosition.applyAxisAngle(new THREE.Vector3( 0, 0, 1 ), this.solarSystem.determineFutureSunsOrbit(800));
+        futurePosition = new THREE.Vector3(this.focus.position.x, this.focus.position.y, this.focus.position.z);
+        if (this.solarSystem.suns.length > 1) {
+          futurePosition.applyAxisAngle(new THREE.Vector3( 0, 0, 1 ), this.solarSystem.determineFutureSunsOrbit(800));
+        }
       }
       else if (this.focus.name == "planet") {
         celestialBody = this.focus.getObjectByName("planetCore");
