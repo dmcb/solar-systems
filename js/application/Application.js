@@ -67,11 +67,12 @@ export default class Application {
   }
 
   reset() {
+    this.camera.reset();
     this.solarSystem.reset();
   }
 
   resize() {
-    this.camera.setBounds();
+    this.camera.resize();
     this.renderer.resize();
   }
 

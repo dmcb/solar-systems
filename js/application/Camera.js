@@ -1,29 +1,31 @@
 import * as THREE from 'three';
+import { gsap } from "gsap";
 import Application from './Application.js';
 
 export default class Camera {
   constructor() {
     this.application = new Application();
     this.solarSystemRadius = this.application.solarSystemRadius;
+    this.controls = this.application.controls;
     this.scene = this.application.scene;
     this.viewport = this.application.viewport;
 
-    this.setBounds();
-    this.setPosition();
+    this.reset();
   }
 
-  setBounds(range) {
-    if (range === undefined) {
-      range = this.solarSystemRadius;
+  resize(size) {
+    if (size !== undefined) {
+      this.cameraSize = size;
     }
-    let camWidth = range;
-    let camHeight = range;
+  
+    let camWidth = this.cameraSize;
+    let camHeight = this.cameraSize;
 
     if (this.viewport.width > this.viewport.height)  {
-      camWidth = range * this.viewport.aspectRatio;
+      camWidth = this.cameraSize * this.viewport.aspectRatio;
     }
     else {
-      camHeight = range / this.viewport.aspectRatio;
+      camHeight = this.cameraSize / this.viewport.aspectRatio;
     }
 
     if (!this.instance) {
@@ -57,33 +59,101 @@ export default class Camera {
   }
 
   reset() {
-    this.setBounds();
+    this.cameraVerticalRotation = 0;
+    this.cameraHorizonalRotation = 0;
+    this.cameraSize = this.solarSystemRadius;
+    this.focus = false;
+    this.cameraTransitioning = false;
+
+    this.resize();
+    this.rotate();
+    this.setPosition();
+    this.setTarget();
+  }
+
+  adjustRotation(x, y) {
+    this.cameraVerticalRotation -= Math.PI * y;
+    this.cameraHorizonalRotation -= Math.PI * x;
+
+    this.rotate();
+  }
+
+  rotate() {
+    // Cap vertical rotation ranges
+    if (this.cameraVerticalRotation > Math.PI * 0.5 ) this.cameraVerticalRotation = Math.PI * 0.5;
+    if (this.cameraVerticalRotation < 0 ) this.cameraVerticalRotation = 0;
+
+    // Start from base camera position
+    let cameraInitialPosition = new THREE.Vector3(0, 0, this.application.solarSystemRadius);
+    let cameraUp = new THREE.Vector3(0, 1, 0);
+
+    // Apply camera position rotations
+    cameraInitialPosition.applyAxisAngle(new THREE.Vector3(1, 0, 0), this.cameraVerticalRotation);
+    cameraInitialPosition.applyAxisAngle(new THREE.Vector3(0, 0, 1), this.cameraHorizonalRotation);
+    this.instance.position.set(cameraInitialPosition.x, cameraInitialPosition.y, cameraInitialPosition.z);
+
+    // Apply camera up rotations
+    cameraUp.applyAxisAngle(new THREE.Vector3(1, 0, 0), this.cameraVerticalRotation);
+    cameraUp.applyAxisAngle(new THREE.Vector3(0, 0, 1), this.cameraHorizonalRotation);
+    this.instance.up.set(cameraUp.x, cameraUp.y, cameraUp.z);
+    
     this.setTarget();
   }
 
   update() {
-    if (this.focus) {
-      const targetPosition = new THREE.Vector3(this.focus.position.x, this.focus.position.y, this.focus.position.z)
-      let cameraBounds;
-      if (this.focus.name == "planet") {
-        const planetCore = this.focus.getObjectByName("planetCore");
-        cameraBounds = planetCore.geometry.parameters.radius*2;
+    if (!this.cameraTransitioning) {
+      if (this.focus) {
+        // Focus on target position
+        let targetPosition = new THREE.Vector3(this.focus.position.x, this.focus.position.y, this.focus.position.z)
+        
+        // Reverse binary sun rotation to focus on correct sun position
+        if (this.focus.name == "sun") {
+          targetPosition.applyAxisAngle(new THREE.Vector3( 0, 0, 1 ), this.focus.parent.rotation.z);
+        }
+
+        this.setTarget(targetPosition.x, targetPosition.y, targetPosition.z);
       }
-      else if (this.focus.name == "sun") {
-        const sunCore = this.focus.getObjectByName("sunCore");
-        cameraBounds = sunCore.geometry.parameters.radius*2;
-        // Reverse binary sun rotation to focus on correct sun position;
-        targetPosition.applyAxisAngle(new THREE.Vector3( 0, 0, 1 ), this.focus.parent.rotation.z);
-      }
-      this.setBounds(cameraBounds);
-      this.setTarget(targetPosition.x, targetPosition.y, targetPosition.z);
     }
   }
 
   changeFocus(objectId) {
-    this.focus = this.scene.getObjectById(objectId);
     if (!this.focus) {
-      this.reset();
+      // Get focused body
+      this.focus = this.scene.getObjectById(objectId);
+
+      // Set camera bounds based on focused body
+      let coreObject = this.focus.getObjectByName("planetCore");
+      if (!coreObject) {
+        coreObject = this.focus.getObjectByName("sunCore");
+      }
+
+      this.resize(coreObject.geometry.parameters.radius*2);
+      // gsap.to(this.instance, {
+      //   left: -this.cameraSize,
+      //   right: this.cameraSize,
+      //   top: this.cameraSize,
+      //   bottom: -this.cameraSize,
+      //   duration: 1,
+      //   ease: "power4.out",
+      //   onStart: () => {
+      //     this.cameraTransitioning = true;
+      //     this.controls.controlsEnabled = false;
+      //   },
+      //   onComplete: () => {
+      //     this.cameraTransitioning = false;
+      //     this.controls.controlsEnabled = true;
+      //   },
+      //   onUpdate: () => {
+      //     this.instance.updateProjectionMatrix();
+      //   }
+      // });
+    }
+    else {
+      this.cameraSize = this.solarSystemRadius;
+      this.focus = false;
+      this.resize();
+      this.rotate();
+      this.setTarget();
     }
   }
 }

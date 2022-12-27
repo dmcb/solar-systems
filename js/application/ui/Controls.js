@@ -13,9 +13,7 @@ export default class Controls extends EventEmitter {
     this.viewport = this.application.viewport;
     this.canvas = this.application.canvas;
 
-    this.cameraDrag = false;
-    this.cameraVerticalRotation = 0;
-    this.cameraHorizonalRotation = 0;
+    this.dragPointer = false;
     this.controlsEnabled = true;
 
     this.canvas.addEventListener('dblclick', (event) => this.dblClick(event));
@@ -52,33 +50,12 @@ export default class Controls extends EventEmitter {
 
   pointerMove(event) {
     if (this.controlsEnabled) {
-      if (this.cameraDrag == event.pointerId && !this.camera.focus) {
+      if (this.dragPointer == event.pointerId && !this.camera.focus) {
         const newPointerPosition = {x: this.normalizePointX(event.clientX), y: this.normalizePointY(event.clientY)};
         const screenMovement = {x: newPointerPosition.x - this.currentPointerPosition.x, y: newPointerPosition.y - this.currentPointerPosition.y};
         this.currentPointerPosition = newPointerPosition;
 
-        this.cameraVerticalRotation -= Math.PI * screenMovement.y;
-        this.cameraHorizonalRotation -= Math.PI * screenMovement.x;
-
-        // Cap vertical rotation ranges
-        if (this.cameraVerticalRotation > Math.PI * 0.5 ) this.cameraVerticalRotation = Math.PI * 0.5;
-        if (this.cameraVerticalRotation < 0 ) this.cameraVerticalRotation = 0;
-
-        // Start from base camera position
-        let cameraInitialPosition = new THREE.Vector3(0, 0, this.application.solarSystemRadius);
-        let cameraUp = new THREE.Vector3(0, 1, 0);
-
-        // Apply camera position rotations
-        cameraInitialPosition.applyAxisAngle(new THREE.Vector3(1, 0, 0), this.cameraVerticalRotation);
-        cameraInitialPosition.applyAxisAngle(new THREE.Vector3(0, 0, 1), this.cameraHorizonalRotation);
-        this.camera.instance.position.set(cameraInitialPosition.x, cameraInitialPosition.y, cameraInitialPosition.z);
-
-        // Apply camera up rotations
-        cameraUp.applyAxisAngle(new THREE.Vector3(1, 0, 0), this.cameraVerticalRotation);
-        cameraUp.applyAxisAngle(new THREE.Vector3(0, 0, 1), this.cameraHorizonalRotation);
-        this.camera.instance.up.set(cameraUp.x, cameraUp.y, cameraUp.z);
-        
-        this.camera.setTarget();
+        this.camera.adjustRotation(screenMovement.x, screenMovement.y);
       }
     }
   }
@@ -110,8 +87,8 @@ export default class Controls extends EventEmitter {
         if (match) {
           this.trigger('focus', [match]);
         }
-        else if (!this.cameraDrag) {
-          this.cameraDrag = event.pointerId;
+        else if (!this.dragPointer) {
+          this.dragPointer = event.pointerId;
           this.currentPointerPosition = {
             x: pointer.x,
             y: pointer.y
@@ -122,8 +99,8 @@ export default class Controls extends EventEmitter {
   }
 
   pointerEnd(event) {
-    if (this.cameraDrag == event.pointerId) {
-      this.cameraDrag = false;
+    if (this.dragPointer == event.pointerId) {
+      this.dragPointer = false;
     }
   }
 
