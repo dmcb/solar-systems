@@ -23,7 +23,7 @@ export default class Sun {
   }
 
   addTouchPoint() {
-    const tappableSphereGeometry = new THREE.SphereGeometry(12);
+    const tappableSphereGeometry = new THREE.SphereGeometry(16);
     const tappableSphereMaterial = new THREE.MeshBasicMaterial({visible: false});
     this.sunPivotPoint = new THREE.Mesh(tappableSphereGeometry, tappableSphereMaterial);
     this.sunPivotPoint.name = "sun";

@@ -56,7 +56,7 @@ export default class Planet {
   }
 
   addTouchPoint() {
-    const tappableSphereGeometry = new THREE.SphereGeometry(12);
+    const tappableSphereGeometry = new THREE.SphereGeometry(16);
     const tappableSphereMaterial = new THREE.MeshBasicMaterial({visible: false});
     this.planetPivotPoint = new THREE.Mesh(tappableSphereGeometry, tappableSphereMaterial);
     this.planetPivotPoint.name = "planet";
