@@ -49,7 +49,7 @@ export default class Controls extends EventEmitter {
 
   pointerMove(event) {
     if (!this.camera.cameraTransitioning) {
-      if (this.dragPointer == event.pointerId && !this.camera.focus) {
+      if (this.dragPointer === event.pointerId && !this.camera.focus) {
         const newPointerPosition = {x: this.normalizePointX(event.clientX), y: this.normalizePointY(event.clientY)};
         const screenMovement = {x: newPointerPosition.x - this.currentPointerPosition.x, y: newPointerPosition.y - this.currentPointerPosition.y};
         this.currentPointerPosition = newPointerPosition;
