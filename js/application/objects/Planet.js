@@ -49,8 +49,9 @@ export default class Planet {
       this.ringTilt = 0;
       this.numberOfRings = 0;
     }
-    this.planetOccupiedArea = (this.size + this.ringSize * this.numberOfRings + this.ringDistance) * 1.8;
-    this.actualDistanceFromSun = this.projectedDistanceFromSun + this.planetOccupiedArea;
+    this.planetOccupiedArea = this.size + this.ringSize * this.numberOfRings + this.ringDistance;
+    this.planetSphereOfInfluence = this.planetOccupiedArea * 1.8;
+    this.actualDistanceFromSun = this.projectedDistanceFromSun + this.planetSphereOfInfluence;
     this.orbitalPosition = this.seed.getRandom()*2*Math.PI;
     this.speed = speedModifier * Math.pow(16, exaggeratedDistanceFromSunModifier) * (1 / Math.pow(this.actualDistanceFromSun, exaggeratedDistanceFromSunModifier));
   }
@@ -71,7 +72,18 @@ export default class Planet {
     const normalMap = this.resources.items['normalMap0' + this.surfaceTexture];
     normalMap.generateMipMaps = false;
     normalMap.magFilter = THREE.NearestFilter;
-    const sphereGeometry = new THREE.SphereGeometry( this.size, 48, 48 );
+    // const sphereGeometry = new THREE.SphereGeometry( this.size, 48, 48 );
+    let sphereGeometry = new THREE.BoxGeometry(1, 1, 1, 32, 32, 32);
+    console.log(sphereGeometry);
+    for (let i=0; i < sphereGeometry.attributes.position.count; i++) {
+      var x = sphereGeometry.attributes.position.getX(i);
+			var y = sphereGeometry.attributes.position.getY(i);
+			var z = sphereGeometry.attributes.position.getZ(i);
+      let vertex = new THREE.Vector3(x,y,z);
+      vertex.normalize().multiplyScalar(this.size);
+      sphereGeometry.attributes.position.setXYZ(i, vertex.x, vertex.y, vertex.z);
+    }
+    sphereGeometry.computeVertexNormals();
     const sphereMaterial = new THREE.MeshPhongMaterial( { color: this.colour, specular: this.colour, shininess: this.iciness, normalMap: normalMap, normalScale: new THREE.Vector2( this.rockiness, this.rockiness ) } );
     this.planetSphere = new THREE.Mesh( sphereGeometry, sphereMaterial );
     this.planetSphere.name = "planetCore";
@@ -157,7 +169,7 @@ export default class Planet {
   }
 
   nextNeighbourMinimumDistance() {
-    return this.actualDistanceFromSun +this.planetOccupiedArea;
+    return this.actualDistanceFromSun +this.planetSphereOfInfluence;
   }
 
   update() {

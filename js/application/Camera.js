@@ -62,22 +62,22 @@ export default class Camera {
       this.focus = this.scene.getObjectById(objectId);
 
       // Get camera bounds and camera positioning based on celestial body
-      let celestialBody;
+      let newCameraSize;
       let futurePosition;
       let targetPosition = new THREE.Vector3();
       if (this.focus.name == "sun") {
-        celestialBody = this.focus.getObjectByName("sunCore");
+        const sun = this.focus.getObjectByName("sunCore");
+        newCameraSize = sun.geometry.parameters.radius*2.5;
         futurePosition = new THREE.Vector3(this.focus.position.x, this.focus.position.y, this.focus.position.z);
         if (this.solarSystem.suns.length > 1) {
           futurePosition.applyAxisAngle(new THREE.Vector3( 0, 0, 1 ), this.solarSystem.determineFutureSunsOrbit(800));
         }
       }
       else if (this.focus.name == "planet") {
-        celestialBody = this.focus.getObjectByName("planetCore");
         const planet = this.solarSystem.planets[this.focus.planetNumber-1];
+        newCameraSize = planet.planetOccupiedArea*2.5;
         futurePosition = planet.determineFuturePosition(800);
       }
-      const newCameraSize = celestialBody.geometry.parameters.radius*2.5;
       const [camWidth, camHeight] = this.getCameraDimensions(newCameraSize);
 
       // Get current position of camera
