@@ -1,5 +1,4 @@
 import * as THREE from 'three';
-import { gsap } from "gsap";
 import Application from './Application.js';
 
 export default class Camera {
@@ -9,6 +8,7 @@ export default class Camera {
     this.solarSystemRadius = this.application.solarSystemRadius;
     this.controls = this.application.controls;
     this.scene = this.application.scene;
+    this.time = this.application.time;
     this.viewport = this.application.viewport;
 
     this.reset();
@@ -35,12 +35,8 @@ export default class Camera {
     return [camWidth, camHeight];
   }
 
-  resize(size) {
-    if (size !== undefined) {
-      this.cameraSize = size;
-    }
-
-    const [camWidth, camHeight] = this.getCameraDimensions(this.cameraSize);
+  resize() {
+    const [camWidth, camHeight] = this.getCameraDimensions(this.cameraSizeSmoothed);
 
     if (!this.instance) {
       this.instance = new THREE.OrthographicCamera(-camWidth, camWidth, camHeight, -camHeight, 1, 1000 );
@@ -55,121 +51,48 @@ export default class Camera {
   }
 
   setFocus(objectId) {
-    this.cameraTransitioning = true;
-
     if (!this.focus) {
+      // Save current position of camera before focus
+      this.preFocusPosition = new THREE.Vector3(this.instance.position.x, this.instance.position.y, this.instance.position.z);
+
       // Get focused body
       this.focus = this.scene.getObjectById(objectId);
 
-      // Get camera bounds and camera positioning based on celestial body
-      let newCameraSize;
-      let futurePosition;
-      let targetPosition = new THREE.Vector3();
+      // Get new camera size based on celestial body
       if (this.focus.name == "sun") {
         const sun = this.focus.getObjectByName("sunCore");
-        newCameraSize = sun.geometry.parameters.radius*2.5;
-        futurePosition = new THREE.Vector3(this.focus.position.x, this.focus.position.y, this.focus.position.z);
-        if (this.solarSystem.suns.length > 1) {
-          futurePosition.applyAxisAngle(new THREE.Vector3( 0, 0, 1 ), this.solarSystem.determineFutureSunsOrbit(800));
-        }
+        this.cameraSizeTarget = sun.geometry.parameters.radius*2.5;
       }
       else if (this.focus.name == "planet") {
         const planet = this.solarSystem.planets[this.focus.planetNumber-1];
-        newCameraSize = planet.planetOccupiedArea*2.5;
-        futurePosition = planet.determineFuturePosition(800);
+        this.cameraSizeTarget = planet.planetOccupiedArea*2.5;
       }
-      const [camWidth, camHeight] = this.getCameraDimensions(newCameraSize);
-
-      // Get current position of camera
-      this.preFocusPosition = new THREE.Vector3(this.instance.position.x, this.instance.position.y, this.instance.position.z);
-      
-      // Get future position of celestial body
-      targetPosition.addVectors(this.preFocusPosition, futurePosition);
-
-      gsap.to(this.instance, {
-        left: -camWidth,
-        right: camWidth,
-        top: camHeight,
-        bottom: -camHeight,
-        duration: 0.8,
-        onStart: () => {
-          
-        },
-        onComplete: () => {
-          this.cameraTransitioning = false;
-          this.cameraSize = newCameraSize;
-        },
-        onUpdate: () => {
-          this.instance.updateProjectionMatrix();
-        }
-      });
-      gsap.to(this.instance.position, {
-        x: targetPosition.x,
-        y: targetPosition.y,
-        z: targetPosition.z,
-        duration: 0.8,
-      });
     }
     else {
-      const newCameraSize = this.solarSystemRadius;
-      const [camWidth, camHeight] = this.getCameraDimensions(newCameraSize);
+      this.focus = false;
 
-      gsap.to(this.instance, {
-        left: -camWidth,
-        right: camWidth,
-        top: camHeight,
-        bottom: -camHeight,
-        duration: 0.8,
-        onStart: () => {
-
-        },
-        onComplete: () => {
-          this.focus = false;
-          this.cameraTransitioning = false;
-          this.cameraSize = this.solarSystemRadius;
-        },
-        onUpdate: () => {
-          this.instance.updateProjectionMatrix();
-        }
-      });
-      gsap.to(this.instance.position, {
-        x: this.preFocusPosition.x,
-        y: this.preFocusPosition.y,
-        z: this.preFocusPosition.z,
-        duration: 0.8,
-      });
+      // Set original camera bounds and camera position and look at target
+      this.cameraSizeTarget = this.solarSystemRadius;
+      this.cameraPositionTarget.copy(this.preFocusPosition);
+      this.cameraLookAtTarget = new THREE.Vector3(0,0,0);
     }
-  }
-
-  setPosition(x, y, z) {
-    if (x === undefined) x = 0;
-    if (y === undefined) y = 0;
-    if (z === undefined) z = this.solarSystemRadius;
-    this.instance.position.x = x;
-    this.instance.position.y = y;
-    this.instance.position.z = z;
-    this.instance.updateProjectionMatrix();
-  }
-
-  setTarget(x, y, z) {
-    if (x === undefined) x = 0;
-    if (y === undefined) y = 0;
-    if (z === undefined) z = 0;
-    this.instance.lookAt(new THREE.Vector3(x,y,z));
-    this.instance.updateProjectionMatrix();
   }
 
   reset() {
+    this.cameraLookAtTarget = new THREE.Vector3(0,0,0);
+    this.cameraLookAtSmoothed = new THREE.Vector3(0,0,0);
+    this.cameraPositionTarget = new THREE.Vector3(0,0,this.solarSystemRadius);
+    this.cameraPositionSmoothed = new THREE.Vector3(0,0,this.solarSystemRadius);
+    this.cameraUpTarget = new THREE.Vector3(0,1,0);
+    this.cameraUpSmoothed = new THREE.Vector3(0,1,0);
+    this.cameraSizeTarget = this.solarSystemRadius;
+    this.cameraSizeSmoothed = this.solarSystemRadius;
     this.cameraVerticalRotation = 0;
     this.cameraHorizonalRotation = 0;
-    this.cameraSize = this.solarSystemRadius;
+    
     this.focus = false;
-    this.cameraTransitioning = false;
 
     this.resize();
-    this.rotate();
-    this.setPosition();
-    this.setTarget();
   }
 
   rotate() {
@@ -184,19 +107,18 @@ export default class Camera {
     // Apply camera position rotations
     cameraInitialPosition.applyAxisAngle(new THREE.Vector3(1, 0, 0), this.cameraVerticalRotation);
     cameraInitialPosition.applyAxisAngle(new THREE.Vector3(0, 0, 1), this.cameraHorizonalRotation);
-    this.instance.position.set(cameraInitialPosition.x, cameraInitialPosition.y, cameraInitialPosition.z);
+    this.cameraPositionTarget.set(cameraInitialPosition.x, cameraInitialPosition.y, cameraInitialPosition.z);
 
     // Apply camera up rotations
     cameraUp.applyAxisAngle(new THREE.Vector3(1, 0, 0), this.cameraVerticalRotation);
     cameraUp.applyAxisAngle(new THREE.Vector3(0, 0, 1), this.cameraHorizonalRotation);
-    this.instance.up.set(cameraUp.x, cameraUp.y, cameraUp.z);
-    
-    this.setTarget();
+    this.cameraUpTarget.set(cameraUp.x, cameraUp.y, cameraUp.z);
   }
 
   update() {
-    if (!this.cameraTransitioning && this.focus) {
-      // Get target position
+    // If the camera has a focus, keep position locked on focused body
+    if (this.focus) {
+      // Get focus target position
       let targetPosition = new THREE.Vector3(this.focus.position.x, this.focus.position.y, this.focus.position.z)
       
       // Reverse binary sun rotation to focus on correct sun position
@@ -204,10 +126,26 @@ export default class Camera {
         targetPosition.applyAxisAngle(new THREE.Vector3( 0, 0, 1 ), this.focus.parent.rotation.z);
       }
 
+      // Set camera look at target to celestial body position
+      this.cameraLookAtTarget.copy(targetPosition);
+
       // Calculate new camera position
       let alteredCameraPosition = new THREE.Vector3();
       alteredCameraPosition.addVectors(targetPosition, this.preFocusPosition);
-      this.setPosition(alteredCameraPosition.x, alteredCameraPosition.y, alteredCameraPosition.z);
+      this.cameraPositionTarget.set(alteredCameraPosition.x, alteredCameraPosition.y, alteredCameraPosition.z);
     }
+
+    // Smooth camera
+    this.cameraLookAtSmoothed.lerp(this.cameraLookAtTarget, 0.1);
+    this.instance.lookAt(this.cameraLookAtSmoothed);
+
+    this.cameraPositionSmoothed.lerp(this.cameraPositionTarget, 0.1);
+    this.instance.position.copy(this.cameraPositionSmoothed);
+
+    this.cameraUpSmoothed.lerp(this.cameraUpTarget, 0.1);
+    this.instance.up.copy(this.cameraUpSmoothed);
+
+    this.cameraSizeSmoothed = (this.cameraSizeSmoothed * (1 - (0.1)) + (this.cameraSizeTarget * 0.1));
+    this.resize();
   }
 }

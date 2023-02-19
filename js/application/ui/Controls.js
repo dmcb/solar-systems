@@ -15,7 +15,8 @@ export default class Controls extends EventEmitter {
 
     this.dragPointer = false;
 
-    this.canvas.addEventListener('dblclick', (event) => this.dblClick(event));
+    // I don't think I like this
+    // this.canvas.addEventListener('dblclick', (event) => this.dblClick(event));
     this.canvas.addEventListener('pointermove', (event) => this.pointerMove(event));
     this.canvas.addEventListener('pointerdown', (event) => this.pointerDown(event));
     this.canvas.addEventListener('pointerup', (event) => this.pointerEnd(event));
@@ -24,74 +25,68 @@ export default class Controls extends EventEmitter {
   }
 
   dblClick(event) {
-    if (!this.camera.cameraTransitioning) {
-      const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement;
-      if (!fullscreenElement)
-      {
-        if (this.canvas.requestFullscreen) {
-          this.canvas.requestFullscreen();
-        }
-        else if (this.canvas.webkitRequestFullscreen) {
-          this.canvas.webkitRequestFullscreen();
-        }
+    const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement;
+    if (!fullscreenElement)
+    {
+      if (this.canvas.requestFullscreen) {
+        this.canvas.requestFullscreen();
       }
-      else
-      {
-        if (document.exitFullscreen) {
-          document.exitFullscreen();
-        }
-        else if (document.webkitExitFullscreen) {
-          document.webkitExitFullscreen();
-        }
+      else if (this.canvas.webkitRequestFullscreen) {
+        this.canvas.webkitRequestFullscreen();
+      }
+    }
+    else
+    {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      }
+      else if (document.webkitExitFullscreen) {
+        document.webkitExitFullscreen();
       }
     }
   }
 
   pointerMove(event) {
-    if (!this.camera.cameraTransitioning) {
-      if (this.dragPointer === event.pointerId && !this.camera.focus) {
-        const newPointerPosition = {x: this.normalizePointX(event.clientX), y: this.normalizePointY(event.clientY)};
-        const screenMovement = {x: newPointerPosition.x - this.currentPointerPosition.x, y: newPointerPosition.y - this.currentPointerPosition.y};
-        this.currentPointerPosition = newPointerPosition;
+    if (this.dragPointer === event.pointerId && !this.camera.focus) {
+      const newPointerPosition = {x: this.normalizePointX(event.clientX), y: this.normalizePointY(event.clientY)};
+      const screenMovement = {x: newPointerPosition.x - this.currentPointerPosition.x, y: newPointerPosition.y - this.currentPointerPosition.y};
+      this.currentPointerPosition = newPointerPosition;
 
-        this.camera.adjustRotation(screenMovement.x, screenMovement.y);
-      }
+      this.camera.adjustRotation(screenMovement.x, screenMovement.y);
     }
   }
 
   pointerDown(event) {
-    if (!this.camera.cameraTransitioning) {
-      // If camera is focused on a planet, a tap will undo it
-      if (this.camera.focus) {
-        this.trigger('focus');
-      }
-      else {
-        // Check if a sun or planet is tapped on
-        let pointer = new THREE.Vector2();
-        let raycaster = new THREE.Raycaster();
-        pointer.x = this.normalizePointX(event.clientX);
-        pointer.y = this.normalizePointY(event.clientY);
+    // If camera is focused on a planet, a tap will undo it
+    if (this.camera.focus) {
+      this.trigger('focus');
+    }
+    else {
+      // Check if a sun or planet is tapped on
+      let pointer = new THREE.Vector2();
+      let raycaster = new THREE.Raycaster();
+      pointer.x = this.normalizePointX(event.clientX);
+      pointer.y = this.normalizePointY(event.clientY);
 
-        raycaster.setFromCamera(pointer, this.camera.instance);
-        
-        const intersects = raycaster.intersectObjects( this.scene.children );
-        let match;
-        intersects.forEach((item, index, object) => {
-          if (!match && (item.object.name == "sun" || item.object.name == "planet")) {
-            match = item.object.id;
-          }
-        });
-
-        // If there's a match, let the app know, otherwise initiate drag
-        if (match) {
-          this.trigger('focus', [match]);
+      raycaster.setFromCamera(pointer, this.camera.instance);
+      
+      const intersects = raycaster.intersectObjects( this.scene.children );
+      let match;
+      intersects.forEach((item, index, object) => {
+        if (!match && (item.object.name == "sun" || item.object.name == "planet")) {
+          match = item.object.id;
         }
-        else if (!this.dragPointer) {
-          this.dragPointer = event.pointerId;
-          this.currentPointerPosition = {
-            x: pointer.x,
-            y: pointer.y
-          }
+      });
+
+      // If there's a match, let the app know, otherwise initiate drag
+      if (match) {
+        this.trigger('focus', [match]);
+      }
+      else if (!this.dragPointer) {
+        this.dragPointer = event.pointerId;
+        this.currentPointerPosition = {
+          x: pointer.x,
+          y: pointer.y
         }
       }
     }
