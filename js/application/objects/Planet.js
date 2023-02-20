@@ -30,7 +30,7 @@ export default class Planet {
     this.lightness = this.seed.fakeGaussianRandom()*0.2+0.4;
     this.size = this.seed.fakeGaussianRandom(-2,4)*6+1;
     this.rotationSpeed = this.seed.fakeGaussianRandom()*0.02;
-    this.orbitAxis = this.seed.fakeGaussianRandom(0,10)*60-30;
+    this.orbitAxis = this.seed.fakeGaussianRandom(0,12)*60-30;
     this.orbitEccentricity = this.seed.fakeGaussianRandom(-1)*0.1;
     this.orbitOffset = this.seed.fakeGaussianRandom()*360;
     this.rockiness = this.seed.fakeGaussianRandom();
