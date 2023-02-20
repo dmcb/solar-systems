@@ -96,6 +96,7 @@ export default class Camera {
   }
 
   reset() {
+    this.cameraAnimating = false;
     this.cameraAnimationTime = 0;
     this.cameraPositionTarget = new THREE.Vector3(0,0,this.solarSystemRadius);
     this.cameraPositionStart = new THREE.Vector3(0,0,this.solarSystemRadius);
@@ -125,13 +126,12 @@ export default class Camera {
     // Apply camera position rotations
     cameraInitialPosition.applyAxisAngle(new THREE.Vector3(1, 0, 0), this.cameraVerticalRotation);
     cameraInitialPosition.applyAxisAngle(new THREE.Vector3(0, 0, 1), this.cameraHorizonalRotation);
-    this.instance.position.copy(cameraInitialPosition);
+    this.cameraPositionTarget.copy(cameraInitialPosition);
 
     // Apply camera up rotations
     cameraUp.applyAxisAngle(new THREE.Vector3(1, 0, 0), this.cameraVerticalRotation);
     cameraUp.applyAxisAngle(new THREE.Vector3(0, 0, 1), this.cameraHorizonalRotation);
-    this.instance.up.copy(cameraUp);
-    this.instance.lookAt(new THREE.Vector3(0,0,0));
+    this.cameraUpTarget.copy(cameraUp);
   }
 
   update() {
@@ -167,6 +167,12 @@ export default class Camera {
         let alteredCameraPosition = new THREE.Vector3();
         alteredCameraPosition.addVectors(targetPosition, this.preFocusCameraPosition);
         this.instance.position.copy(alteredCameraPosition);
+      }
+      else {
+        // Dampen rotation
+        this.instance.position.lerp(this.cameraPositionTarget, 0.1);
+        this.instance.up.lerp(this.cameraUpTarget, 0.1);
+        this.instance.lookAt(new THREE.Vector3(0,0,0));
       }
     }
   }
