@@ -30,7 +30,7 @@ export default class Planet {
     this.lightness = this.seed.fakeGaussianRandom()*0.2+0.4;
     this.size = this.seed.fakeGaussianRandom(-2,4)*6+1;
     this.rotationSpeed = this.seed.fakeGaussianRandom()*0.02;
-    this.orbitAxis = this.seed.fakeGaussianRandom()*20-10;
+    this.orbitAxis = this.seed.fakeGaussianRandom(0,10)*60-30;
     this.orbitEccentricity = this.seed.fakeGaussianRandom(-1)*0.1;
     this.orbitOffset = this.seed.fakeGaussianRandom()*360;
     this.rockiness = this.seed.fakeGaussianRandom();
@@ -276,9 +276,9 @@ export default class Planet {
       this.debugFolder
         .add(this, 'orbitAxis')
         .name('orbitAxis')
-        .min(-10)
-        .max(10)
-        .step(0.001)
+        .min(-30)
+        .max(30)
+        .step(0.1)
         .onChange(() => {
           this.removeFromScene();
           this.addToScene();
