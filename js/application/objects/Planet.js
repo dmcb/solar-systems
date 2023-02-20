@@ -30,8 +30,9 @@ export default class Planet {
     this.lightness = this.seed.fakeGaussianRandom()*0.2+0.4;
     this.size = this.seed.fakeGaussianRandom(-2,4)*6+1;
     this.rotationSpeed = this.seed.fakeGaussianRandom()*0.02;
-    this.orbitEccentricity = this.seed.fakeGaussianRandom()*0;
     this.orbitAxis = this.seed.fakeGaussianRandom()*20-10;
+    this.orbitEccentricity = this.seed.fakeGaussianRandom(-1)*0.1;
+    this.orbitOffset = this.seed.fakeGaussianRandom()*360;
     this.rockiness = this.seed.fakeGaussianRandom();
     this.iciness = this.seed.fakeGaussianRandom(-5,6)*50;
     this.surfaceTexture = Math.round(this.seed.getRandom()*6+1);
@@ -192,9 +193,13 @@ export default class Planet {
   determineOrbit(orbitalPosition) {
     let x = this.actualDistanceFromSun;
     let y = this.actualDistanceFromSun * Math.sqrt(1.0 - Math.pow(this.orbitEccentricity, 1));
-    let z = Math.sin(2 * Math.PI * this.orbitAxis/360 ) * this.actualDistanceFromSun;
+    let z = Math.sin(2 * Math.PI * this.orbitAxis/360) * this.actualDistanceFromSun;
 
-    return new THREE.Vector3(Math.cos(orbitalPosition) * x, Math.sin(orbitalPosition) * y, Math.cos(orbitalPosition + 0) * z);
+    return new THREE.Vector3(
+      Math.cos(orbitalPosition) * x,
+      Math.sin(orbitalPosition) * y,
+      Math.cos(orbitalPosition) * z
+    ).applyAxisAngle(new THREE.Vector3(0,0,1), this.orbitOffset * 2 * Math.PI/360);
   }
 
   destroy() {
@@ -274,6 +279,28 @@ export default class Planet {
         .min(-10)
         .max(10)
         .step(0.001)
+        .onChange(() => {
+          this.removeFromScene();
+          this.addToScene();
+        });
+
+      this.debugFolder
+        .add(this, 'orbitEccentricity')
+        .name('orbitEccentricity')
+        .min(0)
+        .max(0.1)
+        .step(0.001)
+        .onChange(() => {
+          this.removeFromScene();
+          this.addToScene();
+        });
+
+      this.debugFolder
+        .add(this, 'orbitOffset')
+        .name('orbitOffset')
+        .min(0)
+        .max(360)
+        .step(1)
         .onChange(() => {
           this.removeFromScene();
           this.addToScene();

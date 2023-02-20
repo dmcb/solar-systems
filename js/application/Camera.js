@@ -170,8 +170,8 @@ export default class Camera {
       }
       else {
         // Dampen rotation
-        this.instance.position.lerp(this.cameraPositionTarget, 0.1);
-        this.instance.up.lerp(this.cameraUpTarget, 0.1);
+        this.instance.position.lerp(this.cameraPositionTarget, 0.01 * this.time.delta);
+        this.instance.up.lerp(this.cameraUpTarget, 0.01 * this.time.delta);
         this.instance.lookAt(new THREE.Vector3(0,0,0));
       }
     }
