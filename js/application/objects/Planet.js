@@ -67,25 +67,28 @@ export default class Planet {
   }
 
   addToScene() {
-    // Add planet to scene
-    this.colour = new THREE.Color();
-    this.colour.setHSL(this.hue, this.saturation, this.lightness);
-    const normalMap = this.resources.items['normalMap0' + this.surfaceTexture];
-    normalMap.generateMipMaps = false;
-    normalMap.magFilter = THREE.NearestFilter;
-    // const sphereGeometry = new THREE.SphereGeometry( this.size, 48, 48 );
+    // Create geometry
     let sphereGeometry = new THREE.BoxGeometry(1, 1, 1, 32, 32, 32);
     console.log(sphereGeometry);
     for (let i=0; i < sphereGeometry.attributes.position.count; i++) {
       var x = sphereGeometry.attributes.position.getX(i);
-			var y = sphereGeometry.attributes.position.getY(i);
-			var z = sphereGeometry.attributes.position.getZ(i);
+      var y = sphereGeometry.attributes.position.getY(i);
+      var z = sphereGeometry.attributes.position.getZ(i);
       let vertex = new THREE.Vector3(x,y,z);
       vertex.normalize().multiplyScalar(this.size);
       sphereGeometry.attributes.position.setXYZ(i, vertex.x, vertex.y, vertex.z);
     }
     sphereGeometry.computeVertexNormals();
+    
+    // Set materials
+    this.colour = new THREE.Color();
+    this.colour.setHSL(this.hue, this.saturation, this.lightness);
+    const normalMap = this.resources.items['normalMap0' + this.surfaceTexture];
+    normalMap.generateMipMaps = false;
+    normalMap.magFilter = THREE.NearestFilter;
     const sphereMaterial = new THREE.MeshPhongMaterial( { color: this.colour, specular: this.colour, shininess: this.iciness, normalMap: normalMap, normalScale: new THREE.Vector2( this.rockiness, this.rockiness ) } );
+    
+    // Add mesh to scene
     this.planetSphere = new THREE.Mesh( sphereGeometry, sphereMaterial );
     this.planetSphere.name = "planetCore";
     this.planetSphere.receiveShadow = true;
