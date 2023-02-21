@@ -170,7 +170,8 @@ export default class Camera {
       }
       else {
         // Dampen rotation
-        this.instance.position.lerp(this.cameraPositionTarget, 0.01 * this.time.delta);
+        // Ensure lerped value is always on a point on a sphere at length solarSystemRadius and not closer to the center
+        this.instance.position.lerp(this.cameraPositionTarget, 0.01 * this.time.delta).normalize().multiplyScalar(this.solarSystemRadius);
         this.instance.up.lerp(this.cameraUpTarget, 0.01 * this.time.delta);
         this.instance.lookAt(new THREE.Vector3(0,0,0));
       }
