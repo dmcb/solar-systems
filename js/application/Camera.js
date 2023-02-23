@@ -14,6 +14,8 @@ export default class Camera {
     this.time = this.application.time;
     this.viewport = this.application.viewport;
 
+    this.cameraDistance = this.solarSystemRadius*2;
+
     this.reset();
   }
 
@@ -98,8 +100,8 @@ export default class Camera {
   reset() {
     this.cameraAnimating = false;
     this.cameraAnimationTime = 0;
-    this.cameraPositionTarget = new THREE.Vector3(0,0,this.solarSystemRadius);
-    this.cameraPositionStart = new THREE.Vector3(0,0,this.solarSystemRadius);
+    this.cameraPositionTarget = new THREE.Vector3(0,0,this.cameraDistance);
+    this.cameraPositionStart = new THREE.Vector3(0,0,this.cameraDistance);
     this.cameraUpTarget = new THREE.Vector3(0,1,0);
     this.cameraUpStart = new THREE.Vector3(0,1,0);
     this.cameraSizeTarget = this.solarSystemRadius;
@@ -171,7 +173,7 @@ export default class Camera {
       else {
         // Dampen rotation
         // Ensure lerped value is always on a point on a sphere at length solarSystemRadius and not closer to the center
-        this.instance.position.lerp(this.cameraPositionTarget, 0.01 * this.time.delta).normalize().multiplyScalar(this.solarSystemRadius);
+        this.instance.position.lerp(this.cameraPositionTarget, 0.01 * this.time.delta).normalize().multiplyScalar(this.cameraDistance);
         this.instance.up.lerp(this.cameraUpTarget, 0.01 * this.time.delta);
         this.instance.lookAt(new THREE.Vector3(0,0,0));
       }
