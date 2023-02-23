@@ -69,7 +69,6 @@ export default class Planet {
   addToScene() {
     // Create geometry
     let sphereGeometry = new THREE.BoxGeometry(1, 1, 1, 32, 32, 32);
-    console.log(sphereGeometry);
     for (let i=0; i < sphereGeometry.attributes.position.count; i++) {
       var x = sphereGeometry.attributes.position.getX(i);
       var y = sphereGeometry.attributes.position.getY(i);

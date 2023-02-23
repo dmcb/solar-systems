@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import Application from '../Application.js';
+import SunShader from '../shaders/SunShader.js';
 
 export default class Sun {
   constructor(sunNumber) {
@@ -8,6 +9,7 @@ export default class Sun {
     this.solarSystem = this.application.solarSystem;
     this.solarSystemRadius = this.application.solarSystemRadius;
     this.seed = this.application.seed;
+    this.time = this.application.time;
     this.debug = this.application.debug;
 
     this.sunNumber = sunNumber;
@@ -38,8 +40,25 @@ export default class Sun {
     this.surfaceColour = this.kelvinToRGB(this.kelvin);
     this.illuminationColour = this.kelvinToRGB(this.temperedKelvin);
 
-    this.sunGeometry = new THREE.SphereGeometry( this.size, 48, 48 );
-    this.sunMaterial = new THREE.MeshBasicMaterial({color: this.surfaceColour, toneMapped: false });
+    // Create geometry
+    this.sunGeometry = new THREE.BoxGeometry(1, 1, 1, 32, 32, 32);
+    for (let i=0; i < this.sunGeometry.attributes.position.count; i++) {
+      var x = this.sunGeometry.attributes.position.getX(i);
+      var y = this.sunGeometry.attributes.position.getY(i);
+      var z = this.sunGeometry.attributes.position.getZ(i);
+      let vertex = new THREE.Vector3(x,y,z);
+      vertex.normalize().multiplyScalar(this.size);
+      this.sunGeometry.attributes.position.setXYZ(i, vertex.x, vertex.y, vertex.z);
+    }
+    this.sunGeometry.computeVertexNormals();
+    this.sunMaterial = new THREE.RawShaderMaterial({
+      uniforms: {
+        uSurfaceColour: { value: this.surfaceColour },
+        uTime: { value: this.time.elapsed }
+      },
+      vertexShader: SunShader.vertexShader,
+      fragmentShader: SunShader.fragmentShader
+    });
     this.sun = new THREE.Mesh(this.sunGeometry, this.sunMaterial);
     this.sun.name = "sunCore";
     this.sun.position.set( 0, 0, 0);
@@ -65,6 +84,10 @@ export default class Sun {
     if (this.sunLight) {
       this.sunLight.removeFromParent();
     }
+  }
+
+  update() {
+    this.sunMaterial.uniforms.uTime = this.time.elapsed;
   }
 
   destroy() {

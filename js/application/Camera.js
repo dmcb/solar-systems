@@ -64,8 +64,8 @@ export default class Camera {
       // Get new camera size and position based on celestial body
       let futurePosition = new THREE.Vector3();
       if (this.focus.name == "sun") {
-        const sun = this.focus.getObjectByName("sunCore");
-        this.cameraSizeTarget = sun.geometry.parameters.radius*2.5;
+        const sun = this.solarSystem.suns[this.focus.sunNumber-1];
+        this.cameraSizeTarget = sun.size*2.5;
         futurePosition.copy(this.focus.position);
         if (this.solarSystem.suns.length > 1) {
           futurePosition.applyAxisAngle(new THREE.Vector3( 0, 0, 1 ), this.solarSystem.determineFutureSunsOrbit(animationDuration));

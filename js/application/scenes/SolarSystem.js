@@ -118,6 +118,9 @@ export default class SolarSystem {
     if (this.suns.length == 2) {
       this.orbitSuns();
     }
+    this.suns.forEach(sun => {
+      sun.update();
+    });
     this.planets.forEach(planet => {
       planet.update();
     });
