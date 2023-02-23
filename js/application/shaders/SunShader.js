@@ -17,8 +17,11 @@ export default {
   `,
 
   fragmentShader: /* glsl */`
+    uniform float uIntensity;
+    uniform float uSmoothness;
     uniform vec3 uSurfaceColour;
     uniform float uTime;
+    uniform float uVolatility;
 
     varying vec2 vUv;
     varying float vNdotV;
@@ -113,7 +116,7 @@ export default {
       float strength = 0.6;
 
       for (float i = 1.0; i <= 4.0; i++) {
-        strength += abs(cnoise(vec3(vUv*15.0*i, uTime*0.0003))) * 0.7/i;
+        strength += abs(cnoise(vec3(vUv*30.0*(1.2-uSmoothness)*i, uTime*0.0005*uVolatility))) * 0.7 * uIntensity/i;
       }
 
       gl_FragColor = vec4((1.2-(vNdotV*0.8)) * strength * uSurfaceColour, 1.0);

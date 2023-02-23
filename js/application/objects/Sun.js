@@ -22,6 +22,9 @@ export default class Sun {
   generateProperties() {
     this.kelvin = this.seed.fakeGaussianRandom(-1,3)*13000;
     this.size = this.seed.fakeGaussianRandom(-2)*14+0.5;
+    this.volatility = this.seed.fakeGaussianRandom(3);
+    this.intensity = this.seed.fakeGaussianRandom(3);
+    this.smoothness = this.seed.fakeGaussianRandom(3);
   }
 
   addTouchPoint() {
@@ -53,8 +56,11 @@ export default class Sun {
     this.sunGeometry.computeVertexNormals();
     this.sunMaterial = new THREE.ShaderMaterial({
       uniforms: {
+        uIntensity: { value: this.intensity },
+        uSmoothness: { value: this.smoothness },
         uSurfaceColour: { value: this.surfaceColour },
-        uTime: { value: this.time.elapsed }
+        uTime: { value: this.time.elapsed },
+        uVolatility: { value: this.volatility }
       },
       vertexShader: SunShader.vertexShader,
       fragmentShader: SunShader.fragmentShader
@@ -124,6 +130,42 @@ export default class Sun {
         .min(0.5)
         .max(14.5)
         .step(0.001)
+        .onChange(() => {
+          this.removeFromScene();
+          this.addToScene();
+          this.solarSystem.placeSuns();
+        });
+
+      this.debugFolder
+        .add(this, 'volatility')
+        .name('volatility')
+        .min(0)
+        .max(1)
+        .step(0.01)
+        .onChange(() => {
+          this.removeFromScene();
+          this.addToScene();
+          this.solarSystem.placeSuns();
+        });
+
+      this.debugFolder
+        .add(this, 'intensity')
+        .name('intensity')
+        .min(0)
+        .max(1)
+        .step(0.01)
+        .onChange(() => {
+          this.removeFromScene();
+          this.addToScene();
+          this.solarSystem.placeSuns();
+        });
+
+        this.debugFolder
+        .add(this, 'smoothness')
+        .name('smoothness')
+        .min(0)
+        .max(1)
+        .step(0.01)
         .onChange(() => {
           this.removeFromScene();
           this.addToScene();
