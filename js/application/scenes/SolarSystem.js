@@ -28,13 +28,13 @@ export default class SolarSystem {
     var sphereMaterial = new THREE.ShaderMaterial({
       uniforms: {
         skyRadius: { value: skyDomeRadius },
-        env_c1: { value: new THREE.Color("#000606") },
-        env_c2: { value: new THREE.Color("#100010") },
-        noiseOffset: { value: new THREE.Vector3(100, 100, 100) },
+        env_c1: { value: new THREE.Color("#000000") },
+        env_c2: { value: new THREE.Color("#130019") },
+        envFrequency: { value: 5 },
+        noiseOffset: { value: new THREE.Vector3(0, 0, 0) },
         starSize: { value: 0.0021 },
         starDensity: { value: 0.09 },
-        clusterStrength: { value: 0 },
-        clusterSize: { value: 0.8 },
+        starStrength: { value: 0.1 },
       },
       vertexShader: StarrySkyShader.vertexShader,
       fragmentShader: StarrySkyShader.fragmentShader,
@@ -52,7 +52,7 @@ export default class SolarSystem {
     else this.direction = -1;
 
     // Add ambient light
-    this.ambientLight = new THREE.AmbientLight(0xffffff, 0.01);
+    this.ambientLight = new THREE.AmbientLight(0xffffff, 0.015);
     this.scene.add( this.ambientLight );
 
     // Add suns

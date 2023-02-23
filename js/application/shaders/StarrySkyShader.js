@@ -5,18 +5,40 @@ export default {
 
     void main() {
       vPos = position;
-      vec4 mvPosition = modelViewMatrix * vec4( vPos, 1.0 );
-      gl_Position = projectionMatrix * mvPosition;
+      gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(position, 1.0);
     }
 
   `,
 
   fragmentShader: /* glsl */`
-    vec4 permute(vec4 x){return mod(((x*34.0)+1.0)*x, 289.0);}
-    vec4 taylorInvSqrt(vec4 r){return 1.79284291400159 - 0.85373472095314 * r;}
-    vec3 fade(vec3 t) {return t*t*t*(t*(t*6.0-15.0)+10.0);}
+    uniform float skyRadius;
+    uniform vec3 noiseOffset;
+    uniform vec3 env_c1;
+    uniform vec3 env_c2;  
+    uniform float envFrequency;
+    uniform float starDensity;
+    uniform float starSize;
+    uniform float starStrength;
 
-    float cnoise(vec3 P){
+    varying vec3 vPos;
+
+    // Classic Perlin 3D Noise 
+    // by Stefan Gustavson
+    //
+    vec4 permute(vec4 x)
+    {
+      return mod(((x*34.0)+1.0)*x, 289.0);
+    }
+    vec4 taylorInvSqrt(vec4 r)
+    {
+      return 1.79284291400159 - 0.85373472095314 * r;
+    }
+    vec3 fade(vec3 t)
+    {
+      return t*t*t*(t*(t*6.0-15.0)+10.0);
+    }
+    float cnoise(vec3 P)
+    {
       vec3 Pi0 = floor(P); // Integer part for indexing
       vec3 Pi1 = Pi0 + vec3(1.0); // Integer part + 1
       Pi0 = mod(Pi0, 289.0);
@@ -80,35 +102,21 @@ export default {
       vec3 fade_xyz = fade(Pf0);
       vec4 n_z = mix(vec4(n000, n100, n010, n110), vec4(n001, n101, n011, n111), fade_xyz.z);
       vec2 n_yz = mix(n_z.xy, n_z.zw, fade_xyz.y);
-      float n_xyz = mix(n_yz.x, n_yz.y, fade_xyz.x);
+      float n_xyz = mix(n_yz.x, n_yz.y, fade_xyz.x); 
       return 2.2 * n_xyz;
     }
 
-    varying vec3 vPos;
-    uniform float skyRadius;
-    uniform vec3 noiseOffset;
-
-    uniform vec3 env_c1;
-    uniform vec3 env_c2;
-
-    uniform float clusterSize;
-    uniform float clusterStrength;
-
-    uniform float starSize;
-    uniform float starDensity;
-
     void main() {
-      float freq = 1.1/skyRadius;
+      float freq = envFrequency/skyRadius;
       float noise = cnoise(vPos * freq);
       vec4 backgroundColor = vec4(mix(env_c1, env_c2, noise), 1.0);
 
-      float scaledClusterSize = (1.0/clusterSize)/skyRadius;
       float scaledStarSize = (1.0/starSize)/skyRadius;
 
-      float cs = pow(cnoise(scaledClusterSize*vPos+noiseOffset),1.0/clusterStrength) + cnoise(scaledStarSize*vPos);
+      float cs = cnoise(scaledStarSize*vPos);
 
-      float c =clamp(pow(cs, 1.0/starDensity),0.0,1.0);
-      vec4 starColor = 0.08*vec4(c, c, c, 1.0);
+      float c = clamp(pow(cs, 1.0/starDensity),0.0,1.0);
+      vec4 starColor = starStrength * vec4(c, c, c, 1.0);
 
       gl_FragColor = backgroundColor;
       gl_FragColor += starColor;
