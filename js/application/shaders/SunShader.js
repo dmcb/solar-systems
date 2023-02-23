@@ -110,8 +110,11 @@ export default {
 
     void main()
     {
-        vec3 vUvTime = vec3(vUv*60., uTime*0.0003);
-        float strength = cnoise(vUvTime) + 1.1;
+        float strength = 0.6;
+
+        for (float i = 1.0; i <= 4.0; i++) {
+          strength += abs(cnoise(vec3(vUv*15.0*i, uTime*0.0003))) * 0.4/i;
+        }
 
         gl_FragColor = vec4((1.6-vNdotV) * strength * uSurfaceColour, 1.0);
     }
