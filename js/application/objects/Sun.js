@@ -3,7 +3,7 @@ import Application from '../Application.js';
 import SunShader from '../shaders/SunShader.js';
 
 export default class Sun {
-  constructor(sunNumber) {
+  constructor(sunNumber, direction) {
     this.application = new Application();
     this.scene = this.application.scene;
     this.solarSystem = this.application.solarSystem;
@@ -13,6 +13,7 @@ export default class Sun {
     this.debug = this.application.debug;
 
     this.sunNumber = sunNumber;
+    this.direction = direction;
 
     this.generateProperties();
     this.addTouchPoint();
@@ -22,9 +23,10 @@ export default class Sun {
   generateProperties() {
     this.kelvin = this.seed.fakeGaussianRandom(-1,3)*13000;
     this.size = this.seed.fakeGaussianRandom(-2)*14+0.5;
-    this.volatility = this.seed.fakeGaussianRandom(3);
-    this.intensity = this.seed.fakeGaussianRandom(3);
-    this.smoothness = this.seed.fakeGaussianRandom(3);
+    this.volatility = this.seed.getRandom();
+    this.intensity = this.seed.getRandom();
+    this.smoothness = this.seed.getRandom();
+    this.rotationSpeed = this.seed.fakeGaussianRandom(-5,6)*0.005;
   }
 
   addTouchPoint() {
@@ -93,6 +95,10 @@ export default class Sun {
   }
 
   update() {
+    // Rotate the sun on its axis (day)
+    this.sun.rotation.z += this.rotationSpeed * this.direction * this.time.delta * 0.0625;
+
+    // Animate surface
     this.sunMaterial.uniforms.uTime.value = this.time.elapsed;
   }
 
@@ -160,12 +166,24 @@ export default class Sun {
           this.solarSystem.placeSuns();
         });
 
-        this.debugFolder
+      this.debugFolder
         .add(this, 'smoothness')
         .name('smoothness')
         .min(0)
         .max(1)
         .step(0.01)
+        .onChange(() => {
+          this.removeFromScene();
+          this.addToScene();
+          this.solarSystem.placeSuns();
+        });
+
+      this.debugFolder
+        .add(this, 'rotationSpeed')
+        .name('rotationSpeed')
+        .min(0)
+        .max(0.005)
+        .step(0.0001)
         .onChange(() => {
           this.removeFromScene();
           this.addToScene();

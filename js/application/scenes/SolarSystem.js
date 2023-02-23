@@ -59,11 +59,11 @@ export default class SolarSystem {
     this.sunsPivotPoint = new THREE.Object3D();
     this.sunsPivotPoint.name = "sunsPivotPoint";
     this.scene.add(this.sunsPivotPoint);
-    let sun = new Sun(1);
+    let sun = new Sun(1, this.direction);
     this.minimumDistance = sun.size*2.5;
     sun.addToScene();
     this.suns.push(sun);
-    let secondSun = new Sun(2);
+    let secondSun = new Sun(2, this.direction);
     if (sun.size + secondSun.size < 10) {
       this.sunDistance = this.seed.fakeGaussianRandom(3)*30+2;
       secondSun.addToScene();
