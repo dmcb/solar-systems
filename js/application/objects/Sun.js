@@ -87,7 +87,7 @@ export default class Sun {
   }
 
   update() {
-    this.sunMaterial.uniforms.uTime = this.time.elapsed;
+    this.sunMaterial.uniforms.uTime.value = this.time.elapsed;
   }
 
   destroy() {
