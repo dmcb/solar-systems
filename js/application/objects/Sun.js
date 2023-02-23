@@ -51,7 +51,7 @@ export default class Sun {
       this.sunGeometry.attributes.position.setXYZ(i, vertex.x, vertex.y, vertex.z);
     }
     this.sunGeometry.computeVertexNormals();
-    this.sunMaterial = new THREE.RawShaderMaterial({
+    this.sunMaterial = new THREE.ShaderMaterial({
       uniforms: {
         uSurfaceColour: { value: this.surfaceColour },
         uTime: { value: this.time.elapsed }

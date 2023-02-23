@@ -1,28 +1,27 @@
 export default {
   vertexShader: /* glsl */`
-    uniform mat4 projectionMatrix;
-    uniform mat4 viewMatrix;
-    uniform mat4 modelMatrix;
-
-    attribute vec3 position;
-    attribute vec2 uv;
-
     varying vec2 vUv;
+    varying float vNdotV;
 
     void main()
     {
-        gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(position, 1.0);
-        vUv = uv;
+      gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(position, 1.0);
+
+      vec4 posInView = viewMatrix * modelMatrix * vec4(position, 1.0);
+      vec3 V = normalize(-posInView.xyz); 
+      vec3 N = normalize(normalMatrix * normal);
+
+      vNdotV = max(0., dot(N, V));
+      vUv = uv;
     }
   `,
 
   fragmentShader: /* glsl */`
-    precision mediump float;
-
     uniform vec3 uSurfaceColour;
     uniform float uTime;
 
     varying vec2 vUv;
+    varying float vNdotV;
 
     vec2 fade(vec2 t) {return t*t*t*(t*(t*6.0-15.0)+10.0);}
 
@@ -68,7 +67,7 @@ export default {
     {
         float strength = cnoise(vUv * 200.0) + 1.0;
 
-        gl_FragColor = vec4(strength*uSurfaceColour, 1.0);
+        gl_FragColor = vec4((1.5-vNdotV) * strength * uSurfaceColour, 1.0);
     }
   `,
 };
