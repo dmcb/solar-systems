@@ -7,7 +7,6 @@ export default class Controls extends EventEmitter {
     super();
 
     this.application = new Application();
-    this.solarSystemRadius = this.application.solarSystemRadius;
     this.scene = this.application.scene;
     this.camera = this.application.camera;
     this.viewport = this.application.viewport;
