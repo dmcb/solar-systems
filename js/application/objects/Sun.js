@@ -43,7 +43,7 @@ export default class Sun {
   addToScene() {
     this.temperedKelvin = this.kelvin*0.9 + 13000*0.05;
     this.mass = Math.pow(this.size/2,3)*Math.PI*4/3;
-    this.brightness = (1.5 / Math.pow(16 / this.size, 0.5));
+    this.brightness = ((1 + (0.5 * this.surfaceBrightness)) / Math.pow(16 / this.size, 0.5));
     this.surfaceColour = this.kelvinToRGB(this.kelvin);
     this.illuminationColour = this.kelvinToRGB(this.temperedKelvin);
 
