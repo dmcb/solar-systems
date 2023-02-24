@@ -23,9 +23,11 @@ export default class Sun {
   generateProperties() {
     this.kelvin = this.seed.fakeGaussianRandom(-1,3)*13000;
     this.size = this.seed.fakeGaussianRandom(-2)*14+0.5;
-    this.volatility = this.seed.getRandom();
-    this.intensity = this.seed.getRandom();
-    this.smoothness = this.seed.getRandom();
+    this.volatility = this.seed.getRandom()*0.8+0.2;
+    this.surfaceBrightness = this.seed.getRandom();
+    this.intensity = this.seed.getRandom()*2+0.5;
+    this.scale = this.seed.getRandom();
+    this.smoothness = this.seed.getRandom()*0.2;
     this.rotationSpeed = this.seed.fakeGaussianRandom(-5,6)*0.005;
   }
 
@@ -58,7 +60,9 @@ export default class Sun {
     this.sunGeometry.computeVertexNormals();
     this.sunMaterial = new THREE.ShaderMaterial({
       uniforms: {
+        uBrightness: { value: this.surfaceBrightness },
         uIntensity: { value: this.intensity },
+        uScale: { value: this.scale },
         uSmoothness: { value: this.smoothness },
         uSurfaceColour: { value: this.surfaceColour },
         uTime: { value: this.time.elapsed },
@@ -145,6 +149,18 @@ export default class Sun {
       this.debugFolder
         .add(this, 'volatility')
         .name('volatility')
+        .min(0.2)
+        .max(1)
+        .step(0.01)
+        .onChange(() => {
+          this.removeFromScene();
+          this.addToScene();
+          this.solarSystem.placeSuns();
+        });
+
+      this.debugFolder
+        .add(this, 'surfaceBrightness')
+        .name('surfaceBrightness')
         .min(0)
         .max(1)
         .step(0.01)
@@ -157,6 +173,18 @@ export default class Sun {
       this.debugFolder
         .add(this, 'intensity')
         .name('intensity')
+        .min(0.5)
+        .max(2.5)
+        .step(0.1)
+        .onChange(() => {
+          this.removeFromScene();
+          this.addToScene();
+          this.solarSystem.placeSuns();
+        });
+
+      this.debugFolder
+        .add(this, 'scale')
+        .name('scale')
         .min(0)
         .max(1)
         .step(0.01)
@@ -170,7 +198,7 @@ export default class Sun {
         .add(this, 'smoothness')
         .name('smoothness')
         .min(0)
-        .max(1)
+        .max(0.2)
         .step(0.01)
         .onChange(() => {
           this.removeFromScene();
