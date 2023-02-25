@@ -28,7 +28,7 @@ export default class Planet {
     this.hue = this.seed.getRandom();
     this.saturation = this.seed.fakeGaussianRandom()*0.2+0.6;
     this.lightness = this.seed.fakeGaussianRandom()*0.2+0.4;
-    this.size = this.seed.fakeGaussianRandom(-2,4)*6+1;
+    this.size = this.seed.fakeGaussianRandom(-2,4)*5+1;
     this.rotationSpeed = this.seed.fakeGaussianRandom()*0.02;
     this.orbitAxis = this.seed.fakeGaussianRandom(0,20)*60-30;
     this.orbitEccentricity = this.seed.fakeGaussianRandom(-1)*0.1;
@@ -257,7 +257,7 @@ export default class Planet {
         .add(this, 'size')
         .name('size')
         .min(1)
-        .max(7)
+        .max(6)
         .step(0.001)
         .onChange(() => {
           this.removeFromScene();
