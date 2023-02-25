@@ -61,8 +61,8 @@ export default class Planet {
   }
 
   setOrbit() {
-    this.orbitAxis = this.seed.fakeGaussianRandom(0,6*Math.pow(this.maximumDistance/this.actualDistanceFromSun, 2))*60-30;
-    this.orbitEccentricity = Math.abs(this.seed.fakeGaussianRandom(0,6*Math.pow(this.maximumDistance/this.actualDistanceFromSun, 2))*1.5-0.75);
+    this.orbitAxis = this.seed.fakeGaussianRandom(0,6*Math.pow(this.maximumDistance/this.actualDistanceFromSun, 1.5))*60-30;
+    this.orbitEccentricity = Math.abs(this.seed.fakeGaussianRandom(0,4*Math.pow(this.maximumDistance/this.actualDistanceFromSun, 1.5))*1.5-0.75);
     this.orbitOffset = this.seed.fakeGaussianRandom()*360;
     this.orbitPoints = [];
     for (let i=0; i < 2*Math.PI; i = i+Math.PI/128) {
