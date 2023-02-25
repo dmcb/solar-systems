@@ -81,7 +81,7 @@ export default class Planet {
       for (let i=0; i < item.orbitPoints.length; i++) {
         for (let j=0; j < this.orbitPoints.length; j++) {
           let distance = item.orbitPoints[i].distanceTo(this.orbitPoints[j]);
-          if (distance < this.planetSphereOfInfluence + item.planetSphereOfInfluence) {
+          if (!collision && distance < this.planetSphereOfInfluence + item.planetSphereOfInfluence) {
             collision = true;
             console.log('There was a collision, re-orbiting Planet' + this.planetNumber);
           }
