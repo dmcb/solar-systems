@@ -75,7 +75,7 @@ export default class Camera {
       }
       else if (this.focus.name == "planet") {
         const planet = this.solarSystem.planets[this.focus.planetNumber-1];
-        this.cameraSizeTarget = planet.planetOccupiedArea*2.5;
+        this.cameraSizeTarget = planet.size*2.5;
         futurePosition = planet.determineFuturePosition(animationDuration);
       }
       this.cameraSizeStart = this.cameraSize;

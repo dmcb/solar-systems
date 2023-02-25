@@ -60,9 +60,9 @@ export default class Controls extends EventEmitter {
 
   pointerDown(event) {
     if (!this.camera.cameraAnimating) {
-      // If camera is focused on a planet, a tap will undo it
+      // If camera is focused, a tap will undo it
       if (this.camera.focus) {
-        this.trigger('focus');
+        this.trigger('focus', [false]);
       }
       else {
         // Check if a sun or planet is tapped on

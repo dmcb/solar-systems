@@ -107,17 +107,6 @@ export default class Planet {
       this.planetPivotPoint.add(this.axisLine);
     }
 
-    // Add orbit path to scene
-    const orbitLineMaterial = new THREE.LineBasicMaterial({ color: 0x222222 });
-    const orbitPoints = [];
-    for (let i=0; i < 2*Math.PI; i = i+Math.PI/128) {
-      let position = this.determineOrbit(i);
-      orbitPoints.push( new THREE.Vector3(position.x, position.y, position.z));
-    }
-    const orbitLineGeometry = new THREE.BufferGeometry().setFromPoints( orbitPoints );
-    this.orbitLine = new THREE.Line( orbitLineGeometry, orbitLineMaterial );
-    this.scene.add(this.orbitLine);
-
     // Add rings
     this.planetRings = [];
     for (let i=0; i < this.numberOfRings; i = i+1) {
@@ -136,6 +125,9 @@ export default class Planet {
 
     // Tilt planet and rings
     this.planetPivotPoint.rotation.y = this.tilt;
+
+    // Add orbit line
+    this.showOrbit();
   }
 
   removeFromScene() {
@@ -148,12 +140,6 @@ export default class Planet {
       this.planetSphere.geometry.dispose();
       this.planetSphere.material.dispose();
       this.planetSphere.removeFromParent();
-    }
-
-    if (this.orbitLine) {
-      this.orbitLine.geometry.dispose();
-      this.orbitLine.material.dispose();
-      this.orbitLine.removeFromParent();
     }
 
     if (this.axisLine) {
@@ -169,6 +155,8 @@ export default class Planet {
         item.mesh.removeFromParent();
       });
     }
+
+    this.removeOrbit();
   }
 
   nextNeighbourMinimumDistance() {
@@ -202,6 +190,29 @@ export default class Planet {
       Math.sin(orbitalPosition) * y,
       Math.cos(orbitalPosition) * z
     ).applyAxisAngle(new THREE.Vector3(0,0,1), this.orbitOffset * 2 * Math.PI/360);
+  }
+
+  showOrbit() {
+    if (!this.orbitLine) {
+      const orbitLineMaterial = new THREE.LineBasicMaterial({ color: 0x222222 });
+      const orbitPoints = [];
+      for (let i=0; i < 2*Math.PI; i = i+Math.PI/128) {
+        let position = this.determineOrbit(i);
+        orbitPoints.push( new THREE.Vector3(position.x, position.y, position.z));
+      }
+      const orbitLineGeometry = new THREE.BufferGeometry().setFromPoints( orbitPoints );
+      this.orbitLine = new THREE.Line( orbitLineGeometry, orbitLineMaterial );
+      this.scene.add(this.orbitLine);
+    }
+  }
+
+  removeOrbit() {
+    if (this.orbitLine) {
+      this.orbitLine.geometry.dispose();
+      this.orbitLine.material.dispose();
+      this.orbitLine.removeFromParent();
+      delete(this.orbitLine);
+    }
   }
 
   destroy() {

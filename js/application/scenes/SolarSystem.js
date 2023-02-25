@@ -147,6 +147,15 @@ export default class SolarSystem {
   }
 
   setFocus(objectId) {
-    // Upscale planet?
+    if (objectId) {
+      this.planets.forEach((item, index, object) => {
+        item.removeOrbit();
+      });
+    }
+    else {
+      this.planets.forEach((item, index, object) => {
+        item.showOrbit();
+      });
+    }
   }
 }
