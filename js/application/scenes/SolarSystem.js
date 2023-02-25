@@ -149,7 +149,7 @@ export default class SolarSystem {
   setFocus(objectId) {
     if (objectId) {
       this.planets.forEach((item, index, object) => {
-        item.removeOrbit();
+        item.hideOrbit();
       });
     }
     else {

@@ -7,6 +7,7 @@ export default class Planet {
     this.seed = this.application.seed;
     this.scene = this.application.scene;
     this.time = this.application.time;
+    this.solarSystem = this.application.solarSystem;
     this.resources = this.application.resources;
     this.debug = this.application.debug;
 
@@ -30,9 +31,7 @@ export default class Planet {
     this.lightness = this.seed.fakeGaussianRandom()*0.2+0.4;
     this.size = this.seed.fakeGaussianRandom(-2,4)*5+1;
     this.rotationSpeed = this.seed.fakeGaussianRandom()*0.02;
-    this.orbitAxis = this.seed.fakeGaussianRandom(0,20)*60-30;
-    this.orbitEccentricity = this.seed.fakeGaussianRandom(-1)*0.1;
-    this.orbitOffset = this.seed.fakeGaussianRandom()*360;
+
     this.rockiness = this.seed.fakeGaussianRandom();
     this.iciness = this.seed.fakeGaussianRandom(-5,6)*50;
     this.surfaceTexture = Math.round(this.seed.getRandom()*6+1);
@@ -55,6 +54,44 @@ export default class Planet {
     this.actualDistanceFromSun = this.projectedDistanceFromSun + this.planetSphereOfInfluence;
     this.orbitalPosition = this.seed.getRandom()*2*Math.PI;
     this.speed = speedModifier * Math.pow(16, exaggeratedDistanceFromSunModifier) * (1 / Math.pow(this.actualDistanceFromSun, exaggeratedDistanceFromSunModifier));
+  
+    // Set potential orbit
+    this.setOrbit();
+    this.showOrbit();
+  }
+
+  setOrbit() {
+    this.orbitAxis = this.seed.fakeGaussianRandom(0,6*Math.pow(this.maximumDistance/this.actualDistanceFromSun, 2))*60-30;
+    this.orbitEccentricity = Math.abs(this.seed.fakeGaussianRandom(0,6*Math.pow(this.maximumDistance/this.actualDistanceFromSun, 2))*1.5-0.75);
+    this.orbitOffset = this.seed.fakeGaussianRandom()*360;
+    this.orbitPoints = [];
+    for (let i=0; i < 2*Math.PI; i = i+Math.PI/128) {
+      let position = this.determinePointInOrbit(i);
+      this.orbitPoints.push( new THREE.Vector3(position.x, position.y, position.z));
+    }
+    this.checkOrbitCollision();
+  }
+
+  checkOrbitCollision() {
+    // Check for orbit collisions
+    let collision = false;
+    this.solarSystem.planets.forEach((item, index, object) => {
+      // Loop through all points in orbit and check distance to established orbits
+      // This is super brute force and could be improved with some real math
+      for (let i=0; i < item.orbitPoints.length; i++) {
+        for (let j=0; j < this.orbitPoints.length; j++) {
+          let distance = item.orbitPoints[i].distanceTo(this.orbitPoints[j]);
+          if (distance < this.planetSphereOfInfluence + item.planetSphereOfInfluence) {
+            collision = true;
+            console.log('There was a collision, re-orbiting Planet' + this.planetNumber);
+          }
+        }
+      }
+    });
+    if (collision) {
+      this.hideOrbit();
+      this.setOrbit();
+    }
   }
 
   addTouchPoint() {
@@ -125,9 +162,6 @@ export default class Planet {
 
     // Tilt planet and rings
     this.planetPivotPoint.rotation.y = this.tilt;
-
-    // Add orbit line
-    this.showOrbit();
   }
 
   removeFromScene() {
@@ -156,7 +190,7 @@ export default class Planet {
       });
     }
 
-    this.removeOrbit();
+    this.hideOrbit();
   }
 
   nextNeighbourMinimumDistance() {
@@ -169,7 +203,7 @@ export default class Planet {
 
     // Orbit the planet (year)
     this.orbitalPosition += this.speed * this.direction * this.time.delta * 0.0625;
-    let position = this.determineOrbit(this.orbitalPosition);
+    let position = this.determinePointInOrbit(this.orbitalPosition);
     this.planetPivotPoint.position.x = position.x;
     this.planetPivotPoint.position.y = position.y;
     this.planetPivotPoint.position.z = position.z;
@@ -177,10 +211,10 @@ export default class Planet {
 
   determineFuturePosition(time) {
     const futureOrbitalPosition = this.orbitalPosition + this.speed * this.direction * time * 0.0625;
-    return this.determineOrbit(futureOrbitalPosition);
+    return this.determinePointInOrbit(futureOrbitalPosition);
   }
   
-  determineOrbit(orbitalPosition) {
+  determinePointInOrbit(orbitalPosition) {
     let x = this.actualDistanceFromSun;
     let y = this.actualDistanceFromSun * Math.sqrt(1.0 - Math.pow(this.orbitEccentricity, 1));
     let z = Math.sin(2 * Math.PI * this.orbitAxis/360) * this.actualDistanceFromSun;
@@ -194,19 +228,14 @@ export default class Planet {
 
   showOrbit() {
     if (!this.orbitLine) {
-      const orbitLineMaterial = new THREE.LineBasicMaterial({ color: 0x222222 });
-      const orbitPoints = [];
-      for (let i=0; i < 2*Math.PI; i = i+Math.PI/128) {
-        let position = this.determineOrbit(i);
-        orbitPoints.push( new THREE.Vector3(position.x, position.y, position.z));
-      }
-      const orbitLineGeometry = new THREE.BufferGeometry().setFromPoints( orbitPoints );
+      const orbitLineMaterial = new THREE.LineBasicMaterial({ color: 0x333333 });
+      const orbitLineGeometry = new THREE.BufferGeometry().setFromPoints( this.orbitPoints );
       this.orbitLine = new THREE.Line( orbitLineGeometry, orbitLineMaterial );
       this.scene.add(this.orbitLine);
     }
   }
 
-  removeOrbit() {
+  hideOrbit() {
     if (this.orbitLine) {
       this.orbitLine.geometry.dispose();
       this.orbitLine.material.dispose();
@@ -301,8 +330,8 @@ export default class Planet {
         .add(this, 'orbitEccentricity')
         .name('orbitEccentricity')
         .min(0)
-        .max(0.1)
-        .step(0.001)
+        .max(0.75)
+        .step(0.01)
         .onChange(() => {
           this.removeFromScene();
           this.addToScene();
