@@ -22,7 +22,7 @@ export default class Sun {
 
   generateProperties() {
     this.kelvin = this.seed.fakeGaussianRandom(-1,3)*13000;
-    this.size = this.seed.fakeGaussianRandom(-2)*14+0.5;
+    this.size = this.seed.fakeGaussianRandom(0,3)*15.5+0.5;
     this.volatility = this.seed.getRandom()*0.8+0.2;
     this.surfaceBrightness = this.seed.getRandom();
     this.intensity = this.seed.getRandom()*2+0.5;
@@ -43,7 +43,7 @@ export default class Sun {
   addToScene() {
     this.temperedKelvin = this.kelvin*0.9 + 13000*0.05;
     this.mass = Math.pow(this.size/2,3)*Math.PI*4/3;
-    this.brightness = ((1 + (0.5 * this.surfaceBrightness)) / Math.pow(16 / this.size, 0.5));
+    this.brightness = ((1 + (0.5 * this.surfaceBrightness)) / Math.pow(18 / this.size, 0.5));
     this.surfaceColour = this.kelvinToRGB(this.kelvin);
     this.illuminationColour = this.kelvinToRGB(this.temperedKelvin);
 
@@ -138,7 +138,7 @@ export default class Sun {
         .add(this, 'size')
         .name('size')
         .min(0.5)
-        .max(14.5)
+        .max(16)
         .step(0.001)
         .onChange(() => {
           this.removeFromScene();

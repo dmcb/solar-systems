@@ -60,12 +60,12 @@ export default class SolarSystem {
     this.sunsPivotPoint.name = "sunsPivotPoint";
     this.scene.add(this.sunsPivotPoint);
     let sun = new Sun(1, this.direction);
-    this.minimumDistance = sun.size*2.5;
+    this.minimumDistance = sun.size*3;
     sun.addToScene();
     this.suns.push(sun);
     let secondSun = new Sun(2, this.direction);
-    if (sun.size + secondSun.size < 10) {
-      this.sunDistance = this.seed.fakeGaussianRandom(3)*30+2;
+    if (sun.size + secondSun.size < 16 && this.seed.getRandom() > 0.5) {
+      this.sunDistance = this.seed.fakeGaussianRandom(0,2)*35+5;
       secondSun.addToScene();
       this.suns.push(secondSun);
       this.placeSuns();
@@ -95,7 +95,6 @@ export default class SolarSystem {
       // Space out suns
       this.solarRadius = this.suns[0].size + this.suns[1].size + this.sunDistance;
       this.suns[1].sunPivotPoint.position.x = this.solarRadius;
-      this.minimumDistance = this.solarRadius * 1.5;
       // Find center of mass
       const centerOfMass = this.suns[1].mass*this.suns[1].sunPivotPoint.position.x/(this.suns[0].mass + this.suns[1].mass);
       // Move suns around center of mass
@@ -103,6 +102,8 @@ export default class SolarSystem {
       this.suns[0].distanceFromCenter = Math.abs(this.suns[0].sunPivotPoint.position.x);
       this.suns[1].sunPivotPoint.position.x = this.suns[1].sunPivotPoint.position.x - centerOfMass;
       this.suns[1].distanceFromCenter = Math.abs(this.suns[1].sunPivotPoint.position.x);
+      // Determine minimum distance
+      this.minimumDistance = Math.max(this.suns[0].distanceFromCenter+this.suns[0].size/2, this.suns[1].distanceFromCenter+this.suns[1].size/2) * 1.75;
     }
   }
 
