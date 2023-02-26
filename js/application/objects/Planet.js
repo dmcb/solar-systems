@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 import Application from '../Application.js';
 
+const exaggeratedDistanceFromSunModifier = 1.2;
+const speedModifier = 0.005;
 export default class Planet {
   constructor(planetNumber, minimumDistance, maximumDistance, direction) {
     this.application = new Application();
@@ -22,9 +24,6 @@ export default class Planet {
   }
 
   generateProperties() {
-    const exaggeratedDistanceFromSunModifier = 1.2;
-    const speedModifier = 0.005;
-
     this.projectedDistanceFromSun = this.seed.fakeGaussianRandom(-12,13)*this.maximumDistance + this.minimumDistance;
     this.hue = this.seed.getRandom();
     this.saturation = this.seed.fakeGaussianRandom()*0.2+0.6;
@@ -53,23 +52,25 @@ export default class Planet {
     this.planetSphereOfInfluence = this.planetOccupiedArea * 1.8;
     this.actualDistanceFromSun = this.projectedDistanceFromSun + this.planetSphereOfInfluence;
     this.orbitalPosition = this.seed.getRandom()*2*Math.PI;
-    this.speed = speedModifier * Math.pow(16, exaggeratedDistanceFromSunModifier) * (1 / Math.pow(this.actualDistanceFromSun, exaggeratedDistanceFromSunModifier));
   
-    // Set potential orbit
+    // Generate potential orbit
+    this.generateOrbit();
+  }
+
+  generateOrbit() {
+    this.orbitAxis = this.seed.fakeGaussianRandom(0,6*Math.pow(this.maximumDistance/this.actualDistanceFromSun, 1.5))*60-30;
+    this.orbitEccentricity = Math.abs(this.seed.fakeGaussianRandom(0,6*Math.pow(this.maximumDistance/this.actualDistanceFromSun, 2))*1-0.5);
+    this.orbitOffset = this.seed.fakeGaussianRandom()*360;
     this.setOrbit();
-    this.showOrbit();
+    this.checkOrbitCollision();
   }
 
   setOrbit() {
-    this.orbitAxis = this.seed.fakeGaussianRandom(0,6*Math.pow(this.maximumDistance/this.actualDistanceFromSun, 1.5))*60-30;
-    this.orbitEccentricity = Math.abs(this.seed.fakeGaussianRandom(0,4*Math.pow(this.maximumDistance/this.actualDistanceFromSun, 1.5))*1.5-0.75);
-    this.orbitOffset = this.seed.fakeGaussianRandom()*360;
     this.orbitPoints = [];
     for (let i=0; i < 2*Math.PI; i = i+Math.PI/128) {
       let position = this.determinePointInOrbit(i);
       this.orbitPoints.push( new THREE.Vector3(position.x, position.y, position.z));
     }
-    this.checkOrbitCollision();
   }
 
   checkOrbitCollision() {
@@ -89,8 +90,7 @@ export default class Planet {
       }
     });
     if (collision) {
-      this.hideOrbit();
-      this.setOrbit();
+      this.generateOrbit();
     }
   }
 
@@ -162,6 +162,10 @@ export default class Planet {
 
     // Tilt planet and rings
     this.planetPivotPoint.rotation.y = this.tilt;
+
+    // Add orbit
+    this.setOrbit();
+    this.showOrbit();
   }
 
   removeFromScene() {
@@ -201,12 +205,13 @@ export default class Planet {
     // Rotate the planet on its axis (day)
     this.planetSphere.rotation.z += this.rotationSpeed * this.time.delta * 0.0625;
 
+    // Get the speed
+    this.speed = speedModifier * Math.pow(16, exaggeratedDistanceFromSunModifier) * (1 / Math.pow(this.actualDistanceFromSun, exaggeratedDistanceFromSunModifier));
+
     // Orbit the planet (year)
     this.orbitalPosition += this.speed * this.direction * this.time.delta * 0.0625;
     let position = this.determinePointInOrbit(this.orbitalPosition);
-    this.planetPivotPoint.position.x = position.x;
-    this.planetPivotPoint.position.y = position.y;
-    this.planetPivotPoint.position.z = position.z;
+    this.planetPivotPoint.position.copy(position);
   }
 
   determineFuturePosition(time) {
@@ -220,7 +225,7 @@ export default class Planet {
     let z = Math.sin(2 * Math.PI * this.orbitAxis/360) * this.actualDistanceFromSun;
 
     return new THREE.Vector3(
-      Math.cos(orbitalPosition) * x,
+      Math.cos(orbitalPosition) * x - (this.projectedDistanceFromSun * this.orbitEccentricity),
       Math.sin(orbitalPosition) * y,
       Math.cos(orbitalPosition) * z
     ).applyAxisAngle(new THREE.Vector3(0,0,1), this.orbitOffset * 2 * Math.PI/360);
@@ -330,7 +335,7 @@ export default class Planet {
         .add(this, 'orbitEccentricity')
         .name('orbitEccentricity')
         .min(0)
-        .max(0.75)
+        .max(0.5)
         .step(0.01)
         .onChange(() => {
           this.removeFromScene();
