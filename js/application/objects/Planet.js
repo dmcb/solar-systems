@@ -130,6 +130,7 @@ export default class Planet {
     this.planetSphere.receiveShadow = true;
     this.planetSphere.castShadow = true;
     this.planetPivotPoint.add(this.planetSphere);
+    this.planetPivotPoint.position.copy(this.determinePointInOrbit(this.orbitalPosition));
     
     // Debug axis
     if (this.debug.active) {
@@ -205,17 +206,14 @@ export default class Planet {
     // Rotate the planet on its axis (day)
     this.planetSphere.rotation.z += this.rotationSpeed * this.time.delta * 0.0625;
 
-    // Get the speed
-    this.speed = speedModifier * Math.pow(16, exaggeratedDistanceFromSunModifier) * (1 / Math.pow(this.actualDistanceFromSun, exaggeratedDistanceFromSunModifier));
-
     // Orbit the planet (year)
-    this.orbitalPosition += this.speed * this.direction * this.time.delta * 0.0625;
+    this.orbitalPosition += this.determineSpeed() * this.direction * this.time.delta * 0.0625;
     let position = this.determinePointInOrbit(this.orbitalPosition);
     this.planetPivotPoint.position.copy(position);
   }
 
   determineFuturePosition(time) {
-    const futureOrbitalPosition = this.orbitalPosition + this.speed * this.direction * time * 0.0625;
+    const futureOrbitalPosition = this.orbitalPosition + this.determineSpeed() * this.direction * time * 0.0625;
     return this.determinePointInOrbit(futureOrbitalPosition);
   }
   
@@ -231,9 +229,13 @@ export default class Planet {
     ).applyAxisAngle(new THREE.Vector3(0,0,1), this.orbitOffset * 2 * Math.PI/360);
   }
 
+  determineSpeed() {
+    return speedModifier * Math.pow(16, exaggeratedDistanceFromSunModifier) * (1 / Math.pow(this.planetPivotPoint.position.distanceTo(new THREE.Vector3(0,0,0)), exaggeratedDistanceFromSunModifier));
+  }
+
   showOrbit() {
     if (!this.orbitLine) {
-      const orbitLineMaterial = new THREE.LineBasicMaterial({ color: 0x333333 });
+      const orbitLineMaterial = new THREE.LineBasicMaterial({ color: 0x555555, transparent: true, opacity: 0.6 });
       const orbitLineGeometry = new THREE.BufferGeometry().setFromPoints( this.orbitPoints );
       this.orbitLine = new THREE.Line( orbitLineGeometry, orbitLineMaterial );
       this.scene.add(this.orbitLine);
