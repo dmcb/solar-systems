@@ -51,7 +51,7 @@ export default class Planet {
     this.planetOccupiedArea = this.size + this.ringSize * this.numberOfRings + this.ringDistance;
     this.planetSphereOfInfluence = this.planetOccupiedArea * 1.8;
     this.orbitalPosition = this.seed.getRandom()*2*Math.PI;
-    this.orbitOffset = this.seed.fakeGaussianRandom()*360;
+    this.orbitOffset = this.seed.getRandom()*360;
   
     // Generate potential orbit
     this.generateOrbit();
