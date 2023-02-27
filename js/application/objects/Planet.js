@@ -2,7 +2,8 @@ import * as THREE from 'three';
 import Application from '../Application.js';
 
 const exaggeratedDistanceFromSunModifier = 1.2;
-const speedModifier = 0.005;
+// To do: timeModifier shouldn't be locked away in Planet but set by the scene
+const timeModifier = 0.0003125;
 export default class Planet {
   constructor(planetNumber, minimumDistance, maximumDistance, direction) {
     this.application = new Application();
@@ -28,7 +29,7 @@ export default class Planet {
     this.saturation = this.seed.fakeGaussianRandom()*0.2+0.6;
     this.lightness = this.seed.fakeGaussianRandom()*0.2+0.4;
     this.size = this.seed.fakeGaussianRandom(-2,4)*5+1;
-    this.rotationSpeed = this.seed.fakeGaussianRandom()*0.02;
+    this.rotationSpeed = this.seed.fakeGaussianRandom();
 
     this.rockiness = this.seed.fakeGaussianRandom();
     this.iciness = this.seed.fakeGaussianRandom(-5,6)*50;
@@ -204,16 +205,16 @@ export default class Planet {
 
   update() {
     // Rotate the planet on its axis (day)
-    this.planetSphere.rotation.z += this.rotationSpeed * this.time.delta * 0.0625;
+    this.planetSphere.rotation.z += this.rotationSpeed * this.time.delta * timeModifier;
 
     // Orbit the planet (year)
-    this.orbitalPosition += this.determineSpeed() * this.direction * this.time.delta * 0.0625;
+    this.orbitalPosition += this.determineSpeed() * this.direction * this.time.delta * timeModifier;
     let position = this.determinePointInOrbit(this.orbitalPosition);
     this.planetPivotPoint.position.copy(position);
   }
 
   determineFuturePosition(time) {
-    const futureOrbitalPosition = this.orbitalPosition + this.determineSpeed() * this.direction * time * 0.0625;
+    const futureOrbitalPosition = this.orbitalPosition + this.determineSpeed() * this.direction * time * timeModifier;
     return this.determinePointInOrbit(futureOrbitalPosition);
   }
   
@@ -230,7 +231,7 @@ export default class Planet {
   }
 
   determineSpeed() {
-    return speedModifier * Math.pow(16, exaggeratedDistanceFromSunModifier) * (1 / Math.pow(this.planetPivotPoint.position.distanceTo(new THREE.Vector3(0,0,0)), exaggeratedDistanceFromSunModifier));
+    return Math.pow(16, exaggeratedDistanceFromSunModifier) * (1 / Math.pow(this.planetPivotPoint.position.distanceTo(new THREE.Vector3(0,0,0)), exaggeratedDistanceFromSunModifier));
   }
 
   showOrbit() {
@@ -315,8 +316,8 @@ export default class Planet {
         .add(this, 'rotationSpeed')
         .name('rotationSpeed')
         .min(0)
-        .max(0.03)
-        .step(0.001)
+        .max(1)
+        .step(0.01)
         .onChange(() => {
           this.removeFromScene();
           this.addToScene();
