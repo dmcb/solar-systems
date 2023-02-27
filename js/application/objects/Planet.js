@@ -24,7 +24,6 @@ export default class Planet {
   }
 
   generateProperties() {
-    this.projectedDistanceFromSun = this.seed.fakeGaussianRandom(-12,13)*this.maximumDistance + this.minimumDistance;
     this.hue = this.seed.getRandom();
     this.saturation = this.seed.fakeGaussianRandom()*0.2+0.6;
     this.lightness = this.seed.fakeGaussianRandom()*0.2+0.4;
@@ -50,17 +49,18 @@ export default class Planet {
     }
     this.planetOccupiedArea = this.size + this.ringSize * this.numberOfRings + this.ringDistance;
     this.planetSphereOfInfluence = this.planetOccupiedArea * 1.8;
-    this.actualDistanceFromSun = this.projectedDistanceFromSun + this.planetSphereOfInfluence;
     this.orbitalPosition = this.seed.getRandom()*2*Math.PI;
+    this.orbitOffset = this.seed.fakeGaussianRandom()*360;
   
     // Generate potential orbit
     this.generateOrbit();
   }
 
   generateOrbit() {
-    this.orbitAxis = this.seed.fakeGaussianRandom(0,6*Math.pow(this.maximumDistance/this.actualDistanceFromSun, 1.5))*60-30;
+    this.projectedDistanceFromSun = this.seed.fakeGaussianRandom(-12,13)*this.maximumDistance + this.minimumDistance;
+    this.actualDistanceFromSun = this.projectedDistanceFromSun + this.planetSphereOfInfluence;
+    this.orbitAxis = this.seed.fakeGaussianRandom(0,6*Math.pow(this.maximumDistance/this.actualDistanceFromSun, 1.5))*90-45;
     this.orbitEccentricity = Math.abs(this.seed.fakeGaussianRandom(0,6*Math.pow(this.maximumDistance/this.actualDistanceFromSun, 2))*1-0.5);
-    this.orbitOffset = this.seed.fakeGaussianRandom()*360;
     this.setOrbit();
     this.checkOrbitCollision();
   }
@@ -220,13 +220,13 @@ export default class Planet {
   determinePointInOrbit(orbitalPosition) {
     let x = this.actualDistanceFromSun;
     let y = this.actualDistanceFromSun * Math.sqrt(1.0 - Math.pow(this.orbitEccentricity, 1));
-    let z = Math.sin(2 * Math.PI * this.orbitAxis/360) * this.actualDistanceFromSun;
+    let z = 0;
 
     return new THREE.Vector3(
       Math.cos(orbitalPosition) * x - (this.projectedDistanceFromSun * this.orbitEccentricity),
       Math.sin(orbitalPosition) * y,
       Math.cos(orbitalPosition) * z
-    ).applyAxisAngle(new THREE.Vector3(0,0,1), this.orbitOffset * 2 * Math.PI/360);
+    ).applyAxisAngle(new THREE.Vector3(1,0,0), this.orbitAxis * 2 * Math.PI/360).applyAxisAngle(new THREE.Vector3(0,0,1), this.orbitOffset * 2 * Math.PI/360);
   }
 
   determineSpeed() {
@@ -325,8 +325,8 @@ export default class Planet {
       this.debugFolder
         .add(this, 'orbitAxis')
         .name('orbitAxis')
-        .min(-30)
-        .max(30)
+        .min(-45)
+        .max(45)
         .step(0.1)
         .onChange(() => {
           this.removeFromScene();
