@@ -11,16 +11,11 @@ export default class SolarSystem {
     this.scene = this.application.scene;
     this.time = this.application.time;
     this.solarSystemRadius = this.application.solarSystemRadius;
-    this.resources = this.application.resources;
 
     this.suns = [];
     this.planets = [];
 
     this.addBackground();
-
-    this.resources.on('ready', () => {
-      this.create();
-    });
   }
   
   addBackground() {

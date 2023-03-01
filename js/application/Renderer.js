@@ -16,18 +16,18 @@ export default class Renderer {
 
   setInstance() {
     // Renderer
-    this.renderer = new THREE.WebGLRenderer({ 
+    this.instance = new THREE.WebGLRenderer({ 
       canvas: this.canvas,
       powerPreference: "high-performance",
       antialias: false,
       stencil: false,
       depth: false
     });
-    this.renderer.outputEncoding = THREE.sRGBEncoding;
-    this.renderer.shadowMap.enabled = true;
-    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    this.renderer.setPixelRatio(this.viewport.pixelRatio);
-    this.renderer.setSize(this.viewport.width, this.viewport.height);
+    this.instance.outputEncoding = THREE.sRGBEncoding;
+    this.instance.shadowMap.enabled = true;
+    this.instance.shadowMap.type = THREE.PCFSoftShadowMap;
+    this.instance.setPixelRatio(this.viewport.pixelRatio);
+    this.instance.setSize(this.viewport.width, this.viewport.height);
     this.renderScene = new RenderPass(this.scene, this.camera.instance);
 
     // Bloom
@@ -41,13 +41,13 @@ export default class Renderer {
     this.bloomPass.inverted = true;
 
     // Compose render and bloom
-    this.composer = new EffectComposer(this.renderer);
+    this.composer = new EffectComposer(this.instance);
     this.composer.addPass(this.renderScene);
     this.composer.addPass(new EffectPass(this.camera.instance, this.bloomPass));
   }
 
   resize() {
-    this.renderer.setSize(this.viewport.width, this.viewport.height);
+    this.instance.setSize(this.viewport.width, this.viewport.height);
     this.composer.setSize(this.viewport.width, this.viewport.height);
   }
 

@@ -1,5 +1,41 @@
-export default class TextureMap {
+import * as THREE from 'three';
+import Application from '../Application.js';
+import PlanetTextureShader from '../shaders/PlanetTextureShader';
+import EventEmitter from '../utils/EventEmitter.js';
+export default class TextureMap extends EventEmitter {
   constructor() {
+    super();
+
+    this.application = new Application();
+    this.renderer = this.application.renderer;
     this.maps = [];
+  }
+
+  generate(colour) {
+    for (let i=0; i<6; i++) {
+      const resolution = 512;
+      let renderTarget = new THREE.WebGLRenderTarget(resolution, resolution, {minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, format: THREE.RGBAFormat});
+  		let camera = new THREE.OrthographicCamera(-resolution/2, resolution/2, resolution/2, -resolution/2, -100, 100);
+  		camera.position.z = 10;
+      camera.updateProjectionMatrix();
+
+  		let textureScene = new THREE.Scene();
+      let planeGeometry = new THREE.PlaneGeometry(resolution, resolution);
+      let material = new THREE.ShaderMaterial({
+        uniforms: {
+          uColour: {value: colour}
+        },
+        vertexShader: PlanetTextureShader.vertexShader,
+        fragmentShader: PlanetTextureShader.fragmentShader,
+      });
+  		let planeMesh = new THREE.Mesh(planeGeometry, material);
+  		planeMesh.position.z = -10;
+  		textureScene.add(planeMesh);
+      this.renderer.instance.setRenderTarget(renderTarget);
+  		this.renderer.instance.render(textureScene, camera);
+      this.renderer.instance.setRenderTarget(null);
+  		this.maps.push(renderTarget.texture);
+    }
+    this.trigger('generation');
   }
 }

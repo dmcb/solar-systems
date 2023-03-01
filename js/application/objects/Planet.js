@@ -12,8 +12,8 @@ export default class Planet {
     this.scene = this.application.scene;
     this.time = this.application.time;
     this.solarSystem = this.application.solarSystem;
-    this.resources = this.application.resources;
     this.debug = this.application.debug;
+    this.textureMap = new TextureMap();
 
     this.planetNumber = planetNumber;
     this.minimumDistance = minimumDistance;
@@ -23,6 +23,10 @@ export default class Planet {
     this.generateProperties();
     this.addTouchPoint();
     this.addDebug();
+
+    this.textureMap.on('generation', () => {
+      this.updateMaterial();
+    });
   }
 
   generateProperties() {
@@ -123,15 +127,13 @@ export default class Planet {
     // Set materials
     this.colour = new THREE.Color();
     this.colour.setHSL(this.hue, this.saturation, this.lightness);
-    this.textureMap = new TextureMap();
-    this.textureMaps = this.textureMap.maps;
     for (let i=0; i<6; i++) {
       let material = new THREE.MeshStandardMaterial({
-        color: this.colour,
-        map: this.textureMaps[i]
+        color: this.colour
       });
       this.materials[i] = material;
     }
+    this.textureMap.generate(this.colour);
     // normalMap.generateMipMaps = false;
     // normalMap.magFilter = THREE.NearestFilter;
     
@@ -222,6 +224,15 @@ export default class Planet {
     let position = this.determinePointInOrbit(this.orbitalPosition);
     this.planetPivotPoint.position.copy(position);
   }
+
+  updateMaterial() {
+    console.log("updateMaterial");
+    for (let i=0; i<6; i++) {
+      this.materials[i].map = this.textureMap.maps[i];
+      this.materials[i].needsUpdate = true;
+    }
+  }
+
 
   determineFuturePosition(time) {
     const futureOrbitalPosition = this.orbitalPosition + this.determineSpeed() * this.direction * time * timeModifier;

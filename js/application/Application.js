@@ -62,8 +62,17 @@ export default class Application {
     });
 
     this.resources.on('ready', () => {
-      this.seedButton = new SeedButton();
-    })
+      this.ready();
+    });
+
+    if (sources.length === 0) {
+      this.ready();
+    }
+  }
+
+  ready() {
+    this.seedButton = new SeedButton();
+    this.solarSystem.create();
   }
 
   reset() {
