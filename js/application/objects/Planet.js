@@ -129,7 +129,9 @@ export default class Planet {
     this.colour.setHSL(this.hue, this.saturation, this.lightness);
     for (let i=0; i<6; i++) {
       let material = new THREE.MeshStandardMaterial({
-        color: this.colour
+        color: this.colour,
+        // roughness: this.rockiness,
+        // metalness: this.iciness
       });
       this.materials[i] = material;
     }
@@ -190,7 +192,9 @@ export default class Planet {
 
     if (this.planetSphere) {
       this.planetSphere.geometry.dispose();
-      this.planetSphere.material.dispose();
+      for (let i=0; i<6; i++) {
+        this.materials[i].dispose();
+      }
       this.planetSphere.removeFromParent();
     }
 
@@ -226,7 +230,6 @@ export default class Planet {
   }
 
   updateMaterial() {
-    console.log("updateMaterial");
     for (let i=0; i<6; i++) {
       this.materials[i].map = this.textureMap.maps[i];
       this.materials[i].needsUpdate = true;

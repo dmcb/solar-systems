@@ -20,7 +20,7 @@ export default class TextureMap extends EventEmitter {
       camera.updateProjectionMatrix();
 
   		let textureScene = new THREE.Scene();
-      let planeGeometry = new THREE.PlaneGeometry(resolution, resolution);
+      let geometry = new THREE.PlaneGeometry(resolution, resolution);
       let material = new THREE.ShaderMaterial({
         uniforms: {
           uColour: {value: colour}
@@ -28,13 +28,15 @@ export default class TextureMap extends EventEmitter {
         vertexShader: PlanetTextureShader.vertexShader,
         fragmentShader: PlanetTextureShader.fragmentShader,
       });
-  		let planeMesh = new THREE.Mesh(planeGeometry, material);
+  		let planeMesh = new THREE.Mesh(geometry, material);
   		planeMesh.position.z = -10;
   		textureScene.add(planeMesh);
       this.renderer.instance.setRenderTarget(renderTarget);
   		this.renderer.instance.render(textureScene, camera);
       this.renderer.instance.setRenderTarget(null);
   		this.maps.push(renderTarget.texture);
+      geometry.dispose();
+      material.dispose();
     }
     this.trigger('generation');
   }
