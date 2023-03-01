@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import Application from '../Application.js';
+import TextureMap from '../maps/TextureMap.js';
 
 const exaggeratedDistanceFromSunModifier = 1.2;
 // To do: timeModifier shouldn't be locked away in Planet but set by the scene
@@ -25,16 +26,17 @@ export default class Planet {
   }
 
   generateProperties() {
+    this.size = this.seed.fakeGaussianRandom(-2,4)*5+1;
+    this.rotationSpeed = this.seed.fakeGaussianRandom();
+    this.tilt = (this.seed.fakeGaussianRandom()*180-90) * Math.PI/180;
+
+    this.materials = [];
     this.hue = this.seed.getRandom();
     this.saturation = this.seed.fakeGaussianRandom()*0.2+0.6;
     this.lightness = this.seed.fakeGaussianRandom()*0.2+0.4;
-    this.size = this.seed.fakeGaussianRandom(-2,4)*5+1;
-    this.rotationSpeed = this.seed.fakeGaussianRandom();
-
     this.rockiness = this.seed.fakeGaussianRandom();
     this.iciness = this.seed.fakeGaussianRandom(-5,6)*50;
-    this.surfaceTexture = Math.round(this.seed.getRandom()*6+1);
-    this.tilt = (this.seed.fakeGaussianRandom()*180-90) * Math.PI/180;
+
     this.hasRings = this.seed.fakeGaussianRandom(this.size-5,12);
     if (this.hasRings >= 0.5) this.hasRings = true;
     else this.hasRings = false;
@@ -48,6 +50,7 @@ export default class Planet {
       this.ringTilt = 0;
       this.numberOfRings = 0;
     }
+  
     this.planetOccupiedArea = this.size + this.ringSize * this.numberOfRings + this.ringDistance;
     this.planetSphereOfInfluence = this.planetOccupiedArea * 1.8;
     this.orbitalPosition = this.seed.getRandom()*2*Math.PI;
@@ -120,13 +123,20 @@ export default class Planet {
     // Set materials
     this.colour = new THREE.Color();
     this.colour.setHSL(this.hue, this.saturation, this.lightness);
-    const normalMap = this.resources.items['normalMap0' + this.surfaceTexture];
-    normalMap.generateMipMaps = false;
-    normalMap.magFilter = THREE.NearestFilter;
-    const sphereMaterial = new THREE.MeshPhongMaterial( { color: this.colour, specular: this.colour, shininess: this.iciness, normalMap: normalMap, normalScale: new THREE.Vector2( this.rockiness, this.rockiness ) } );
+    this.textureMap = new TextureMap();
+    this.textureMaps = this.textureMap.maps;
+    for (let i=0; i<6; i++) {
+      let material = new THREE.MeshStandardMaterial({
+        color: this.colour,
+        map: this.textureMaps[i]
+      });
+      this.materials[i] = material;
+    }
+    // normalMap.generateMipMaps = false;
+    // normalMap.magFilter = THREE.NearestFilter;
     
     // Add mesh to scene
-    this.planetSphere = new THREE.Mesh( sphereGeometry, sphereMaterial );
+    this.planetSphere = new THREE.Mesh(sphereGeometry, this.materials);
     this.planetSphere.name = "planetCore";
     this.planetSphere.receiveShadow = true;
     this.planetSphere.castShadow = true;
@@ -372,17 +382,6 @@ export default class Planet {
         .name('iciness')
         .min(0)
         .max(50)
-        .step(1)
-        .onChange(() => {
-          this.removeFromScene();
-          this.addToScene();
-        });
-
-      this.debugFolder
-        .add(this, 'surfaceTexture')
-        .name('surfaceTexture')
-        .min(1)
-        .max(7)
         .step(1)
         .onChange(() => {
           this.removeFromScene();
