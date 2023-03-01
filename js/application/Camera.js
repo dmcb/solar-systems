@@ -173,9 +173,12 @@ export default class Camera {
       else {
         // Dampen rotation
         // Ensure lerped value is always on a point on a sphere at length cameraDistance and not closer to the center
-        this.instance.position.lerp(this.cameraPositionTarget, 0.01 * this.time.delta).normalize().multiplyScalar(this.cameraDistance);
-        this.instance.up.lerp(this.cameraUpTarget, 0.01 * this.time.delta);
-        this.instance.lookAt(new THREE.Vector3(0,0,0));
+        if (this.cameraPositionTarget.distanceTo(this.instance.position) > 0.1) {
+          this.instance.position.lerp(this.cameraPositionTarget, 0.01 * this.time.delta).normalize().multiplyScalar(this.cameraDistance);
+          this.instance.up.lerp(this.cameraUpTarget, 0.01 * this.time.delta);
+          this.instance.lookAt(new THREE.Vector3(0,0,0));
+          console.log(this.instance.position);
+        }
       }
     }
   }
