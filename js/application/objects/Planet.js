@@ -236,7 +236,6 @@ export default class Planet {
     }
   }
 
-
   determineFuturePosition(time) {
     const futureOrbitalPosition = this.orbitalPosition + this.determineSpeed() * this.direction * time * timeModifier;
     return this.determinePointInOrbit(futureOrbitalPosition);

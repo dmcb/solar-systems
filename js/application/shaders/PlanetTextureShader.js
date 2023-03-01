@@ -10,8 +10,26 @@ export default {
   `,
 
   fragmentShader: /* glsl */`
+    uniform int uIndex;
+    uniform float uResolution;
     uniform vec3 uColour;
     varying vec2 vUv;
+
+    vec3 getSphericalCoord(int index, float x, float y, float width) {
+      width /= 2.0;
+      x -= width;
+      y -= width;
+      vec3 coord = vec3(0.0, 0.0, 0.0);
+    
+      if (index == 0) {coord.x=width; coord.y=-y; coord.z=-x;}
+      else if (index == 1) {coord.x=-width; coord.y=-y; coord.z=x;}
+      else if (index == 2) {coord.x=x; coord.y=width; coord.z=y;}
+      else if (index == 3) {coord.x=x; coord.y=-width; coord.z=-y;}
+      else if (index == 4) {coord.x=x; coord.y=-y; coord.z=width;}
+      else if (index == 5) {coord.x=-x; coord.y=-y; coord.z=-width;}
+    
+      return normalize(coord);
+    }
 
     //	Simplex 3D Noise 
     //	by Ian McEwan, Ashima Arts
@@ -98,7 +116,11 @@ export default {
 
     void main()
     {
-      float strength = min(snoise(vec3(vUv*30.0, 1.0))+0.8, 1.0);
+      float x = vUv.x;
+      float y = 1.0 - vUv.y;
+      vec3 sphericalCoord = getSphericalCoord(uIndex, x*uResolution, y*uResolution, uResolution);
+
+      float strength = min(snoise(sphericalCoord*5.0)+0.8, 1.0);
 
       gl_FragColor = vec4(strength * uColour, 1.0);
   }

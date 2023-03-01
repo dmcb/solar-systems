@@ -23,6 +23,8 @@ export default class TextureMap extends EventEmitter {
       let geometry = new THREE.PlaneGeometry(resolution, resolution);
       let material = new THREE.ShaderMaterial({
         uniforms: {
+          uIndex: {value: i},
+          uResolution: {value: resolution},
           uColour: {value: colour}
         },
         vertexShader: PlanetTextureShader.vertexShader,
