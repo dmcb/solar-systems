@@ -67,7 +67,7 @@ export default class Camera {
       let futurePosition = new THREE.Vector3();
       if (this.focus.name == "sun") {
         const sun = this.solarSystem.suns[this.focus.sunNumber-1];
-        this.cameraSizeTarget = sun.size*2.5;
+        this.cameraSizeTarget = sun.size*2;
         futurePosition.copy(this.focus.position);
         if (this.solarSystem.suns.length > 1) {
           futurePosition.applyAxisAngle(new THREE.Vector3( 0, 0, 1 ), this.solarSystem.determineFutureSunsOrbit(animationDuration));
@@ -75,7 +75,7 @@ export default class Camera {
       }
       else if (this.focus.name == "planet") {
         const planet = this.solarSystem.planets[this.focus.planetNumber-1];
-        this.cameraSizeTarget = planet.size*2.5;
+        this.cameraSizeTarget = planet.size*2;
         futurePosition = planet.determineFuturePosition(animationDuration);
       }
       this.cameraSizeStart = this.cameraSize;

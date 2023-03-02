@@ -11,9 +11,11 @@ export default class TextureMap extends EventEmitter {
     this.maps = [];
   }
 
-  generate(colour) {
+  generate(colour, seed) {
+    this.maps = [];
+
     for (let i=0; i<6; i++) {
-      const resolution = 512;
+      const resolution = 1024;
       let renderTarget = new THREE.WebGLRenderTarget(resolution, resolution, {minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, format: THREE.RGBAFormat});
   		let camera = new THREE.OrthographicCamera(-resolution/2, resolution/2, resolution/2, -resolution/2, -100, 100);
   		camera.position.z = 10;
@@ -25,7 +27,8 @@ export default class TextureMap extends EventEmitter {
         uniforms: {
           uIndex: {value: i},
           uResolution: {value: resolution},
-          uColour: {value: colour}
+          uColour: {value: colour},
+          uSeed: {value: seed}
         },
         vertexShader: PlanetTextureShader.vertexShader,
         fragmentShader: PlanetTextureShader.fragmentShader,
