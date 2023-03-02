@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import Application from '../Application.js';
+import TextureMap from '../maps/TextureMap.js';
 
 const exaggeratedDistanceFromSunModifier = 1.2;
 // To do: timeModifier shouldn't be locked away in Planet but set by the scene
@@ -11,8 +12,8 @@ export default class Planet {
     this.scene = this.application.scene;
     this.time = this.application.time;
     this.solarSystem = this.application.solarSystem;
-    this.resources = this.application.resources;
     this.debug = this.application.debug;
+    this.textureMap = new TextureMap();
 
     this.planetNumber = planetNumber;
     this.minimumDistance = minimumDistance;
@@ -22,19 +23,23 @@ export default class Planet {
     this.generateProperties();
     this.addTouchPoint();
     this.addDebug();
+
+    this.textureMap.on('generation', () => {
+      this.updateMaterial();
+    });
   }
 
   generateProperties() {
+    this.size = this.seed.fakeGaussianRandom(-2,4)*5+1;
+    this.rotationSpeed = this.seed.fakeGaussianRandom();
+    this.tilt = (this.seed.fakeGaussianRandom()*180-90) * Math.PI/180;
+
+    this.materials = [];
+    this.terrainSeed = this.seed.getRandom();
     this.hue = this.seed.getRandom();
     this.saturation = this.seed.fakeGaussianRandom()*0.2+0.6;
     this.lightness = this.seed.fakeGaussianRandom()*0.2+0.4;
-    this.size = this.seed.fakeGaussianRandom(-2,4)*5+1;
-    this.rotationSpeed = this.seed.fakeGaussianRandom();
 
-    this.rockiness = this.seed.fakeGaussianRandom();
-    this.iciness = this.seed.fakeGaussianRandom(-5,6)*50;
-    this.surfaceTexture = Math.round(this.seed.getRandom()*6+1);
-    this.tilt = (this.seed.fakeGaussianRandom()*180-90) * Math.PI/180;
     this.hasRings = this.seed.fakeGaussianRandom(this.size-5,12);
     if (this.hasRings >= 0.5) this.hasRings = true;
     else this.hasRings = false;
@@ -48,6 +53,7 @@ export default class Planet {
       this.ringTilt = 0;
       this.numberOfRings = 0;
     }
+  
     this.planetOccupiedArea = this.size + this.ringSize * this.numberOfRings + this.ringDistance;
     this.planetSphereOfInfluence = this.planetOccupiedArea * 1.8;
     this.orbitalPosition = this.seed.getRandom()*2*Math.PI;
@@ -120,13 +126,16 @@ export default class Planet {
     // Set materials
     this.colour = new THREE.Color();
     this.colour.setHSL(this.hue, this.saturation, this.lightness);
-    const normalMap = this.resources.items['normalMap0' + this.surfaceTexture];
-    normalMap.generateMipMaps = false;
-    normalMap.magFilter = THREE.NearestFilter;
-    const sphereMaterial = new THREE.MeshPhongMaterial( { color: this.colour, specular: this.colour, shininess: this.iciness, normalMap: normalMap, normalScale: new THREE.Vector2( this.rockiness, this.rockiness ) } );
+    for (let i=0; i<6; i++) {
+      let material = new THREE.MeshStandardMaterial();
+      this.materials[i] = material;
+    }
+    this.textureMap.generate(this.colour, this.terrainSeed);
+    // normalMap.generateMipMaps = false;
+    // normalMap.magFilter = THREE.NearestFilter;
     
     // Add mesh to scene
-    this.planetSphere = new THREE.Mesh( sphereGeometry, sphereMaterial );
+    this.planetSphere = new THREE.Mesh(sphereGeometry, this.materials);
     this.planetSphere.name = "planetCore";
     this.planetSphere.receiveShadow = true;
     this.planetSphere.castShadow = true;
@@ -178,7 +187,9 @@ export default class Planet {
 
     if (this.planetSphere) {
       this.planetSphere.geometry.dispose();
-      this.planetSphere.material.dispose();
+      for (let i=0; i<6; i++) {
+        this.materials[i].dispose();
+      }
       this.planetSphere.removeFromParent();
     }
 
@@ -205,12 +216,20 @@ export default class Planet {
 
   update() {
     // Rotate the planet on its axis (day)
-    this.planetSphere.rotation.z += this.rotationSpeed * this.time.delta * timeModifier;
+    this.planetSphere.rotation.z += this.rotationSpeed * 5 * this.time.delta * timeModifier;
 
     // Orbit the planet (year)
     this.orbitalPosition += this.determineSpeed() * this.direction * this.time.delta * timeModifier;
     let position = this.determinePointInOrbit(this.orbitalPosition);
     this.planetPivotPoint.position.copy(position);
+  }
+
+  updateMaterial() {
+    console.log('Material updated');
+    for (let i=0; i<6; i++) {
+      this.materials[i].map = this.textureMap.maps[i];
+      this.materials[i].needsUpdate = true;
+    }
   }
 
   determineFuturePosition(time) {
@@ -269,6 +288,17 @@ export default class Planet {
       this.debugFolder = this.debug.ui.addFolder('Planet ' + this.planetNumber).close();
 
       this.debugFolder
+        .add(this, 'terrainSeed')
+        .name('terrainSeed')
+        .min(0)
+        .max(1)
+        .step(0.001)
+        .onChange(() => {
+          this.removeFromScene();
+          this.addToScene();
+        });
+
+      this.debugFolder
         .add(this, 'hue')
         .name('hue')
         .min(0)
@@ -306,6 +336,17 @@ export default class Planet {
         .name('size')
         .min(1)
         .max(6)
+        .step(0.001)
+        .onChange(() => {
+          this.removeFromScene();
+          this.addToScene();
+        });
+
+      this.debugFolder
+        .add(this, 'tilt')
+        .name('tilt')
+        .min(-90 * Math.PI/180)
+        .max(90 * Math.PI/180)
         .step(0.001)
         .onChange(() => {
           this.removeFromScene();
@@ -357,44 +398,11 @@ export default class Planet {
         });
 
       this.debugFolder
-        .add(this, 'rockiness')
-        .name('rockiness')
+        .add(this, 'numberOfRings')
+        .name('numberOfRings')
         .min(0)
-        .max(1)
-        .step(0.001)
-        .onChange(() => {
-          this.removeFromScene();
-          this.addToScene();
-        });
-
-        this.debugFolder
-        .add(this, 'iciness')
-        .name('iciness')
-        .min(0)
-        .max(50)
+        .max(10)
         .step(1)
-        .onChange(() => {
-          this.removeFromScene();
-          this.addToScene();
-        });
-
-      this.debugFolder
-        .add(this, 'surfaceTexture')
-        .name('surfaceTexture')
-        .min(1)
-        .max(7)
-        .step(1)
-        .onChange(() => {
-          this.removeFromScene();
-          this.addToScene();
-        });
-
-      this.debugFolder
-        .add(this, 'tilt')
-        .name('tilt')
-        .min(-90 * Math.PI/180)
-        .max(90 * Math.PI/180)
-        .step(0.001)
         .onChange(() => {
           this.removeFromScene();
           this.addToScene();
@@ -433,16 +441,6 @@ export default class Planet {
           this.addToScene();
         });
 
-      this.debugFolder
-        .add(this, 'numberOfRings')
-        .name('numberOfRings')
-        .min(0)
-        .max(10)
-        .step(1)
-        .onChange(() => {
-          this.removeFromScene();
-          this.addToScene();
-        });
     }
   }
 }
