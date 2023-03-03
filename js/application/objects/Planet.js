@@ -35,6 +35,7 @@ export default class Planet {
     // Basing this off minimum leads to some not great results though, but
     // we don't have final orbit because final orbit is produced from size
     // so not sure what to do yet — we may have to regenerate everything
+    
     this.rocky = Math.round(this.seed.fakeGaussianRandom((8*(this.maximumDistance-this.minimumDistance)/this.maximumDistance)-4));
     if (this.rocky) {
       this.size = this.seed.fakeGaussianRandom(-3)*3.5+1;
@@ -43,19 +44,27 @@ export default class Planet {
       // But size also affects it
       atmosphereProbabilityBias += Math.pow(Math.max(0, this.size-0.75), 3);
       atmosphereProbabilityBias = Math.max(-9, atmosphereProbabilityBias);
+      // Would love orbit eccentricity to negatively affect this too
       // console.log([this.minimumDistance, atmosphereProbabilityBias]);
       this.atmosphere = this.seed.fakeGaussianRandom(atmosphereProbabilityBias, 10);
       if (this.atmosphere > 0.5 && this.atmosphere < 0.75) {
         this.habitable = 1;
-        console.log('Planet ' + this.planetNumber + ' is habitable');
+        this.inhabited = Math.round(this.seed.fakeGaussianRandom(-4));
+        if (this.inhabited) {
+          console.log('Planet ' + this.planetNumber + ' is inhabited');
+        }
+        else {
+          console.log('Planet ' + this.planetNumber + ' is habitable');
+        }
       }
       else {
         this.habitable = 0;
+        this.inhabited = 0;
         if (this.atmosphere >= 0.75) {
-          console.log('Planet ' + this.planetNumber + ' has too much greenhouse gas');
+          console.log('Planet ' + this.planetNumber + ' has a runaway greenhouse effect');
         }
         else {
-          console.log('Planet ' + this.planetNumber + ' has not enough atmosphere');
+          console.log('Planet ' + this.planetNumber + ' lacks atmosphere');
         }
       }
     }
@@ -63,6 +72,7 @@ export default class Planet {
       this.size = this.seed.fakeGaussianRandom(1)*4.5+1.5;
       this.atmosphere = 1;
       this.habitable = 0;
+      this.inhabited = 0;
       console.log('Planet ' + this.planetNumber + ' is a gas giant');
     }
 
