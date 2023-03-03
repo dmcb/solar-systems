@@ -29,22 +29,20 @@ export default class Planet {
     });
   }
 
-  generateProperties() {
-    this.size = this.seed.fakeGaussianRandom(-2,4)*5+1;
-    this.rotationSpeed = this.seed.fakeGaussianRandom();
-    this.tilt = (this.seed.fakeGaussianRandom()*180-90) * Math.PI/180;
+  generateProperties() {  
+    // Set size based off rocky or gaseous based off of distance from sun
+    this.rocky = Math.round(this.seed.fakeGaussianRandom((8*(this.maximumDistance-this.minimumDistance)/this.maximumDistance)-4));
+    if (this.rocky) {
+      this.size = this.seed.fakeGaussianRandom(-3)*3.5+1;
+    }
+    else {
+      this.size = this.seed.fakeGaussianRandom(1)*4.5+1.5;
+    }
 
-    this.materials = [];
-    this.terrainSeed = this.seed.getRandom();
-    this.hue = this.seed.getRandom();
-    this.saturation = this.seed.fakeGaussianRandom()*0.2+0.6;
-    this.lightness = this.seed.fakeGaussianRandom()*0.2+0.4;
-
-    this.hasRings = this.seed.fakeGaussianRandom(this.size-5,12);
-    if (this.hasRings >= 0.5) this.hasRings = true;
-    else this.hasRings = false;
+    // Set rings
+    this.hasRings = Math.round(this.seed.fakeGaussianRandom(this.size-5,12));
     this.ringSize = this.seed.fakeGaussianRandom(-1)*0.7;
-    this.ringDistance = this.seed.fakeGaussianRandom(-1)*4+0.5;
+    this.ringDistance = this.seed.fakeGaussianRandom(-1)*3.5+0.5;
     this.ringTilt = (this.seed.fakeGaussianRandom()*180-90) * Math.PI/180;
     this.numberOfRings = Math.floor(this.seed.fakeGaussianRandom(this.size-3)*10);
     if (!this.hasRings || this.ringSize < 0.15 || !this.numberOfRings) {
@@ -53,21 +51,33 @@ export default class Planet {
       this.ringTilt = 0;
       this.numberOfRings = 0;
     }
-  
+
+    // With complete size and rings defined, set occupied area
     this.planetOccupiedArea = this.size + this.ringSize * this.numberOfRings + this.ringDistance;
     this.planetSphereOfInfluence = this.planetOccupiedArea * 1.8;
+
+    // Generate orbit
     this.orbitalPosition = this.seed.getRandom()*2*Math.PI;
     this.orbitOffset = this.seed.getRandom()*360;
-  
-    // Generate potential orbit
     this.generateOrbit();
+
+    // Set rotation
+    this.rotationSpeed = this.seed.fakeGaussianRandom(-1);
+    this.tilt = (this.seed.fakeGaussianRandom()*180-90) * Math.PI/180;
+  
+    // Set terrain
+    this.materials = [];
+    this.terrainSeed = this.seed.getRandom();
+    this.hue = this.seed.getRandom();
+    this.saturation = this.seed.fakeGaussianRandom()*0.2+0.6;
+    this.lightness = this.seed.fakeGaussianRandom()*0.2+0.4;
   }
 
   generateOrbit() {
     this.projectedDistanceFromSun = this.seed.fakeGaussianRandom(-12,13)*this.maximumDistance + this.minimumDistance;
     this.actualDistanceFromSun = this.projectedDistanceFromSun + this.planetSphereOfInfluence;
-    this.orbitAxis = this.seed.fakeGaussianRandom(0,6*Math.pow(this.maximumDistance/this.actualDistanceFromSun, 1.5))*90-45;
-    this.orbitEccentricity = Math.abs(this.seed.fakeGaussianRandom(0,6*Math.pow(this.maximumDistance/this.actualDistanceFromSun, 2))*1-0.5);
+    this.orbitAxis = this.seed.fakeGaussianRandom(0,6*Math.pow(this.maximumDistance/this.actualDistanceFromSun, 1.5))*60-30;
+    this.orbitEccentricity = Math.abs(this.seed.fakeGaussianRandom(0,6*Math.pow(this.maximumDistance/this.actualDistanceFromSun, 1.5))*1.2-0.6);
     this.setOrbit();
     this.checkOrbitCollision();
   }
@@ -211,7 +221,7 @@ export default class Planet {
   }
 
   nextNeighbourMinimumDistance() {
-    return this.actualDistanceFromSun +this.planetSphereOfInfluence;
+    return this.actualDistanceFromSun + this.planetSphereOfInfluence;
   }
 
   update() {
@@ -286,6 +296,17 @@ export default class Planet {
   addDebug() {
     if(this.debug.active) {
       this.debugFolder = this.debug.ui.addFolder('Planet ' + this.planetNumber).close();
+
+      this.debugFolder
+        .add(this, 'rocky')
+        .name('rocky')
+        .min(0)
+        .max(1)
+        .step(1)
+        .onChange(() => {
+          this.removeFromScene();
+          this.addToScene();
+        });
 
       this.debugFolder
         .add(this, 'terrainSeed')
@@ -367,8 +388,8 @@ export default class Planet {
       this.debugFolder
         .add(this, 'orbitAxis')
         .name('orbitAxis')
-        .min(-45)
-        .max(45)
+        .min(-30)
+        .max(30)
         .step(0.1)
         .onChange(() => {
           this.removeFromScene();
@@ -379,7 +400,7 @@ export default class Planet {
         .add(this, 'orbitEccentricity')
         .name('orbitEccentricity')
         .min(0)
-        .max(0.5)
+        .max(0.6)
         .step(0.01)
         .onChange(() => {
           this.removeFromScene();
@@ -423,7 +444,7 @@ export default class Planet {
         .add(this, 'ringDistance')
         .name('ringDistance')
         .min(0.5)
-        .max(4.5)
+        .max(4)
         .step(0.001)
         .onChange(() => {
           this.removeFromScene();
