@@ -177,7 +177,6 @@ export default class Camera {
           this.instance.position.lerp(this.cameraPositionTarget, 0.01 * this.time.delta).normalize().multiplyScalar(this.cameraDistance);
           this.instance.up.lerp(this.cameraUpTarget, 0.01 * this.time.delta);
           this.instance.lookAt(new THREE.Vector3(0,0,0));
-          console.log(this.instance.position);
         }
       }
     }

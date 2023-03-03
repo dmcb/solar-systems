@@ -22,7 +22,7 @@ export default class Sun {
 
   generateProperties() {
     this.kelvin = this.seed.fakeGaussianRandom(-1,3)*13000;
-    this.size = this.seed.fakeGaussianRandom(0,3)*15.5+0.5;
+    this.size = this.seed.fakeGaussianRandom(0,3)*15+1;
     this.volatility = this.seed.getRandom()*0.8+0.2;
     this.surfaceBrightness = this.seed.getRandom();
     this.intensity = this.seed.getRandom()*2+0.5;
@@ -137,7 +137,7 @@ export default class Sun {
       this.debugFolder
         .add(this, 'size')
         .name('size')
-        .min(0.5)
+        .min(1)
         .max(16)
         .step(0.001)
         .onChange(() => {

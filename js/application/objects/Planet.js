@@ -31,12 +31,39 @@ export default class Planet {
 
   generateProperties() {  
     // Set size based off rocky or gaseous based off of distance from sun
+
+    // Basing this off minimum leads to some not great results though, but
+    // we don't have final orbit because final orbit is produced from size
+    // so not sure what to do yet — we may have to regenerate everything
     this.rocky = Math.round(this.seed.fakeGaussianRandom((8*(this.maximumDistance-this.minimumDistance)/this.maximumDistance)-4));
     if (this.rocky) {
       this.size = this.seed.fakeGaussianRandom(-3)*3.5+1;
+      // Atmosphere probability mostly based off being not too far or too close to sun
+      let atmosphereProbabilityBias = -12*Math.abs(1-((this.maximumDistance-this.minimumDistance*1.3)/(this.maximumDistance*0.5)));
+      // But size also affects it
+      atmosphereProbabilityBias += Math.pow(Math.max(0, this.size-0.75), 3);
+      atmosphereProbabilityBias = Math.max(-9, atmosphereProbabilityBias);
+      // console.log([this.minimumDistance, atmosphereProbabilityBias]);
+      this.atmosphere = this.seed.fakeGaussianRandom(atmosphereProbabilityBias, 10);
+      if (this.atmosphere > 0.5 && this.atmosphere < 0.75) {
+        this.habitable = 1;
+        console.log('Planet ' + this.planetNumber + ' is habitable');
+      }
+      else {
+        this.habitable = 0;
+        if (this.atmosphere >= 0.75) {
+          console.log('Planet ' + this.planetNumber + ' has too much greenhouse gas');
+        }
+        else {
+          console.log('Planet ' + this.planetNumber + ' has not enough atmosphere');
+        }
+      }
     }
     else {
       this.size = this.seed.fakeGaussianRandom(1)*4.5+1.5;
+      this.atmosphere = 1;
+      this.habitable = 0;
+      console.log('Planet ' + this.planetNumber + ' is a gas giant');
     }
 
     // Set rings
@@ -62,7 +89,7 @@ export default class Planet {
     this.generateOrbit();
 
     // Set rotation
-    this.rotationSpeed = this.seed.fakeGaussianRandom(-1);
+    this.rotationSpeed = this.seed.fakeGaussianRandom(-2);
     this.tilt = (this.seed.fakeGaussianRandom()*180-90) * Math.PI/180;
   
     // Set terrain
@@ -101,7 +128,7 @@ export default class Planet {
           let distance = item.orbitPoints[i].distanceTo(this.orbitPoints[j]);
           if (!collision && distance < this.planetSphereOfInfluence + item.planetSphereOfInfluence) {
             collision = true;
-            console.log('There was a collision, re-orbiting Planet' + this.planetNumber);
+            // console.log('There was a collision, re-orbiting Planet' + this.planetNumber);
           }
         }
       }
@@ -226,7 +253,7 @@ export default class Planet {
 
   update() {
     // Rotate the planet on its axis (day)
-    this.planetSphere.rotation.z += this.rotationSpeed * 5 * this.time.delta * timeModifier;
+    this.planetSphere.rotation.z += this.rotationSpeed * 10 * this.time.delta * timeModifier;
 
     // Orbit the planet (year)
     this.orbitalPosition += this.determineSpeed() * this.direction * this.time.delta * timeModifier;
@@ -235,7 +262,6 @@ export default class Planet {
   }
 
   updateMaterial() {
-    console.log('Material updated');
     for (let i=0; i<6; i++) {
       this.materials[i].map = this.textureMap.maps[i];
       this.materials[i].needsUpdate = true;
@@ -300,6 +326,28 @@ export default class Planet {
       this.debugFolder
         .add(this, 'rocky')
         .name('rocky')
+        .min(0)
+        .max(1)
+        .step(1)
+        .onChange(() => {
+          this.removeFromScene();
+          this.addToScene();
+        });
+
+      this.debugFolder
+        .add(this, 'atmosphere')
+        .name('atmosphere')
+        .min(0)
+        .max(1)
+        .step(1)
+        .onChange(() => {
+          this.removeFromScene();
+          this.addToScene();
+        });
+
+      this.debugFolder
+        .add(this, 'habitable')
+        .name('habitable')
         .min(0)
         .max(1)
         .step(1)
