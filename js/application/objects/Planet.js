@@ -4,7 +4,7 @@ import HeightMap from '../maps/HeightMap.js';
 import NormalMap from '../maps/NormalMap.js';
 import TextureMap from '../maps/TextureMap.js';
 
-const exaggeratedDistanceFromSunModifier = 1.2;
+const exaggeratedDistanceFromSunModifier = 1.25;
 // To do: timeModifier shouldn't be locked away in Planet but set by the scene
 const timeModifier = 0.0003125;
 export default class Planet {
@@ -105,9 +105,17 @@ export default class Planet {
     // Set terrain
     this.materials = [];
     this.terrainSeed = this.seed.getRandom();
-    this.hue = this.seed.getRandom();
-    this.saturation = this.seed.fakeGaussianRandom()*0.2+0.6;
-    this.lightness = this.seed.fakeGaussianRandom()*0.2+0.4;
+    if (this.rocky) {
+      // Earthy tones for rocky planets
+      this.hue = this.seed.getRandom()/8;
+      this.saturation = this.seed.fakeGaussianRandom(-1,3);
+      this.lightness = this.seed.fakeGaussianRandom(-1,3)*0.8+0.2;
+    }
+    else {
+      this.hue = this.seed.getRandom();
+      this.saturation = this.seed.fakeGaussianRandom(0,4)*0.6+0.4;
+      this.lightness = this.seed.fakeGaussianRandom(0,4)*0.6+0.4;
+    }
   }
 
   generateOrbit() {
