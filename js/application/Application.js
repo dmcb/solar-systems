@@ -11,6 +11,7 @@ import Camera from './Camera.js';
 import SeedButton from './ui/SeedButton.js';
 import Controls from './ui/Controls.js';
 import ProgressBar from './ui/ProgressBar.js';
+import Queue from './utils/Queue.js';
 
 import sources from './data/sources.js';
 
@@ -38,6 +39,7 @@ export default class Application {
     this.scene = new THREE.Scene();
     this.progressBar = new ProgressBar();
     this.resources = new Resources(sources);
+    this.queue = new Queue();
     this.solarSystemRadius = 160;
     this.solarSystem = new SolarSystem();
     this.viewport = new Viewport();
@@ -91,6 +93,7 @@ export default class Application {
   }
 
   update() {
+    this.queue.update();
     this.solarSystem.update();
     this.camera.update();
     this.renderer.update();

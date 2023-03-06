@@ -1,8 +1,8 @@
 import * as THREE from 'three';
 import Application from '../Application.js';
-import PlanetTextureShader from '../shaders/PlanetTextureShader.js';
+import NormalShader from '../shaders/NormalShader.js';
 import EventEmitter from '../utils/EventEmitter.js';
-export default class TextureMap extends EventEmitter {
+export default class NormalMap extends EventEmitter {
   constructor() {
     super();
 
@@ -11,7 +11,7 @@ export default class TextureMap extends EventEmitter {
     this.maps = [];
   }
 
-  generate(seed, colour, rocky) {
+  generate(heightMaps) {
     this.maps = [];
 
     for (let i=0; i<6; i++) {
@@ -25,14 +25,11 @@ export default class TextureMap extends EventEmitter {
       let geometry = new THREE.PlaneGeometry(resolution, resolution);
       let material = new THREE.ShaderMaterial({
         uniforms: {
-          uIndex: {value: i},
-          uResolution: {value: resolution},
-          uColour: {value: colour},
-          uRocky: {value: rocky},
-          uSeed: {value: seed}
+          uHeightMap: {value: heightMaps[i]},
+          uResolution: {value: resolution}
         },
-        vertexShader: PlanetTextureShader.vertexShader,
-        fragmentShader: PlanetTextureShader.fragmentShader,
+        vertexShader: NormalShader.vertexShader,
+        fragmentShader: NormalShader.fragmentShader,
       });
   		let planeMesh = new THREE.Mesh(geometry, material);
   		planeMesh.position.z = -10;

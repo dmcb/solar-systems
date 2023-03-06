@@ -1,5 +1,7 @@
 import * as THREE from 'three';
 import Application from '../Application.js';
+import HeightMap from '../maps/HeightMap.js';
+import NormalMap from '../maps/NormalMap.js';
 import TextureMap from '../maps/TextureMap.js';
 
 const exaggeratedDistanceFromSunModifier = 1.2;
@@ -13,6 +15,9 @@ export default class Planet {
     this.time = this.application.time;
     this.solarSystem = this.application.solarSystem;
     this.debug = this.application.debug;
+    this.queue = this.application.queue;
+    this.heightMap = new HeightMap();
+    this.normalMap = new NormalMap();
     this.textureMap = new TextureMap();
 
     this.planetNumber = planetNumber;
@@ -23,10 +28,6 @@ export default class Planet {
     this.generateProperties();
     this.addTouchPoint();
     this.addDebug();
-
-    this.textureMap.on('generation', () => {
-      this.updateMaterial();
-    });
   }
 
   generateProperties() {  
@@ -35,7 +36,6 @@ export default class Planet {
     // Basing this off minimum leads to some not great results though, but
     // we don't have final orbit because final orbit is produced from size
     // so not sure what to do yet — we may have to regenerate everything
-    
     this.rocky = Math.round(this.seed.fakeGaussianRandom((8*(this.maximumDistance-this.minimumDistance)/this.maximumDistance)-4));
     if (this.rocky) {
       this.size = this.seed.fakeGaussianRandom(-3)*3.5+1;
@@ -169,17 +169,22 @@ export default class Planet {
       sphereGeometry.attributes.position.setXYZ(i, vertex.x, vertex.y, vertex.z);
     }
     sphereGeometry.computeVertexNormals();
+    sphereGeometry.normalizeNormals();
     
     // Set materials
     this.colour = new THREE.Color();
     this.colour.setHSL(this.hue, this.saturation, this.lightness);
     for (let i=0; i<6; i++) {
-      let material = new THREE.MeshStandardMaterial();
+      let material = new THREE.MeshStandardMaterial({
+        color: this.colour,
+        normalScale: new THREE.Vector2(0.3, 0.3)
+      });
       this.materials[i] = material;
     }
-    this.textureMap.generate(this.colour, this.terrainSeed);
-    // normalMap.generateMipMaps = false;
-    // normalMap.magFilter = THREE.NearestFilter;
+    this.queue.add(() => {this.heightMap.generate(this.terrainSeed, this.rocky)});
+    this.queue.add(() => {this.normalMap.generate(this.heightMap.maps)});
+    this.queue.add(() => {this.textureMap.generate(this.terrainSeed, this.colour, this.rocky)});
+    this.queue.addCallback(() => {this.updateMaterial()});
     
     // Add mesh to scene
     this.planetSphere = new THREE.Mesh(sphereGeometry, this.materials);
@@ -273,6 +278,7 @@ export default class Planet {
 
   updateMaterial() {
     for (let i=0; i<6; i++) {
+      this.materials[i].normalMap = this.normalMap.maps[i];
       this.materials[i].map = this.textureMap.maps[i];
       this.materials[i].needsUpdate = true;
     }
