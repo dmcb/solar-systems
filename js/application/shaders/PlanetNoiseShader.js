@@ -10,6 +10,7 @@ export default {
   `,
 
   fragmentShader: /* glsl */`
+    uniform vec3 uColour;
     uniform int uIndex;
     uniform float uResolution;
     uniform float uRocky;
@@ -154,13 +155,13 @@ export default {
       float strength = 0.0;
       float gain = 1.0;
       for(int i=0; i<octaves; i++) {
-        strength +=  snoise(vec4(sphericalCoord.x*gain, sphericalCoord.y*gain, sphericalCoord.z*gain, uSeed*300.0)) * amp/gain;
+        strength +=  snoise(vec4(sphericalCoord.x*gain, sphericalCoord.y*gain, sphericalCoord.z*(5.0-uRocky*4.0)*gain, uSeed*uResolution)) * amp/gain;
         gain *= 1.5;
       }
 
       strength = ( abs(strength - 0.3) * 1.7 ) + 0.4;
 
-      gl_FragColor = vec4(strength * uRocky, strength * uRocky, strength * uRocky, 1.0);
+      gl_FragColor = vec4(strength * uColour.r, strength * uColour.g, strength * uColour.b, 1.0);
   }
   `,
 };

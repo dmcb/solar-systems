@@ -286,7 +286,9 @@ export default class Planet {
 
   updateMaterial() {
     for (let i=0; i<6; i++) {
-      this.materials[i].normalMap = this.normalMap.maps[i];
+      if (this.rocky) {
+        this.materials[i].normalMap = this.normalMap.maps[i];
+      }
       this.materials[i].map = this.textureMap.maps[i];
       this.materials[i].needsUpdate = true;
     }

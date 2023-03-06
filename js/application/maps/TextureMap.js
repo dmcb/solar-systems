@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import Application from '../Application.js';
-import PlanetTextureShader from '../shaders/PlanetTextureShader.js';
+import PlanetNoiseShader from '../shaders/PlanetNoiseShader.js';
 import EventEmitter from '../utils/EventEmitter.js';
 export default class TextureMap extends EventEmitter {
   constructor() {
@@ -31,8 +31,8 @@ export default class TextureMap extends EventEmitter {
           uRocky: {value: rocky},
           uSeed: {value: seed}
         },
-        vertexShader: PlanetTextureShader.vertexShader,
-        fragmentShader: PlanetTextureShader.fragmentShader,
+        vertexShader: PlanetNoiseShader.vertexShader,
+        fragmentShader: PlanetNoiseShader.fragmentShader,
       });
   		let planeMesh = new THREE.Mesh(geometry, material);
   		planeMesh.position.z = -10;

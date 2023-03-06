@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import Application from '../Application.js';
-import PlanetHeightShader from '../shaders/PlanetHeightShader.js';
+import PlanetNoiseShader from '../shaders/PlanetNoiseShader.js';
 import EventEmitter from '../utils/EventEmitter.js';
 export default class HeightMap extends EventEmitter {
   constructor() {
@@ -27,11 +27,12 @@ export default class HeightMap extends EventEmitter {
         uniforms: {
           uIndex: {value: i},
           uResolution: {value: resolution},
+          uColour: {value: new THREE.Vector3(1,1,1)},
           uRocky: {value: rocky},
           uSeed: {value: seed}
         },
-        vertexShader: PlanetHeightShader.vertexShader,
-        fragmentShader: PlanetHeightShader.fragmentShader,
+        vertexShader: PlanetNoiseShader.vertexShader,
+        fragmentShader: PlanetNoiseShader.fragmentShader,
       });
   		let planeMesh = new THREE.Mesh(geometry, material);
   		planeMesh.position.z = -10;
