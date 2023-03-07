@@ -24,7 +24,9 @@ export default class HeightMap extends EventEmitter {
       uniforms = {
         uResolution: {value: resolution},
         uColour: {value: new THREE.Vector3(1,1,1)},
-        uSeed: {value: this.planet.terrainSeed}
+        uSeed: {value: this.planet.terrainSeed},
+        uAmplitude: {value: this.planet.terrainAmplitude},
+        uFrequency: {value: this.planet.terrainFrequency}
       }
     }
     else {

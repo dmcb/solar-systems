@@ -99,12 +99,14 @@ export default class Planet {
     this.generateOrbit();
 
     // Set rotation
-    this.rotationSpeed = this.seed.fakeGaussianRandom(-2);
+    this.rotationSpeed = this.seed.fakeGaussianRandom(-5);
     this.tilt = (this.seed.fakeGaussianRandom()*180-90) * Math.PI/180;
   
     // Set terrain
     this.materials = [];
     this.terrainSeed = this.seed.getRandom();
+    this.terrainAmplitude = this.seed.fakeGaussianRandom(0,3);
+    this.terrainFrequency = this.seed.fakeGaussianRandom(0,3);
     if (this.rocky) {
       // Earthy tones for rocky planets
       this.hue = this.seed.getRandom()/8;
@@ -387,7 +389,29 @@ export default class Planet {
         .name('terrainSeed')
         .min(0)
         .max(1)
-        .step(0.001)
+        .step(0.01)
+        .onChange(() => {
+          this.removeFromScene();
+          this.addToScene();
+        });
+
+      this.debugFolder
+        .add(this, 'terrainAmplitude')
+        .name('terrainAmplitude')
+        .min(0)
+        .max(1)
+        .step(0.01)
+        .onChange(() => {
+          this.removeFromScene();
+          this.addToScene();
+        });
+
+      this.debugFolder
+        .add(this, 'terrainFrequency')
+        .name('terrainFrequency')
+        .min(0)
+        .max(1)
+        .step(0.01)
         .onChange(() => {
           this.removeFromScene();
           this.addToScene();
@@ -398,7 +422,7 @@ export default class Planet {
         .name('hue')
         .min(0)
         .max(1)
-        .step(0.001)
+        .step(0.01)
         .onChange(() => {
           this.removeFromScene();
           this.addToScene();
@@ -407,9 +431,9 @@ export default class Planet {
       this.debugFolder
         .add(this, 'saturation')
         .name('saturation')
-        .min(0.6)
-        .max(0.8)
-        .step(0.001)
+        .min(0)
+        .max(1)
+        .step(0.01)
         .onChange(() => {
           this.removeFromScene();
           this.addToScene();
@@ -418,9 +442,9 @@ export default class Planet {
       this.debugFolder
         .add(this, 'lightness')
         .name('lightness')
-        .min(0.4)
-        .max(0.6)
-        .step(0.001)
+        .min(0)
+        .max(1)
+        .step(0.01)
         .onChange(() => {
           this.removeFromScene();
           this.addToScene();

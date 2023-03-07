@@ -12,6 +12,8 @@ export default {
   fragmentShader: /* glsl */`
     uniform vec3 uColour;
     uniform int uIndex;
+    uniform float uAmplitude;
+    uniform float uFrequency;
     uniform float uResolution;
     uniform float uSeed;
   
@@ -140,25 +142,29 @@ export default {
 
     }
 
-    void main()
+    float baseNoise(vec3 pos, float amp, float frq, float seed)
     {
       const int octaves = 16;
-
-      float x = vUv.x;
-      float y = 1.0 - vUv.y;
-
-      vec3 sphericalCoord = getSphericalCoord(uIndex, x*uResolution, y*uResolution, uResolution);
-
-      float amp = 0.57;
 
       float strength = 0.0;
       float gain = 1.0;
       for(int i=0; i<octaves; i++) {
-        strength +=  snoise(vec4(sphericalCoord.x*gain, sphericalCoord.y*gain, sphericalCoord.z*gain, uSeed*uResolution)) * amp/gain;
+        strength +=  snoise(vec4(pos.x*gain/frq, pos.y*gain/frq, pos.z*gain/frq, seed+float(i)*300.0)) * amp/gain;
         gain *= 1.5;
       }
 
-      strength = ( abs(strength - 0.3) * 1.7 ) + 0.4;
+      strength = (abs(strength - 0.3) * 1.7 ) + 0.4;
+
+      return strength;
+    }
+
+    void main()
+    {
+      float x = vUv.x;
+      float y = 1.0 - vUv.y;
+      vec3 sphericalCoord = getSphericalCoord(uIndex, x*uResolution, y*uResolution, uResolution);
+
+      float strength = baseNoise(sphericalCoord, uAmplitude*0.5+0.2, uFrequency*1.2+0.5, uSeed+52.284);
 
       gl_FragColor = vec4(strength * uColour.r, strength * uColour.g, strength * uColour.b, 1.0);
   }
