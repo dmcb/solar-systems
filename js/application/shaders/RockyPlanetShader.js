@@ -165,7 +165,7 @@ export default {
       float y = 1.0 - vUv.y;
       vec3 sphericalCoord = getSphericalCoord(uIndex, x*uResolution, y*uResolution, uResolution);
 
-      float strength = baseNoise(sphericalCoord, uAmplitude*0.4+0.05, uFrequency*2.0+0.4, uCratering*2.0+0.2, uSeed+52.284);
+      float strength = baseNoise(sphericalCoord, uAmplitude*0.4+0.05, uFrequency*0.7+0.4, uCratering*2.0+0.5, uSeed+52.284);
 
       gl_FragColor = vec4(strength * uColour.r, strength * uColour.g, strength * uColour.b, 1.0);
   }
