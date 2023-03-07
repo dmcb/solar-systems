@@ -16,9 +16,9 @@ export default class Planet {
     this.solarSystem = this.application.solarSystem;
     this.debug = this.application.debug;
     this.queue = this.application.queue;
-    this.heightMap = new HeightMap();
-    this.normalMap = new NormalMap();
-    this.textureMap = new TextureMap();
+    this.heightMap = new HeightMap(this);
+    this.normalMap = new NormalMap(this);
+    this.textureMap = new TextureMap(this);
 
     this.planetNumber = planetNumber;
     this.minimumDistance = minimumDistance;
@@ -189,9 +189,9 @@ export default class Planet {
       });
       this.materials[i] = material;
     }
-    this.queue.add(() => {this.heightMap.generate(this.terrainSeed, this.rocky)});
+    this.queue.add(() => {this.heightMap.generate()});
     this.queue.add(() => {this.normalMap.generate(this.heightMap.maps)});
-    this.queue.add(() => {this.textureMap.generate(this.terrainSeed, this.colour, this.rocky)});
+    this.queue.add(() => {this.textureMap.generate()});
     this.queue.addCallback(() => {this.updateMaterial()});
     
     // Add mesh to scene

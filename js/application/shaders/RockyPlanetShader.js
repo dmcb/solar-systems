@@ -13,7 +13,6 @@ export default {
     uniform vec3 uColour;
     uniform int uIndex;
     uniform float uResolution;
-    uniform float uRocky;
     uniform float uSeed;
   
     varying vec2 vUv;
@@ -155,7 +154,7 @@ export default {
       float strength = 0.0;
       float gain = 1.0;
       for(int i=0; i<octaves; i++) {
-        strength +=  snoise(vec4(sphericalCoord.x*gain, sphericalCoord.y*gain, sphericalCoord.z*(5.0-uRocky*4.0)*gain, uSeed*uResolution)) * amp/gain;
+        strength +=  snoise(vec4(sphericalCoord.x*gain, sphericalCoord.y*gain, sphericalCoord.z*gain, uSeed*uResolution)) * amp/gain;
         gain *= 1.5;
       }
 
