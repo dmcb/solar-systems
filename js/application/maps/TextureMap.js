@@ -18,7 +18,6 @@ export default class TextureMap extends EventEmitter {
     this.maps = [];
     let shader;
     let uniforms = {};
-
     if (this.planet.rocky) {
       shader = RockyPlanetShader;
       uniforms = {
@@ -26,6 +25,7 @@ export default class TextureMap extends EventEmitter {
         uColour: {value: this.planet.colour},
         uSeed: {value: this.planet.terrainSeed},
         uAmplitude: {value: this.planet.terrainAmplitude},
+        uCratering: {value: this.planet.terrainCratering},
         uFrequency: {value: this.planet.terrainFrequency}
       }
     }
@@ -34,7 +34,9 @@ export default class TextureMap extends EventEmitter {
       uniforms = {
         uResolution: {value: resolution},
         uColour: {value: this.planet.colour},
-        uSeed: {value: this.planet.terrainSeed}
+        uSeed: {value: this.planet.terrainSeed},
+        uBandLength: {value: this.planet.terrainBandLength},
+        uSmoothness: {value: this.planet.terrainSmoothness}
       }
     }
 

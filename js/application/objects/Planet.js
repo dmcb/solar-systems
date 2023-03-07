@@ -99,14 +99,17 @@ export default class Planet {
     this.generateOrbit();
 
     // Set rotation
-    this.rotationSpeed = this.seed.fakeGaussianRandom(-5);
+    this.rotationSpeed = this.seed.fakeGaussianRandom(-2);
     this.tilt = (this.seed.fakeGaussianRandom()*180-90) * Math.PI/180;
   
     // Set terrain
     this.materials = [];
     this.terrainSeed = this.seed.getRandom();
-    this.terrainAmplitude = this.seed.fakeGaussianRandom(0,3);
-    this.terrainFrequency = this.seed.fakeGaussianRandom(0,3);
+    this.terrainAmplitude = this.seed.fakeGaussianRandom(0,2);
+    this.terrainCratering = this.seed.fakeGaussianRandom(0,2);
+    this.terrainFrequency = this.seed.fakeGaussianRandom(0,2);
+    this.terrainBandLength = this.seed.fakeGaussianRandom(0,2);
+    this.terrainSmoothness = this.seed.fakeGaussianRandom(1,2);
     if (this.rocky) {
       // Earthy tones for rocky planets
       this.hue = this.seed.getRandom()/8;
@@ -278,7 +281,7 @@ export default class Planet {
 
   update() {
     // Rotate the planet on its axis (day)
-    this.planetSphere.rotation.z += this.rotationSpeed * 10 * this.time.delta * timeModifier;
+    this.planetSphere.rotation.z += this.rotationSpeed * 5 * this.time.delta * timeModifier;
 
     // Orbit the planet (year)
     this.orbitalPosition += this.determineSpeed() * this.direction * this.time.delta * timeModifier;
@@ -407,8 +410,41 @@ export default class Planet {
         });
 
       this.debugFolder
+        .add(this, 'terrainCratering')
+        .name('terrainCratering')
+        .min(0)
+        .max(1)
+        .step(0.01)
+        .onChange(() => {
+          this.removeFromScene();
+          this.addToScene();
+        });
+
+      this.debugFolder
         .add(this, 'terrainFrequency')
         .name('terrainFrequency')
+        .min(0)
+        .max(1)
+        .step(0.01)
+        .onChange(() => {
+          this.removeFromScene();
+          this.addToScene();
+        });
+
+      this.debugFolder
+        .add(this, 'terrainBandLength')
+        .name('terrainBandLength')
+        .min(0)
+        .max(1)
+        .step(0.01)
+        .onChange(() => {
+          this.removeFromScene();
+          this.addToScene();
+        });
+
+      this.debugFolder
+        .add(this, 'terrainSmoothness')
+        .name('terrainSmoothness')
         .min(0)
         .max(1)
         .step(0.01)

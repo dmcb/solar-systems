@@ -13,6 +13,7 @@ export default {
     uniform vec3 uColour;
     uniform int uIndex;
     uniform float uAmplitude;
+    uniform float uCratering;
     uniform float uFrequency;
     uniform float uResolution;
     uniform float uSeed;
@@ -142,7 +143,7 @@ export default {
 
     }
 
-    float baseNoise(vec3 pos, float amp, float frq, float seed)
+    float baseNoise(vec3 pos, float amp, float frq, float cratering, float seed)
     {
       const int octaves = 16;
 
@@ -153,7 +154,7 @@ export default {
         gain *= 1.5;
       }
 
-      strength = (abs(strength - 0.3) * 1.7 ) + 0.4;
+      strength = (abs(strength - 0.3) * cratering ) + 0.4;
 
       return strength;
     }
@@ -164,7 +165,7 @@ export default {
       float y = 1.0 - vUv.y;
       vec3 sphericalCoord = getSphericalCoord(uIndex, x*uResolution, y*uResolution, uResolution);
 
-      float strength = baseNoise(sphericalCoord, uAmplitude*0.5+0.2, uFrequency*1.2+0.5, uSeed+52.284);
+      float strength = baseNoise(sphericalCoord, uAmplitude*0.4+0.05, uFrequency*2.0+0.4, uCratering*2.0+0.2, uSeed+52.284);
 
       gl_FragColor = vec4(strength * uColour.r, strength * uColour.g, strength * uColour.b, 1.0);
   }
