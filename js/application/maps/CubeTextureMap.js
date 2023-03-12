@@ -3,7 +3,8 @@ import Application from '../Application.js';
 import GasPlanetShader from '../shaders/GasPlanetShader.js';
 import RockyPlanetShader from '../shaders/RockyPlanetShader.js';
 import EventEmitter from '../utils/EventEmitter.js';
-export default class HeightMap extends EventEmitter {
+
+export default class CubeTextureMap extends EventEmitter {
   constructor(planet) {
     super();
 
@@ -18,12 +19,11 @@ export default class HeightMap extends EventEmitter {
     this.maps = [];
     let shader;
     let uniforms = {};
-
     if (this.planet.rocky) {
       shader = RockyPlanetShader;
       uniforms = {
         uResolution: {value: resolution},
-        uColour: {value: new THREE.Vector3(1,1,1)},
+        uColour: {value: this.planet.colour},
         uSeed: {value: this.planet.terrainSeed},
         uAmplitude: {value: this.planet.terrainAmplitude},
         uCratering: {value: this.planet.terrainCratering},
@@ -34,8 +34,10 @@ export default class HeightMap extends EventEmitter {
       shader = GasPlanetShader;
       uniforms = {
         uResolution: {value: resolution},
-        uColour: {value: new THREE.Vector3(1,1,1)},
-        uSeed: {value: this.planet.terrainSeed}
+        uColour: {value: this.planet.colour},
+        uSeed: {value: this.planet.terrainSeed},
+        uBandLength: {value: this.planet.terrainBandLength},
+        uSmoothness: {value: this.planet.terrainSmoothness}
       }
     }
 

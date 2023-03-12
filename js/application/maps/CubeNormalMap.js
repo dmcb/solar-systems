@@ -2,7 +2,8 @@ import * as THREE from 'three';
 import Application from '../Application.js';
 import NormalShader from '../shaders/NormalShader.js';
 import EventEmitter from '../utils/EventEmitter.js';
-export default class NormalMap extends EventEmitter {
+
+export default class CubeNormalMap extends EventEmitter {
   constructor() {
     super();
 

@@ -1,8 +1,8 @@
 import * as THREE from 'three';
 import Application from '../Application.js';
-import HeightMap from '../maps/HeightMap.js';
-import NormalMap from '../maps/NormalMap.js';
-import TextureMap from '../maps/TextureMap.js';
+import CubeHeightMap from '../maps/CubeHeightMap.js';
+import CubeNormalMap from '../maps/CubeNormalMap.js';
+import CubeTextureMap from '../maps/CubeTextureMap.js';
 
 const exaggeratedDistanceFromSunModifier = 1.25;
 // To do: timeModifier shouldn't be locked away in Planet but set by the scene
@@ -16,9 +16,9 @@ export default class Planet {
     this.solarSystem = this.application.solarSystem;
     this.debug = this.application.debug;
     this.queue = this.application.queue;
-    this.heightMap = new HeightMap(this);
-    this.normalMap = new NormalMap(this);
-    this.textureMap = new TextureMap(this);
+    this.heightMap = new CubeHeightMap(this);
+    this.normalMap = new CubeNormalMap(this);
+    this.textureMap = new CubeTextureMap(this);
 
     this.planetNumber = planetNumber;
     this.minimumDistance = minimumDistance;
@@ -77,20 +77,17 @@ export default class Planet {
     }
 
     // Set rings
-    this.hasRings = Math.round(this.seed.fakeGaussianRandom(this.size-5,12));
-    this.ringSize = this.seed.fakeGaussianRandom(-1)*0.7;
+    this.hasRings = Math.round(this.seed.fakeGaussianRandom(this.size-6,12));
+    this.ringSize = this.seed.fakeGaussianRandom(-1)*3.35+0.15;
     this.ringDistance = this.seed.fakeGaussianRandom(-1)*3.5+0.5;
     this.ringTilt = (this.seed.fakeGaussianRandom()*180-90) * Math.PI/180;
-    this.numberOfRings = Math.floor(this.seed.fakeGaussianRandom(this.size-3)*10);
-    if (!this.hasRings || this.ringSize < 0.15 || !this.numberOfRings) {
-      this.ringSize = 0;
-      this.ringDistance = 0;
-      this.ringTilt = 0;
-      this.numberOfRings = 0;
-    }
-
+    this.ringDensity = Math.floor(this.seed.fakeGaussianRandom(this.size-3)*10);
+  
     // With complete size and rings defined, set occupied area
-    this.planetOccupiedArea = this.size + this.ringSize * this.numberOfRings + this.ringDistance;
+    this.planetOccupiedArea = this.size;
+    if (this.hasRings) {
+      this.planetOccupiedArea += this.ringSize + this.ringDistance;
+    }
     this.planetSphereOfInfluence = this.planetOccupiedArea * 1.8;
 
     // Generate orbit
@@ -221,19 +218,16 @@ export default class Planet {
     }
 
     // Add rings
-    this.planetRings = [];
-    for (let i=0; i < this.numberOfRings; i = i+1) {
-      let ring = {};
-      ring.ringStart = this.size + this.ringDistance + i*(this.ringSize);
-      ring.ringEnd = ring.ringStart + this.ringSize;
-      let ringGeometry = new THREE.RingGeometry(ring.ringStart, ring.ringEnd, 64, 32);
-      let ringMaterial = new THREE.MeshPhongMaterial({ color: this.colour, transparent: true, opacity: this.seed.getRandom()*0.8+0.2, side: THREE.DoubleSide });
-      ring.mesh = new THREE.Mesh (ringGeometry, ringMaterial);
-      ring.mesh.name = "ring";
-      ring.mesh.receiveShadow = true;
-      ring.mesh.rotation.x = this.ringTilt;
-      this.planetRings.push(ring);
-      this.planetPivotPoint.add(ring.mesh);
+    if (this.hasRings) {
+      const ringStart = this.size + this.ringDistance
+      const ringEnd = ringStart + this.ringSize;
+      const ringGeometry = new THREE.RingGeometry(ringStart, ringEnd, 64, 32);
+      const ringMaterial = new THREE.MeshPhongMaterial({ color: this.colour, transparent: true, opacity: this.seed.getRandom()*0.8+0.2, side: THREE.DoubleSide });
+      this.planetRing = new THREE.Mesh(ringGeometry, ringMaterial);
+      this.planetRing.name = "ring";
+      this.planetRing.receiveShadow = true;
+      this.planetRing.rotation.x = this.ringTilt;
+      this.planetPivotPoint.add(this.planetRing);
     }
 
     // Tilt planet and rings
@@ -264,12 +258,10 @@ export default class Planet {
       this.axisLine.removeFromParent();
     }
     
-    if (this.planetRings) {
-      this.planetRings.forEach((item, index, object) => {
-        item.mesh.geometry.dispose();
-        item.mesh.material.dispose();
-        item.mesh.removeFromParent();
-      });
+    if (this.planetRing) {
+      this.planetRing.geometry.dispose();
+      this.planetRing.material.dispose();
+      this.planetRing.removeFromParent();
     }
 
     this.hideOrbit();
@@ -553,10 +545,10 @@ export default class Planet {
         });
 
       this.debugFolder
-        .add(this, 'numberOfRings')
-        .name('numberOfRings')
+        .add(this, 'hasRings')
+        .name('hasRings')
         .min(0)
-        .max(10)
+        .max(1)
         .step(1)
         .onChange(() => {
           this.removeFromScene();
@@ -566,9 +558,9 @@ export default class Planet {
       this.debugFolder
         .add(this, 'ringSize')
         .name('ringSize')
-        .min(0)
-        .max(0.7)
-        .step(0.001)
+        .min(0.15)
+        .max(3.5)
+        .step(0.01)
         .onChange(() => {
           this.removeFromScene();
           this.addToScene();
@@ -579,7 +571,7 @@ export default class Planet {
         .name('ringDistance')
         .min(0.5)
         .max(4)
-        .step(0.001)
+        .step(0.01)
         .onChange(() => {
           this.removeFromScene();
           this.addToScene();
@@ -590,7 +582,18 @@ export default class Planet {
         .name('ringTilt')
         .min(-90 * Math.PI/180)
         .max(90 * Math.PI/180)
-        .step(0.001)
+        .step(0.01)
+        .onChange(() => {
+          this.removeFromScene();
+          this.addToScene();
+        });
+
+      this.debugFolder
+        .add(this, 'ringDensity')
+        .name('ringDensity')
+        .min(0)
+        .max(10)
+        .step(1)
         .onChange(() => {
           this.removeFromScene();
           this.addToScene();
