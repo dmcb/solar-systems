@@ -326,6 +326,7 @@ export default class Planet {
     if (this.planetRing) {
       this.planetRing.geometry.dispose();
       this.planetRing.material.dispose();
+      this.ringTextureMap.destroy();
       this.planetRing.removeFromParent();
     }
 
