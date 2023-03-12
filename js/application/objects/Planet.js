@@ -1,8 +1,9 @@
 import * as THREE from 'three';
 import Application from '../Application.js';
-import CubeHeightMap from '../maps/CubeHeightMap.js';
-import CubeNormalMap from '../maps/CubeNormalMap.js';
-import CubeTextureMap from '../maps/CubeTextureMap.js';
+import Map from '../utils/Map.js';
+import NormalShader from '../shaders/NormalShader.js';
+import GasPlanetShader from '../shaders/GasPlanetShader.js';
+import RockyPlanetShader from '../shaders/RockyPlanetShader.js';
 
 const exaggeratedDistanceFromSunModifier = 1.25;
 // To do: timeModifier shouldn't be locked away in Planet but set by the scene
@@ -16,9 +17,9 @@ export default class Planet {
     this.solarSystem = this.application.solarSystem;
     this.debug = this.application.debug;
     this.queue = this.application.queue;
-    this.heightMap = new CubeHeightMap(this);
-    this.normalMap = new CubeNormalMap(this);
-    this.textureMap = new CubeTextureMap(this);
+    this.heightMap = new Map();
+    this.normalMap = new Map();
+    this.textureMap = new Map();
 
     this.planetNumber = planetNumber;
     this.minimumDistance = minimumDistance;
@@ -191,9 +192,55 @@ export default class Planet {
       });
       this.materials[i] = material;
     }
-    this.queue.add(() => {this.heightMap.generate()});
-    this.queue.add(() => {this.normalMap.generate(this.heightMap.maps)});
-    this.queue.add(() => {this.textureMap.generate()});
+
+    // Create maps
+    if (this.rocky) {
+      this.queue.add(() => {this.heightMap.generate(
+        RockyPlanetShader,
+        {
+          uColour: {value: new THREE.Vector3(1,1,1)},
+          uSeed: {value: this.terrainSeed},
+          uAmplitude: {value: this.terrainAmplitude},
+          uCratering: {value: this.terrainCratering},
+          uFrequency: {value: this.terrainFrequency}
+        }
+      )});
+      this.queue.add(() => {this.normalMap.generate(
+        NormalShader,
+        {},
+        {
+          uHeightMap: this.heightMap.maps,
+        }
+      )});
+      this.queue.add(() => {this.textureMap.generate(
+        RockyPlanetShader,
+        {
+          uColour: {value: this.colour},
+          uSeed: {value: this.terrainSeed},
+          uAmplitude: {value: this.terrainAmplitude},
+          uCratering: {value: this.terrainCratering},
+          uFrequency: {value: this.terrainFrequency}
+        }
+      )});
+    }
+    else {
+      this.queue.add(() => {this.heightMap.generate(
+        GasPlanetShader,
+        {
+          uColour: {value: new THREE.Vector3(1,1,1)},
+          uSeed: {value: this.terrainSeed}
+        }
+      )});
+      this.queue.add(() => {this.textureMap.generate(
+        GasPlanetShader,
+        {
+          uColour: {value: this.colour},
+          uSeed: {value: this.terrainSeed},
+          uBandLength: {value: this.terrainBandLength},
+          uSmoothness: {value: this.terrainSmoothness}
+        }
+      )});
+    }
     this.queue.addCallback(() => {this.updateMaterial()});
     
     // Add mesh to scene
@@ -283,7 +330,7 @@ export default class Planet {
 
   updateMaterial() {
     for (let i=0; i<6; i++) {
-      if (this.rocky) {
+      if (this.normalMap.maps.length) {
         this.materials[i].normalMap = this.normalMap.maps[i];
       }
       this.materials[i].map = this.textureMap.maps[i];
