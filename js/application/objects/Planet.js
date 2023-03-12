@@ -4,6 +4,7 @@ import Map from '../utils/Map.js';
 import NormalShader from '../shaders/NormalShader.js';
 import GasPlanetShader from '../shaders/GasPlanetShader.js';
 import RockyPlanetShader from '../shaders/RockyPlanetShader.js';
+import RingShader from '../shaders/RingShader.js';
 
 const exaggeratedDistanceFromSunModifier = 1.25;
 // To do: timeModifier shouldn't be locked away in Planet but set by the scene
@@ -20,6 +21,7 @@ export default class Planet {
     this.heightMap = new Map();
     this.normalMap = new Map();
     this.textureMap = new Map();
+    this.ringTextureMap = new Map(1);
 
     this.planetNumber = planetNumber;
     this.minimumDistance = minimumDistance;
@@ -82,7 +84,8 @@ export default class Planet {
     this.ringSize = this.seed.fakeGaussianRandom(-1)*3.35+0.15;
     this.ringDistance = this.seed.fakeGaussianRandom(-1)*3.5+0.5;
     this.ringTilt = (this.seed.fakeGaussianRandom()*180-90) * Math.PI/180;
-    this.ringDensity = Math.floor(this.seed.fakeGaussianRandom(this.size-3)*10);
+    this.ringDensity = this.seed.fakeGaussianRandom(this.size-3);
+    this.ringColourVariability = this.seed.fakeGaussianRandom(0,3)*0.5;
   
     // With complete size and rings defined, set occupied area
     this.planetOccupiedArea = this.size;
@@ -241,6 +244,18 @@ export default class Planet {
         }
       )});
     }
+
+    if (this.hasRings) {
+      this.queue.add(() => {this.ringTextureMap.generate(
+        RingShader,
+        {
+          uColour: {value: this.colour},
+          uSeed: {value: this.terrainSeed},
+          uDensity: {value: this.ringDensity},
+          uColourVariability: {value: this.ringColourVariability}
+        }
+      )});
+    }
     this.queue.addCallback(() => {this.updateMaterial()});
     
     // Add mesh to scene
@@ -269,7 +284,7 @@ export default class Planet {
       const ringStart = this.size + this.ringDistance
       const ringEnd = ringStart + this.ringSize;
       const ringGeometry = new THREE.RingGeometry(ringStart, ringEnd, 64, 32);
-      const ringMaterial = new THREE.MeshPhongMaterial({ color: this.colour, transparent: true, opacity: this.seed.getRandom()*0.8+0.2, side: THREE.DoubleSide });
+      const ringMaterial = new THREE.MeshPhongMaterial({ color: this.colour, transparent: true, opacity: 0.5, side: THREE.DoubleSide });
       this.planetRing = new THREE.Mesh(ringGeometry, ringMaterial);
       this.planetRing.name = "ring";
       this.planetRing.receiveShadow = true;
@@ -338,6 +353,10 @@ export default class Planet {
       }
       this.materials[i].map = this.textureMap.maps[i];
       this.materials[i].needsUpdate = true;
+      if (this.hasRings) {
+        this.planetRing.material.map = this.ringTextureMap.maps[0];
+        this.planetRing.material.needsUpdate = true;
+      }
     }
   }
 
@@ -642,13 +661,23 @@ export default class Planet {
         .add(this, 'ringDensity')
         .name('ringDensity')
         .min(0)
-        .max(10)
-        .step(1)
+        .max(1)
+        .step(0.001)
         .onChange(() => {
           this.removeFromScene();
           this.addToScene();
         });
 
+        this.debugFolder
+        .add(this, 'ringColourVariability')
+        .name('ringColourVariability')
+        .min(0)
+        .max(0.5)
+        .step(0.001)
+        .onChange(() => {
+          this.removeFromScene();
+          this.addToScene();
+        });
     }
   }
 }

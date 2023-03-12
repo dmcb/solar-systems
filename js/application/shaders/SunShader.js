@@ -120,6 +120,6 @@ export default {
       }
 
       gl_FragColor = vec4((1.2-(vNdotV*0.8)) * strength * uSurfaceColour, 1.0);
-  }
+    }
   `,
 };
