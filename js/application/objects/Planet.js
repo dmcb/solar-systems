@@ -296,6 +296,9 @@ export default class Planet {
       for (let i=0; i<6; i++) {
         this.materials[i].dispose();
       }
+      this.heightMap.destroy();
+      this.normalMap.destroy();
+      this.textureMap.destroy();
       this.planetSphere.removeFromParent();
     }
 
