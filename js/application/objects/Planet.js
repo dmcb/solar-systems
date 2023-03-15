@@ -102,6 +102,11 @@ export default class Planet {
     // Set rotation
     this.rotationSpeed = this.seed.fakeGaussianRandom(-2);
     this.tilt = (this.seed.fakeGaussianRandom()*180-90) * Math.PI/180;
+
+    // Set oblateness
+    const oblatenessRolls = Math.max(1, 10-(20*Math.pow(this.rotationSpeed, 1.2)*Math.pow(this.size/6, 1.2)));
+    console.log(oblatenessRolls);
+    this.oblateness = Math.abs(this.seed.fakeGaussianRandom(0, oblatenessRolls)-0.5);
   
     // Set terrain
     this.materials = [];
@@ -263,6 +268,8 @@ export default class Planet {
     this.planetSphere.name = "planetCore";
     this.planetSphere.receiveShadow = true;
     this.planetSphere.castShadow = true;
+    // Add oblateness to planet
+    this.planetSphere.geometry.scale(1, 1, (1-this.oblateness+7)/8);
     this.planetPivotPoint.add(this.planetSphere);
     this.planetPivotPoint.position.copy(this.determinePointInOrbit(this.orbitalPosition));
     
@@ -560,22 +567,33 @@ export default class Planet {
         });
 
       this.debugFolder
-        .add(this, 'tilt')
-        .name('tilt')
-        .min(-90 * Math.PI/180)
-        .max(90 * Math.PI/180)
-        .step(0.001)
+        .add(this, 'rotationSpeed')
+        .name('rotationSpeed')
+        .min(0)
+        .max(1)
+        .step(0.01)
         .onChange(() => {
           this.removeFromScene();
           this.addToScene();
         });
 
       this.debugFolder
-        .add(this, 'rotationSpeed')
-        .name('rotationSpeed')
+        .add(this, 'oblateness')
+        .name('oblateness')
         .min(0)
         .max(1)
         .step(0.01)
+        .onChange(() => {
+          this.removeFromScene();
+          this.addToScene();
+        });
+
+      this.debugFolder
+        .add(this, 'tilt')
+        .name('tilt')
+        .min(-90 * Math.PI/180)
+        .max(90 * Math.PI/180)
+        .step(0.001)
         .onChange(() => {
           this.removeFromScene();
           this.addToScene();
