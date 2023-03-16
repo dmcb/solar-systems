@@ -80,12 +80,13 @@ export default class Planet {
     }
 
     // Set rings
-    this.hasRings = Math.round(this.seed.fakeGaussianRandom(this.size-6,12));
-    this.ringSize = this.seed.fakeGaussianRandom(-1)*3.35+0.15;
-    this.ringDistance = this.seed.fakeGaussianRandom(-1)*3.5+0.5;
+    this.hasRings = Math.round(this.seed.fakeGaussianRandom(this.size-4));
+    this.ringSize = this.seed.fakeGaussianRandom(-1,3)*3.35+0.15;
+    this.ringDistance = this.seed.fakeGaussianRandom(-1)*3+0.5;
     this.ringTilt = (this.seed.fakeGaussianRandom()*180-90) * Math.PI/180;
-    this.ringDensity = this.seed.fakeGaussianRandom(this.size-3);
-    this.ringColourVariability = this.seed.fakeGaussianRandom(0,3)*0.5;
+    this.ringDensity = this.seed.getRandom();
+    this.ringThickness = this.seed.fakeGaussianRandom(-1,2);
+    this.ringColourVariability = this.seed.getRandom();
   
     // With complete size and rings defined, set occupied area
     this.planetOccupiedArea = this.size;
@@ -105,7 +106,6 @@ export default class Planet {
 
     // Set oblateness
     const oblatenessRolls = Math.max(1, 10-(20*Math.pow(this.rotationSpeed, 1.2)*Math.pow(this.size/6, 1.2)));
-    console.log(oblatenessRolls);
     this.oblateness = Math.abs(this.seed.fakeGaussianRandom(0, oblatenessRolls)-0.5);
   
     // Set terrain
@@ -257,6 +257,7 @@ export default class Planet {
           uColour: {value: this.colour},
           uSeed: {value: this.terrainSeed},
           uDensity: {value: this.ringDensity},
+          uThickness: {value: this.ringThickness},
           uColourVariability: {value: this.ringColourVariability}
         }
       )});
@@ -658,7 +659,7 @@ export default class Planet {
         .add(this, 'ringDistance')
         .name('ringDistance')
         .min(0.5)
-        .max(4)
+        .max(3.5)
         .step(0.01)
         .onChange(() => {
           this.removeFromScene();
@@ -687,11 +688,22 @@ export default class Planet {
           this.addToScene();
         });
 
+      this.debugFolder
+        .add(this, 'ringThickness')
+        .name('ringThickness')
+        .min(0)
+        .max(1)
+        .step(0.001)
+        .onChange(() => {
+          this.removeFromScene();
+          this.addToScene();
+        });
+
         this.debugFolder
         .add(this, 'ringColourVariability')
         .name('ringColourVariability')
         .min(0)
-        .max(0.5)
+        .max(1)
         .step(0.001)
         .onChange(() => {
           this.removeFromScene();

@@ -13,6 +13,7 @@ export default {
     uniform vec3 uColour;
     uniform float uColourVariability;
     uniform float uDensity;
+    uniform float uThickness;
     uniform float uSeed;
   
     varying vec2 vUv;
@@ -52,18 +53,35 @@ export default {
       return 130.0 * dot(m, g);
     }
 
+    float baseNoise(float coordinate, float density, float thickness, float seed)
+    {
+      int octaves = 12;
+      float amp2 = 2.0;
+      float frq2 = 5.0;
+
+      float strength = 0.0;
+      float gain = 1.0;
+      for (int i=0; i<octaves; i++) {
+        strength += (snoise(vec2(coordinate*30.0*float(i)*(density+0.5), seed*float(i)))+(thickness*0.35))*gain;
+        gain *= 0.85;
+      }
+
+      return strength;
+    }
+
     void main()
     {
-      float length = length(vUv-0.5);
-      float strength = max(0.0, (1.0 - snoise(vec2(length*150.0*(0.5*uDensity+0.5), uSeed)))-0.2);
-      float colourRedStrength = max(0.0, 1.0 - snoise(vec2(length*15.0*(0.5*uDensity+0.5), uSeed*36.2)));
-      float colourGreenStrength = max(0.0, 1.0 - snoise(vec2(length*15.0*(0.5*uDensity+0.5), uSeed*72.8)));
-      float colourBlueStrength = max(0.0, 1.0 - snoise(vec2(length*15.0*(0.5*uDensity+0.5), uSeed*4.7)));
+      float coordinate = length(vUv-0.5);
+
+      float strength = max(0.0, baseNoise(coordinate, uDensity, uThickness, uSeed));
+      float colourRedStrength = max(0.0, baseNoise(coordinate, uDensity, uThickness, uSeed*36.2));
+      float colourGreenStrength = max(0.0, baseNoise(coordinate, uDensity, uThickness, uSeed*26.8));
+      float colourBlueStrength = max(0.0, baseNoise(coordinate, uDensity, uThickness, uSeed*4.7));
 
       gl_FragColor = vec4(
-        uColour.r*(1.0-uColourVariability)+colourRedStrength*uColourVariability,
-        uColour.g*(1.0-uColourVariability)+colourGreenStrength*uColourVariability, 
-        uColour.b*(1.0-uColourVariability)+colourBlueStrength*uColourVariability, 
+        uColour.r*(1.0-uColourVariability*0.8)+colourRedStrength*uColourVariability*0.8,
+        uColour.g*(1.0-uColourVariability*0.8)+colourGreenStrength*uColourVariability*0.8, 
+        uColour.b*(1.0-uColourVariability*0.8)+colourBlueStrength*uColourVariability*0.8, 
         strength
       \);
     }
