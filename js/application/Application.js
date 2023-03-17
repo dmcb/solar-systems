@@ -38,7 +38,7 @@ export default class Application {
     this.time = new Time();
     this.scene = new THREE.Scene();
     this.progressBar = new ProgressBar();
-    this.resources = new Resources(sources);
+    // this.resources = new Resources(sources);
     this.queue = new Queue();
     this.solarSystemRadius = 160;
     this.solarSystem = new SolarSystem();
@@ -63,13 +63,20 @@ export default class Application {
       this.setFocus(objectId); 
     });
 
-    this.resources.on('ready', () => {
-      this.ready();
+    // this.resources.on('ready', () => {
+    //   this.ready();
+    // });
+
+    // if (sources.length === 0) {
+    //   this.ready();
+    // }
+
+    this.queue.on('progress', (progress) => {
+      console.log(progress);
+      this.progressBar.update(progress);
     });
 
-    if (sources.length === 0) {
-      this.ready();
-    }
+    this.ready();
   }
 
   ready() {

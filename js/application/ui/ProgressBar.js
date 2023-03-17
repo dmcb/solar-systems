@@ -5,6 +5,7 @@ export default class ProgressBar {
     this.application = new Application();
     this.canvas = this.application.canvas;
 
+    this.thingsToLoad = false;
     this.element = document.createElement('div');
     this.element.id = "loader";
     this.element.innerHTML = 'Loading';
@@ -17,13 +18,23 @@ export default class ProgressBar {
 
   start() {
     this.element.classList.add('loading');
+    this.thingsToLoad = true;
+  }
+
+  finish() {
+    this.element.classList.remove('loading');
+    this.thingsToLoad = false;
   }
 
   update(percent) {
-    this.bar.style.width = percent;
+    if (!this.thingsToLoad) {
+      this.start();
+    }
 
-    if (percent == "100%") {
-      this.element.classList.remove('loading');
+    this.bar.style.width = (percent*100)+"%";
+
+    if (percent == 1) {
+      this.finish();
     }
   }
 }
