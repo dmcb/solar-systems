@@ -292,6 +292,7 @@ export default class Planet {
       this.planetRing = new THREE.Mesh(ringGeometry, this.ringMaterial);
       this.planetRing.name = "ring";
       this.planetRing.receiveShadow = true;
+      this.planetRing.castShadow = true;
       this.planetRing.rotation.x = this.ringTilt;
       this.planetPivotPoint.add(this.planetRing);
     }

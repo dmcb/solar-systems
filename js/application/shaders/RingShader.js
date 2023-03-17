@@ -79,9 +79,9 @@ export default {
       float colourBlueStrength = max(0.0, baseNoise(coordinate, uDensity, uThickness, uSeed*4.7));
 
       gl_FragColor = vec4(
-        uColour.r*(1.0-uColourVariability*0.5)+colourRedStrength*uColourVariability*0.5,
-        uColour.g*(1.0-uColourVariability*0.5)+colourGreenStrength*uColourVariability*0.5, 
-        uColour.b*(1.0-uColourVariability*0.5)+colourBlueStrength*uColourVariability*0.5, 
+        uColour.r*(0.9-uColourVariability*0.4)+colourRedStrength*(0.1+uColourVariability)*0.4,
+        uColour.g*(0.9-uColourVariability*0.4)+colourGreenStrength*(0.1+uColourVariability)*0.4, 
+        uColour.b*(0.9-uColourVariability*0.4)+colourBlueStrength*(0.1+uColourVariability)*0.4, 
         strength
       \);
     }
