@@ -83,7 +83,7 @@ export default class Planet {
     // Set rings
     this.hasRings = Math.round(this.seed.fakeGaussianRandom(this.size-4));
     this.ringSize = Math.abs(this.seed.fakeGaussianRandom(0,2)-0.5)*2*3.85+0.15;
-    this.ringDistance = this.seed.fakeGaussianRandom(0,2)*3+0.5;
+    this.ringDistance = this.seed.fakeGaussianRandom(0,2)*3+0.85;
     this.ringTilt = (this.seed.fakeGaussianRandom()*180-90) * Math.PI/180;
     this.ringDensity = this.seed.getRandom();
     this.ringThickness = this.seed.fakeGaussianRandom(0,2);
@@ -444,7 +444,7 @@ export default class Planet {
         .min(0)
         .max(1)
         .step(1)
-        .onChange(() => {
+        .onFinishChange(() => {
           this.removeTextures();
           this.generateTextures();
         });
@@ -455,7 +455,7 @@ export default class Planet {
         .min(0)
         .max(1)
         .step(1)
-        .onChange(() => {
+        .onFinishChange(() => {
           this.removeTextures();
           this.generateTextures();
         });
@@ -466,7 +466,7 @@ export default class Planet {
         .min(0)
         .max(1)
         .step(1)
-        .onChange(() => {
+        .onFinishChange(() => {
           this.removeTextures();
           this.generateTextures();
         });
@@ -477,7 +477,7 @@ export default class Planet {
         .min(0)
         .max(1)
         .step(0.01)
-        .onChange(() => {
+        .onFinishChange(() => {
           this.removeTextures();
           this.generateTextures();
         });
@@ -488,7 +488,7 @@ export default class Planet {
         .min(0)
         .max(1)
         .step(0.01)
-        .onChange(() => {
+        .onFinishChange(() => {
           this.removeTextures();
           this.generateTextures();
         });
@@ -499,7 +499,7 @@ export default class Planet {
         .min(0)
         .max(1)
         .step(0.01)
-        .onChange(() => {
+        .onFinishChange(() => {
           this.removeTextures();
           this.generateTextures();
         });
@@ -510,7 +510,7 @@ export default class Planet {
         .min(0)
         .max(1)
         .step(0.01)
-        .onChange(() => {
+        .onFinishChange(() => {
           this.removeTextures();
           this.generateTextures();
         });
@@ -521,7 +521,7 @@ export default class Planet {
         .min(0)
         .max(1)
         .step(0.01)
-        .onChange(() => {
+        .onFinishChange(() => {
           this.removeTextures();
           this.generateTextures();
         });
@@ -532,7 +532,7 @@ export default class Planet {
         .min(0)
         .max(1)
         .step(0.01)
-        .onChange(() => {
+        .onFinishChange(() => {
           this.removeTextures();
           this.generateTextures();
         });
@@ -543,7 +543,7 @@ export default class Planet {
         .min(0)
         .max(1)
         .step(0.01)
-        .onChange(() => {
+        .onFinishChange(() => {
           this.removeTextures();
           this.generateTextures();
         });
@@ -554,7 +554,7 @@ export default class Planet {
         .min(0)
         .max(1)
         .step(0.01)
-        .onChange(() => {
+        .onFinishChange(() => {
           this.removeTextures();
           this.generateTextures();
         });
@@ -565,7 +565,7 @@ export default class Planet {
         .min(0)
         .max(1)
         .step(0.01)
-        .onChange(() => {
+        .onFinishChange(() => {
           this.removeTextures();
           this.generateTextures();
         });
@@ -672,8 +672,8 @@ export default class Planet {
       this.debugFolder
         .add(this, 'ringDistance')
         .name('ringDistance')
-        .min(0.5)
-        .max(3.5)
+        .min(0.85)
+        .max(3.85)
         .step(0.01)
         .onChange(() => {
           this.removeFromScene();
@@ -697,7 +697,7 @@ export default class Planet {
         .min(0)
         .max(1)
         .step(0.001)
-        .onChange(() => {
+        .onFinishChange(() => {
           this.removeTextures();
           this.generateTextures();
         });
@@ -708,18 +708,18 @@ export default class Planet {
         .min(0)
         .max(1)
         .step(0.001)
-        .onChange(() => {
+        .onFinishChange(() => {
           this.removeTextures();
           this.generateTextures();
         });
 
-        this.debugFolder
+      this.debugFolder
         .add(this, 'ringColourVariability')
         .name('ringColourVariability')
         .min(0)
         .max(1)
         .step(0.001)
-        .onChange(() => {
+        .onFinishChange(() => {
           this.removeTextures();
           this.generateTextures();
         });

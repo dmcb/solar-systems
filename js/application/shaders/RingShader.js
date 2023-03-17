@@ -62,7 +62,7 @@ export default {
       float strength = 0.0;
       float gain = 1.0;
       for (int i=0; i<octaves; i++) {
-        strength += (snoise(vec2(coordinate*15.0*float(i)*(density+0.5), seed*float(i)))+(thickness*0.35))*gain;
+        strength += (snoise(vec2(coordinate*4.5*float(i)*(2.7*density+0.6), seed*float(i)))+(thickness*0.35))*gain;
         gain *= 0.85;
       }
 
@@ -79,9 +79,9 @@ export default {
       float colourBlueStrength = max(0.0, baseNoise(coordinate, uDensity, uThickness, uSeed*4.7));
 
       gl_FragColor = vec4(
-        uColour.r*(1.0-uColourVariability*0.8)+colourRedStrength*uColourVariability*0.8,
-        uColour.g*(1.0-uColourVariability*0.8)+colourGreenStrength*uColourVariability*0.8, 
-        uColour.b*(1.0-uColourVariability*0.8)+colourBlueStrength*uColourVariability*0.8, 
+        uColour.r*(1.0-uColourVariability*0.5)+colourRedStrength*uColourVariability*0.5,
+        uColour.g*(1.0-uColourVariability*0.5)+colourGreenStrength*uColourVariability*0.5, 
+        uColour.b*(1.0-uColourVariability*0.5)+colourBlueStrength*uColourVariability*0.5, 
         strength
       \);
     }
