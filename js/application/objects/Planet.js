@@ -302,19 +302,6 @@ export default class Planet {
     // Add orbit
     this.setOrbit();
     this.showOrbit();
-        
-    // Debug axis
-    if (this.debug.active) {
-      const axisLineMaterial = new THREE.LineBasicMaterial({ color: 0x666666 });
-      let axisPoints = [];
-      const axisPoint1 = new THREE.Vector3(0, 0, this.size*-3);
-      const axisPoint2 = new THREE.Vector3(0, 0, this.size*3);
-      axisPoints.push(axisPoint1);
-      axisPoints.push(axisPoint2); 
-      const axisLineGeometry = new THREE.BufferGeometry().setFromPoints(axisPoints);
-      this.axisLine = new THREE.Line(axisLineGeometry, axisLineMaterial);
-      this.planetPivotPoint.add(this.axisLine);
-    }
   }
 
   removeFromScene() {
@@ -332,9 +319,7 @@ export default class Planet {
     }
 
     if (this.axisLine) {
-      this.axisLine.geometry.dispose();
-      this.axisLine.material.dispose();
-      this.axisLine.removeFromParent();
+      this.toggleDebugAxisLine();
     }
     
     if (this.planetRing) {
@@ -432,6 +417,26 @@ export default class Planet {
     this.planetPivotPoint.geometry.dispose();
     this.planetPivotPoint.material.dispose();
     this.planetPivotPoint.removeFromParent();
+  }
+
+  toggleDebugAxisLine() {
+    if (!this.axisLine) {
+      const axisLineMaterial = new THREE.LineBasicMaterial({ color: 0x666666 });
+      let axisPoints = [];
+      const axisPoint1 = new THREE.Vector3(0, 0, this.size*-6);
+      const axisPoint2 = new THREE.Vector3(0, 0, this.size*6);
+      axisPoints.push(axisPoint1);
+      axisPoints.push(axisPoint2); 
+      const axisLineGeometry = new THREE.BufferGeometry().setFromPoints(axisPoints);
+      this.axisLine = new THREE.Line(axisLineGeometry, axisLineMaterial);
+      this.planetPivotPoint.add(this.axisLine);
+    }
+    else {
+      this.axisLine.geometry.dispose();
+      this.axisLine.material.dispose();
+      this.axisLine.removeFromParent();
+      delete(this.axisLine);
+    }
   }
 
   addDebug() {
@@ -613,6 +618,9 @@ export default class Planet {
           this.removeFromScene();
           this.addToScene();
         });
+
+      this.debugFolder
+        .add(this, 'toggleDebugAxisLine');
 
       this.debugFolder
         .add(this, 'orbitAxis')
