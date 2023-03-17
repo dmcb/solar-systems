@@ -75,7 +75,6 @@ export default class SolarSystem {
       let planet = new Planet(planetNumber, this.minimumDistance, this.maximumDistance, this.direction);
       this.minimumDistance = planet.nextNeighbourMinimumDistance();
       if (this.minimumDistance < this.maximumDistance) {
-        planet.addToScene(this.scene);
         this.planets.push(planet);
         planetNumber++;
       }
@@ -83,6 +82,10 @@ export default class SolarSystem {
         planet.destroy();
       }
     }
+    this.planets.forEach(planet => {
+      planet.addToScene();
+      planet.generateTextures();
+    });
   }
 
   placeSuns() {

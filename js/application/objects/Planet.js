@@ -18,6 +18,7 @@ export default class Planet {
     this.solarSystem = this.application.solarSystem;
     this.debug = this.application.debug;
     this.queue = this.application.queue;
+
     this.heightMap = new Map();
     this.normalMap = new Map();
     this.textureMap = new Map();
@@ -108,8 +109,22 @@ export default class Planet {
     const oblatenessRolls = Math.max(1, 10-(18*Math.pow(this.rotationSpeed, 1.2)*Math.pow(this.size/6, 1.2)));
     this.oblateness = Math.abs(this.seed.fakeGaussianRandom(0, oblatenessRolls)-0.5)*2;
   
+    // Generate untextured materials
+    this.planetMaterial = [];
+    for (let i=0; i<6; i++) {
+      const material = new THREE.MeshStandardMaterial({
+        visible: false,
+        normalScale: new THREE.Vector2(0.3, 0.3)
+      });
+      this.planetMaterial[i] = material;
+    }
+    this.ringMaterial = new THREE.MeshPhongMaterial({ 
+      visible: false,
+      transparent: true,
+      side: THREE.DoubleSide
+    });
+
     // Set terrain
-    this.materials = [];
     this.terrainSeed = this.seed.getRandom();
     this.terrainAmplitude = this.seed.fakeGaussianRandom(0,2);
     this.terrainCratering = this.seed.fakeGaussianRandom(0,2);
@@ -167,41 +182,9 @@ export default class Planet {
     }
   }
 
-  addTouchPoint() {
-    const tappableSphereGeometry = new THREE.SphereGeometry(16);
-    const tappableSphereMaterial = new THREE.MeshBasicMaterial({visible: false});
-    this.planetPivotPoint = new THREE.Mesh(tappableSphereGeometry, tappableSphereMaterial);
-    this.planetPivotPoint.name = "planet";
-    this.planetPivotPoint.planetNumber = this.planetNumber;
-    this.scene.add(this.planetPivotPoint);
-  }
-
-  addToScene() {
-    // Create geometry
-    let sphereGeometry = new THREE.BoxGeometry(1, 1, 1, 32, 32, 32);
-    for (let i=0; i < sphereGeometry.attributes.position.count; i++) {
-      var x = sphereGeometry.attributes.position.getX(i);
-      var y = sphereGeometry.attributes.position.getY(i);
-      var z = sphereGeometry.attributes.position.getZ(i);
-      let vertex = new THREE.Vector3(x,y,z);
-      vertex.normalize().multiplyScalar(this.size);
-      sphereGeometry.attributes.position.setXYZ(i, vertex.x, vertex.y, vertex.z);
-    }
-    sphereGeometry.computeVertexNormals();
-    sphereGeometry.normalizeNormals();
-    
-    // Set materials
+  generateTextures() {
     this.colour = new THREE.Color();
     this.colour.setHSL(this.hue, this.saturation, this.lightness);
-    for (let i=0; i<6; i++) {
-      let material = new THREE.MeshStandardMaterial({
-        color: this.colour,
-        normalScale: new THREE.Vector2(0.3, 0.3)
-      });
-      this.materials[i] = material;
-    }
-
-    // Create maps
     if (this.rocky) {
       this.queue.add(() => {this.heightMap.generate(
         RockyPlanetShader,
@@ -249,23 +232,44 @@ export default class Planet {
         }
       )});
     }
-
-    if (this.hasRings) {
-      this.queue.add(() => {this.ringTextureMap.generate(
-        RingShader,
-        {
-          uColour: {value: this.colour},
-          uSeed: {value: this.terrainSeed},
-          uDensity: {value: this.ringDensity},
-          uThickness: {value: this.ringThickness},
-          uColourVariability: {value: this.ringColourVariability}
-        }
-      )});
-    }
+    this.queue.add(() => {this.ringTextureMap.generate(
+      RingShader,
+      {
+        uColour: {value: this.colour},
+        uSeed: {value: this.terrainSeed},
+        uDensity: {value: this.ringDensity},
+        uThickness: {value: this.ringThickness},
+        uColourVariability: {value: this.ringColourVariability}
+      }
+    )});
     this.queue.addCallback(() => {this.updateMaterial()});
+  }
+
+  addTouchPoint() {
+    const tappableSphereGeometry = new THREE.SphereGeometry(16);
+    const tappableSphereMaterial = new THREE.MeshBasicMaterial({visible: false});
+    this.planetPivotPoint = new THREE.Mesh(tappableSphereGeometry, tappableSphereMaterial);
+    this.planetPivotPoint.name = "planet";
+    this.planetPivotPoint.planetNumber = this.planetNumber;
+    this.scene.add(this.planetPivotPoint);
+  }
+
+  addToScene() {
+    // Create geometry
+    let sphereGeometry = new THREE.BoxGeometry(1, 1, 1, 32, 32, 32);
+    for (let i=0; i < sphereGeometry.attributes.position.count; i++) {
+      var x = sphereGeometry.attributes.position.getX(i);
+      var y = sphereGeometry.attributes.position.getY(i);
+      var z = sphereGeometry.attributes.position.getZ(i);
+      let vertex = new THREE.Vector3(x,y,z);
+      vertex.normalize().multiplyScalar(this.size);
+      sphereGeometry.attributes.position.setXYZ(i, vertex.x, vertex.y, vertex.z);
+    }
+    sphereGeometry.computeVertexNormals();
+    sphereGeometry.normalizeNormals();
     
     // Add mesh to scene
-    this.planetSphere = new THREE.Mesh(sphereGeometry, this.materials);
+    this.planetSphere = new THREE.Mesh(sphereGeometry, this.planetMaterial);
     this.planetSphere.name = "planetCore";
     this.planetSphere.receiveShadow = true;
     this.planetSphere.castShadow = true;
@@ -273,19 +277,6 @@ export default class Planet {
     this.planetSphere.geometry.scale(1, 1, (1-this.oblateness+7)/8);
     this.planetPivotPoint.add(this.planetSphere);
     this.planetPivotPoint.position.copy(this.determinePointInOrbit(this.orbitalPosition));
-    
-    // Debug axis
-    if (this.debug.active) {
-      const axisLineMaterial = new THREE.LineBasicMaterial({ color: 0x666666 });
-      let axisPoints = [];
-      const axisPoint1 = new THREE.Vector3(0, 0, this.size*-3);
-      const axisPoint2 = new THREE.Vector3(0, 0, this.size*3);
-      axisPoints.push(axisPoint1);
-      axisPoints.push(axisPoint2); 
-      const axisLineGeometry = new THREE.BufferGeometry().setFromPoints(axisPoints);
-      this.axisLine = new THREE.Line(axisLineGeometry, axisLineMaterial);
-      this.planetPivotPoint.add(this.axisLine);
-    }
 
     // Add rings
     if (this.hasRings) {
@@ -298,8 +289,7 @@ export default class Planet {
         v3.fromBufferAttribute(ringGeometry.attributes.position, i);
         ringGeometry.attributes.uv.setXY(i, (v3.length()-ringStart)/4, 0);
       }
-      const ringMaterial = new THREE.MeshPhongMaterial({ color: this.colour, transparent: true, opacity: 0.5, side: THREE.DoubleSide });
-      this.planetRing = new THREE.Mesh(ringGeometry, ringMaterial);
+      this.planetRing = new THREE.Mesh(ringGeometry, this.ringMaterial);
       this.planetRing.name = "ring";
       this.planetRing.receiveShadow = true;
       this.planetRing.rotation.x = this.ringTilt;
@@ -312,6 +302,19 @@ export default class Planet {
     // Add orbit
     this.setOrbit();
     this.showOrbit();
+        
+    // Debug axis
+    if (this.debug.active) {
+      const axisLineMaterial = new THREE.LineBasicMaterial({ color: 0x666666 });
+      let axisPoints = [];
+      const axisPoint1 = new THREE.Vector3(0, 0, this.size*-3);
+      const axisPoint2 = new THREE.Vector3(0, 0, this.size*3);
+      axisPoints.push(axisPoint1);
+      axisPoints.push(axisPoint2); 
+      const axisLineGeometry = new THREE.BufferGeometry().setFromPoints(axisPoints);
+      this.axisLine = new THREE.Line(axisLineGeometry, axisLineMaterial);
+      this.planetPivotPoint.add(this.axisLine);
+    }
   }
 
   removeFromScene() {
@@ -321,13 +324,10 @@ export default class Planet {
     this.planetPivotPoint.rotation.z = 0;
 
     if (this.planetSphere) {
-      this.planetSphere.geometry.dispose();
       for (let i=0; i<6; i++) {
-        this.materials[i].dispose();
+        this.planetMaterial[i].dispose();
       }
-      this.heightMap.destroy();
-      this.normalMap.destroy();
-      this.textureMap.destroy();
+      this.planetSphere.geometry.dispose();
       this.planetSphere.removeFromParent();
     }
 
@@ -338,13 +338,19 @@ export default class Planet {
     }
     
     if (this.planetRing) {
-      this.planetRing.geometry.dispose();
       this.planetRing.material.dispose();
-      this.ringTextureMap.destroy();
+      this.planetRing.geometry.dispose();
       this.planetRing.removeFromParent();
     }
 
     this.hideOrbit();
+  }
+
+  removeTextures() {
+    this.heightMap.destroy();
+    this.normalMap.destroy();
+    this.textureMap.destroy();
+    this.ringTextureMap.destroy();
   }
 
   nextNeighbourMinimumDistance() {
@@ -364,14 +370,15 @@ export default class Planet {
   updateMaterial() {
     for (let i=0; i<6; i++) {
       if (this.normalMap.maps.length) {
-        this.materials[i].normalMap = this.normalMap.maps[i];
+        this.planetMaterial[i].normalMap = this.normalMap.maps[i];
       }
-      this.materials[i].map = this.textureMap.maps[i];
-      this.materials[i].needsUpdate = true;
-      if (this.hasRings) {
-        this.planetRing.material.map = this.ringTextureMap.maps[0];
-        this.planetRing.material.needsUpdate = true;
-      }
+      this.planetMaterial[i].map = this.textureMap.maps[i];
+      this.planetMaterial[i].visible = true;
+      this.planetMaterial[i].needsUpdate = true;
+
+      this.ringMaterial.map = this.ringTextureMap.maps[0];
+      this.ringMaterial.visible = true;
+      this.ringMaterial.needsUpdate = true;
     }
   }
 
@@ -420,6 +427,7 @@ export default class Planet {
     }
 
     this.removeFromScene();
+    this.removeTextures();
 
     this.planetPivotPoint.geometry.dispose();
     this.planetPivotPoint.material.dispose();
@@ -437,8 +445,8 @@ export default class Planet {
         .max(1)
         .step(1)
         .onChange(() => {
-          this.removeFromScene();
-          this.addToScene();
+          this.removeTextures();
+          this.generateTextures();
         });
 
       this.debugFolder
@@ -448,8 +456,8 @@ export default class Planet {
         .max(1)
         .step(1)
         .onChange(() => {
-          this.removeFromScene();
-          this.addToScene();
+          this.removeTextures();
+          this.generateTextures();
         });
 
       this.debugFolder
@@ -459,8 +467,8 @@ export default class Planet {
         .max(1)
         .step(1)
         .onChange(() => {
-          this.removeFromScene();
-          this.addToScene();
+          this.removeTextures();
+          this.generateTextures();
         });
 
       this.debugFolder
@@ -470,8 +478,8 @@ export default class Planet {
         .max(1)
         .step(0.01)
         .onChange(() => {
-          this.removeFromScene();
-          this.addToScene();
+          this.removeTextures();
+          this.generateTextures();
         });
 
       this.debugFolder
@@ -481,8 +489,8 @@ export default class Planet {
         .max(1)
         .step(0.01)
         .onChange(() => {
-          this.removeFromScene();
-          this.addToScene();
+          this.removeTextures();
+          this.generateTextures();
         });
 
       this.debugFolder
@@ -492,8 +500,8 @@ export default class Planet {
         .max(1)
         .step(0.01)
         .onChange(() => {
-          this.removeFromScene();
-          this.addToScene();
+          this.removeTextures();
+          this.generateTextures();
         });
 
       this.debugFolder
@@ -503,8 +511,8 @@ export default class Planet {
         .max(1)
         .step(0.01)
         .onChange(() => {
-          this.removeFromScene();
-          this.addToScene();
+          this.removeTextures();
+          this.generateTextures();
         });
 
       this.debugFolder
@@ -514,8 +522,8 @@ export default class Planet {
         .max(1)
         .step(0.01)
         .onChange(() => {
-          this.removeFromScene();
-          this.addToScene();
+          this.removeTextures();
+          this.generateTextures();
         });
 
       this.debugFolder
@@ -525,8 +533,8 @@ export default class Planet {
         .max(1)
         .step(0.01)
         .onChange(() => {
-          this.removeFromScene();
-          this.addToScene();
+          this.removeTextures();
+          this.generateTextures();
         });
 
       this.debugFolder
@@ -536,8 +544,8 @@ export default class Planet {
         .max(1)
         .step(0.01)
         .onChange(() => {
-          this.removeFromScene();
-          this.addToScene();
+          this.removeTextures();
+          this.generateTextures();
         });
 
       this.debugFolder
@@ -547,8 +555,8 @@ export default class Planet {
         .max(1)
         .step(0.01)
         .onChange(() => {
-          this.removeFromScene();
-          this.addToScene();
+          this.removeTextures();
+          this.generateTextures();
         });
 
       this.debugFolder
@@ -558,8 +566,8 @@ export default class Planet {
         .max(1)
         .step(0.01)
         .onChange(() => {
-          this.removeFromScene();
-          this.addToScene();
+          this.removeTextures();
+          this.generateTextures();
         });
 
       this.debugFolder
@@ -690,8 +698,8 @@ export default class Planet {
         .max(1)
         .step(0.001)
         .onChange(() => {
-          this.removeFromScene();
-          this.addToScene();
+          this.removeTextures();
+          this.generateTextures();
         });
 
       this.debugFolder
@@ -701,8 +709,8 @@ export default class Planet {
         .max(1)
         .step(0.001)
         .onChange(() => {
-          this.removeFromScene();
-          this.addToScene();
+          this.removeTextures();
+          this.generateTextures();
         });
 
         this.debugFolder
@@ -712,8 +720,8 @@ export default class Planet {
         .max(1)
         .step(0.001)
         .onChange(() => {
-          this.removeFromScene();
-          this.addToScene();
+          this.removeTextures();
+          this.generateTextures();
         });
     }
   }
