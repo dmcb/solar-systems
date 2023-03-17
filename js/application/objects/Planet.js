@@ -21,7 +21,7 @@ export default class Planet {
     this.heightMap = new Map();
     this.normalMap = new Map();
     this.textureMap = new Map();
-    this.ringTextureMap = new Map(1);
+    this.ringTextureMap = new Map(1, 1024, 1);
 
     this.planetNumber = planetNumber;
     this.minimumDistance = minimumDistance;
@@ -81,11 +81,11 @@ export default class Planet {
 
     // Set rings
     this.hasRings = Math.round(this.seed.fakeGaussianRandom(this.size-4));
-    this.ringSize = this.seed.fakeGaussianRandom(-1,3)*3.35+0.15;
-    this.ringDistance = this.seed.fakeGaussianRandom(-1)*3+0.5;
+    this.ringSize = Math.abs(this.seed.fakeGaussianRandom(0,2)-0.5)*2*3.85+0.15;
+    this.ringDistance = this.seed.fakeGaussianRandom(0,2)*3+0.5;
     this.ringTilt = (this.seed.fakeGaussianRandom()*180-90) * Math.PI/180;
     this.ringDensity = this.seed.getRandom();
-    this.ringThickness = this.seed.fakeGaussianRandom(-1,2);
+    this.ringThickness = this.seed.fakeGaussianRandom(0,2);
     this.ringColourVariability = this.seed.getRandom();
   
     // With complete size and rings defined, set occupied area
@@ -105,8 +105,8 @@ export default class Planet {
     this.tilt = (this.seed.fakeGaussianRandom()*180-90) * Math.PI/180;
 
     // Set oblateness
-    const oblatenessRolls = Math.max(1, 10-(20*Math.pow(this.rotationSpeed, 1.2)*Math.pow(this.size/6, 1.2)));
-    this.oblateness = Math.abs(this.seed.fakeGaussianRandom(0, oblatenessRolls)-0.5);
+    const oblatenessRolls = Math.max(1, 10-(18*Math.pow(this.rotationSpeed, 1.2)*Math.pow(this.size/6, 1.2)));
+    this.oblateness = Math.abs(this.seed.fakeGaussianRandom(0, oblatenessRolls)-0.5)*2;
   
     // Set terrain
     this.materials = [];
@@ -133,7 +133,7 @@ export default class Planet {
     this.projectedDistanceFromSun = this.seed.fakeGaussianRandom(-12,13)*this.maximumDistance + this.minimumDistance;
     this.actualDistanceFromSun = this.projectedDistanceFromSun + this.planetSphereOfInfluence;
     this.orbitAxis = this.seed.fakeGaussianRandom(0,6*Math.pow(this.maximumDistance/this.actualDistanceFromSun, 1.5))*60-30;
-    this.orbitEccentricity = Math.abs(this.seed.fakeGaussianRandom(0,6*Math.pow(this.maximumDistance/this.actualDistanceFromSun, 1.5))*1.2-0.6);
+    this.orbitEccentricity = Math.abs(this.seed.fakeGaussianRandom(0,5*Math.pow(this.maximumDistance/this.actualDistanceFromSun, 1.5))*1.2-0.6);
     this.setOrbit();
     this.checkOrbitCollision();
   }
@@ -291,7 +291,13 @@ export default class Planet {
     if (this.hasRings) {
       const ringStart = this.size + this.ringDistance
       const ringEnd = ringStart + this.ringSize;
-      const ringGeometry = new THREE.RingGeometry(ringStart, ringEnd, 64, 32);
+      const ringGeometry = new THREE.RingGeometry(ringStart, ringEnd, 128, 32);
+      // Reassign UVs to map ringGeometry texture by distance from centre
+      var v3 = new THREE.Vector3();
+      for (let i = 0; i < ringGeometry.attributes.position.count; i++){
+        v3.fromBufferAttribute(ringGeometry.attributes.position, i);
+        ringGeometry.attributes.uv.setXY(i, (v3.length()-ringStart)/4, 0);
+      }
       const ringMaterial = new THREE.MeshPhongMaterial({ color: this.colour, transparent: true, opacity: 0.5, side: THREE.DoubleSide });
       this.planetRing = new THREE.Mesh(ringGeometry, ringMaterial);
       this.planetRing.name = "ring";
@@ -648,7 +654,7 @@ export default class Planet {
         .add(this, 'ringSize')
         .name('ringSize')
         .min(0.15)
-        .max(3.5)
+        .max(4)
         .step(0.01)
         .onChange(() => {
           this.removeFromScene();

@@ -62,7 +62,7 @@ export default {
       float strength = 0.0;
       float gain = 1.0;
       for (int i=0; i<octaves; i++) {
-        strength += (snoise(vec2(coordinate*30.0*float(i)*(density+0.5), seed*float(i)))+(thickness*0.35))*gain;
+        strength += (snoise(vec2(coordinate*15.0*float(i)*(density+0.5), seed*float(i)))+(thickness*0.35))*gain;
         gain *= 0.85;
       }
 
@@ -71,7 +71,7 @@ export default {
 
     void main()
     {
-      float coordinate = length(vUv-0.5);
+      float coordinate = vUv.x;
 
       float strength = max(0.0, baseNoise(coordinate, uDensity, uThickness, uSeed));
       float colourRedStrength = max(0.0, baseNoise(coordinate, uDensity, uThickness, uSeed*36.2));

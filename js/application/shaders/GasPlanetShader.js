@@ -13,7 +13,8 @@ export default {
     uniform vec3 uColour;
     uniform int uIndex;
     uniform float uBandLength;
-    uniform float uResolution;
+    uniform float uResolutionX;
+    uniform float uResolutionY;
     uniform float uSmoothness;
     uniform float uSeed;
   
@@ -149,14 +150,14 @@ export default {
       float x = vUv.x;
       float y = 1.0 - vUv.y;
 
-      vec3 sphericalCoord = getSphericalCoord(uIndex, x*uResolution, y*uResolution, uResolution);
+      vec3 sphericalCoord = getSphericalCoord(uIndex, x*uResolutionX, y*uResolutionY, uResolutionX);
 
       float amp = 0.57;
 
       float strength = 0.0;
       float gain = 1.0;
       for(int i=0; i<octaves; i++) {
-        strength +=  snoise(vec4(sphericalCoord.x*gain, sphericalCoord.y*gain, sphericalCoord.z*(uBandLength*7.0+3.0)*gain, uSeed*uResolution)) * amp/gain;
+        strength +=  snoise(vec4(sphericalCoord.x*gain, sphericalCoord.y*gain, sphericalCoord.z*(uBandLength*7.0+3.0)*gain, uSeed*uResolutionX)) * amp/gain;
         gain *= 1.5;
       }
 

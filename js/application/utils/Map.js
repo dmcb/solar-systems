@@ -3,26 +3,31 @@ import Application from '../Application.js';
 import EventEmitter from './EventEmitter.js';
 
 export default class Map extends EventEmitter {
-  constructor(sides, resolution) {
+  constructor(sides, resolutionX, resolutionY) {
     super();
 
     this.application = new Application();
     this.renderer = this.application.renderer;
     this.maps = [];
-    this.resolution = resolution;
+    this.resolutionX = resolutionX;
+    this.resolutionY = resolutionY;
     this.sides = sides;
 
     if (!this.sides) {
       this.sides = 6;
     }
-    if (!this.resolution) {
-      this.resolution = 1024;
+    if (!this.resolutionX) {
+      this.resolutionX = 1024;
+    }
+    if (!this.resolutionY) {
+      this.resolutionY = 1024;
     }
   }
 
   generate(shader, uniforms, mapDependencies) {
     this.destroy();
-    uniforms.uResolution = {value: this.resolution};
+    uniforms.uResolutionX = {value: this.resolutionX};
+    uniforms.uResolutionY = {value: this.resolutionY};
 
     for (let i=0; i<this.sides; i++) {
       uniforms.uIndex = {value: i};
@@ -34,13 +39,13 @@ export default class Map extends EventEmitter {
         }
       }
 
-      let renderTarget = new THREE.WebGLRenderTarget(this.resolution, this.resolution, {minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, format: THREE.RGBAFormat});
-  		let camera = new THREE.OrthographicCamera(-this.resolution/2, this.resolution/2, this.resolution/2, -this.resolution/2, -100, 100);
+      let renderTarget = new THREE.WebGLRenderTarget(this.resolutionX, this.resolutionY, {minFilter: THREE.NearestMipMapLinearFilter, magFilter: THREE.LinearFilter, generateMipmaps: true, format: THREE.RGBAFormat});
+  		let camera = new THREE.OrthographicCamera(-this.resolutionX/2, this.resolutionX/2, this.resolutionY/2, -this.resolutionY/2, -100, 100);
   		camera.position.z = 10;
       camera.updateProjectionMatrix();
 
   		let textureScene = new THREE.Scene();
-      let geometry = new THREE.PlaneGeometry(this.resolution, this.resolution);
+      let geometry = new THREE.PlaneGeometry(this.resolutionX, this.resolutionY);
       let material = new THREE.ShaderMaterial({
         uniforms: uniforms,
         vertexShader: shader.vertexShader,

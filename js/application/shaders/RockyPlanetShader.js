@@ -15,7 +15,8 @@ export default {
     uniform float uAmplitude;
     uniform float uCratering;
     uniform float uFrequency;
-    uniform float uResolution;
+    uniform float uResolutionX;
+    uniform float uResolutionY;
     uniform float uSeed;
   
     varying vec2 vUv;
@@ -163,7 +164,7 @@ export default {
     {
       float x = vUv.x;
       float y = 1.0 - vUv.y;
-      vec3 sphericalCoord = getSphericalCoord(uIndex, x*uResolution, y*uResolution, uResolution);
+      vec3 sphericalCoord = getSphericalCoord(uIndex, x*uResolutionX, y*uResolutionY, uResolutionX);
 
       float strength = baseNoise(sphericalCoord, uAmplitude*0.4+0.05, uFrequency*0.7+0.4, uCratering*2.0+0.5, uSeed+52.284);
 

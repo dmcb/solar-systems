@@ -11,7 +11,8 @@ export default {
 
   fragmentShader: /* glsl */`
     uniform sampler2D uHeightMap;
-    uniform float uResolution;
+    uniform float uResolutionX;
+    uniform float uResolutionY;
 
     varying vec2 vUv;
 
@@ -35,7 +36,7 @@ export default {
     void main()
     {
       vec2 uv = vUv;
-      gl_FragColor = vec4(bumpFromDepth(uv, uResolution, .1).rgb * .5 + .5, 1.);
+      gl_FragColor = vec4(bumpFromDepth(uv, uResolutionX, .1).rgb * .5 + .5, 1.);
     }
   `,
 };
