@@ -22,7 +22,7 @@ export default class Planet {
     this.heightMap = new Map();
     this.normalMap = new Map();
     this.planetTextureMap = new Map();
-    this.ringTextureMap = new Map(1024, 1);
+    this.ringTextureMap = new Map(256, 1);
 
     this.planetNumber = planetNumber;
     this.minimumDistance = minimumDistance;

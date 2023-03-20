@@ -13,10 +13,10 @@ export default class Map extends EventEmitter {
     this.map = null;
 
     if (!this.resolutionX) {
-      this.resolutionX = 2048;
+      this.resolutionX = 1536;
     }
     if (!this.resolutionY) {
-      this.resolutionY = 1024;
+      this.resolutionY = 768;
     }
   }
 
