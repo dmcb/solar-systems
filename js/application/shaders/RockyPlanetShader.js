@@ -10,31 +10,27 @@ export default {
   `,
 
   fragmentShader: /* glsl */`
+    #define PI 3.1415926538
+
     uniform vec3 uColour;
     uniform int uIndex;
     uniform float uAmplitude;
     uniform float uCratering;
     uniform float uFrequency;
-    uniform float uResolutionX;
-    uniform float uResolutionY;
+    uniform float uResolution;
     uniform float uSeed;
   
     varying vec2 vUv;
 
-    vec3 getSphericalCoord(int index, float x, float y, float width) {
-      width /= 2.0;
-      x -= width;
-      y -= width;
-      vec3 coord = vec3(0.0, 0.0, 0.0);
+    vec3 getSphericalCoord(float x, float y, float width) {
+        float lat = y / width * PI - PI / 2.0;
+        float lng = x / width * 2.0 * PI - PI;
     
-      if (index == 0) {coord.x=width; coord.y=-y; coord.z=-x;}
-      else if (index == 1) {coord.x=-width; coord.y=-y; coord.z=x;}
-      else if (index == 2) {coord.x=x; coord.y=width; coord.z=y;}
-      else if (index == 3) {coord.x=x; coord.y=-width; coord.z=-y;}
-      else if (index == 4) {coord.x=x; coord.y=-y; coord.z=width;}
-      else if (index == 5) {coord.x=-x; coord.y=-y; coord.z=-width;}
-    
-      return normalize(coord);
+        return vec3(
+            cos(lat) * cos(lng),
+            sin(lat),
+            cos(lat) * sin(lng)
+        );
     }
 
     //	Simplex 4D Noise 
@@ -164,7 +160,7 @@ export default {
     {
       float x = vUv.x;
       float y = 1.0 - vUv.y;
-      vec3 sphericalCoord = getSphericalCoord(uIndex, x*uResolutionX, y*uResolutionY, uResolutionX);
+      vec3 sphericalCoord = getSphericalCoord(x*uResolution, y*uResolution, uResolution);
 
       float strength = baseNoise(sphericalCoord, uAmplitude*0.4+0.05, uFrequency*0.7+0.4, uCratering*2.0+0.5, uSeed+52.284);
 

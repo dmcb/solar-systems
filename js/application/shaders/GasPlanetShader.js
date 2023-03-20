@@ -10,31 +10,26 @@ export default {
   `,
 
   fragmentShader: /* glsl */`
+    #define PI 3.1415926538
+
     uniform vec3 uColour;
-    uniform int uIndex;
     uniform float uBandLength;
-    uniform float uResolutionX;
-    uniform float uResolutionY;
+    uniform float uResolution;
     uniform float uSmoothness;
     uniform float uSeed;
   
     varying vec2 vUv;
 
-    vec3 getSphericalCoord(int index, float x, float y, float width) {
-      width /= 2.0;
-      x -= width;
-      y -= width;
-      vec3 coord = vec3(0.0, 0.0, 0.0);
-    
-      if (index == 0) {coord.x=width; coord.y=-y; coord.z=-x;}
-      else if (index == 1) {coord.x=-width; coord.y=-y; coord.z=x;}
-      else if (index == 2) {coord.x=x; coord.y=width; coord.z=y;}
-      else if (index == 3) {coord.x=x; coord.y=-width; coord.z=-y;}
-      else if (index == 4) {coord.x=x; coord.y=-y; coord.z=width;}
-      else if (index == 5) {coord.x=-x; coord.y=-y; coord.z=-width;}
-    
-      return normalize(coord);
-    }
+    vec3 getSphericalCoord(float x, float y, float width) {
+      float lat = y / width * PI - PI / 2.0;
+      float lng = x / width * 2.0 * PI - PI;
+  
+      return vec3(
+          cos(lat) * cos(lng),
+          sin(lat),
+          cos(lat) * sin(lng)
+      );
+  }
 
     //	Simplex 4D Noise 
     //	by Ian McEwan, Ashima Arts
@@ -149,15 +144,14 @@ export default {
 
       float x = vUv.x;
       float y = 1.0 - vUv.y;
-
-      vec3 sphericalCoord = getSphericalCoord(uIndex, x*uResolutionX, y*uResolutionY, uResolutionX);
+      vec3 sphericalCoord = getSphericalCoord(x*uResolution, y*uResolution, uResolution);
 
       float amp = 0.57;
 
       float strength = 0.0;
       float gain = 1.0;
       for(int i=0; i<octaves; i++) {
-        strength +=  snoise(vec4(sphericalCoord.x*gain, sphericalCoord.y*gain, sphericalCoord.z*(uBandLength*7.0+3.0)*gain, uSeed*uResolutionX)) * amp/gain;
+        strength +=  snoise(vec4(sphericalCoord.x*gain, sphericalCoord.y*gain, sphericalCoord.z*(uBandLength*7.0+3.0)*gain, uSeed*uResolution)) * amp/gain;
         gain *= 1.5;
       }
 

@@ -21,8 +21,8 @@ export default class Planet {
 
     this.heightMap = new Map();
     this.normalMap = new Map();
-    this.textureMap = new Map();
-    this.ringTextureMap = new Map(1, 1024, 1);
+    this.planetTextureMap = new Map();
+    this.ringTextureMap = new Map(1024, 1);
 
     this.planetNumber = planetNumber;
     this.minimumDistance = minimumDistance;
@@ -110,14 +110,10 @@ export default class Planet {
     this.oblateness = Math.abs(this.seed.fakeGaussianRandom(0, oblatenessRolls)-0.5)*2;
   
     // Generate untextured materials
-    this.planetMaterial = [];
-    for (let i=0; i<6; i++) {
-      const material = new THREE.MeshStandardMaterial({
-        visible: false,
-        normalScale: new THREE.Vector2(0.3, 0.3)
-      });
-      this.planetMaterial[i] = material;
-    }
+    this.planetMaterial = new THREE.MeshStandardMaterial({
+      visible: false,
+      normalScale: new THREE.Vector2(0.3, 0.3)
+    });
     this.ringMaterial = new THREE.MeshPhongMaterial({ 
       visible: false,
       transparent: true,
@@ -198,12 +194,11 @@ export default class Planet {
       )});
       this.queue.add(() => {this.normalMap.generate(
         NormalShader,
-        {},
         {
-          uHeightMap: this.heightMap.maps,
+          uHeightMap: {value: this.heightMap.map}
         }
       )});
-      this.queue.add(() => {this.textureMap.generate(
+      this.queue.add(() => {this.planetTextureMap.generate(
         RockyPlanetShader,
         {
           uColour: {value: this.colour},
@@ -222,7 +217,7 @@ export default class Planet {
           uSeed: {value: this.terrainSeed}
         }
       )});
-      this.queue.add(() => {this.textureMap.generate(
+      this.queue.add(() => {this.planetTextureMap.generate(
         GasPlanetShader,
         {
           uColour: {value: this.colour},
@@ -256,18 +251,7 @@ export default class Planet {
 
   addToScene() {
     // Create geometry
-    let sphereGeometry = new THREE.BoxGeometry(1, 1, 1, 32, 32, 32);
-    for (let i=0; i < sphereGeometry.attributes.position.count; i++) {
-      var x = sphereGeometry.attributes.position.getX(i);
-      var y = sphereGeometry.attributes.position.getY(i);
-      var z = sphereGeometry.attributes.position.getZ(i);
-      let vertex = new THREE.Vector3(x,y,z);
-      vertex.normalize().multiplyScalar(this.size);
-      sphereGeometry.attributes.position.setXYZ(i, vertex.x, vertex.y, vertex.z);
-    }
-    sphereGeometry.computeVertexNormals();
-    sphereGeometry.normalizeNormals();
-    
+    let sphereGeometry = new THREE.SphereGeometry(this.size, 64, 32);
     // Add mesh to scene
     this.planetSphere = new THREE.Mesh(sphereGeometry, this.planetMaterial);
     this.planetSphere.name = "planetCore";
@@ -292,7 +276,7 @@ export default class Planet {
       this.planetRing = new THREE.Mesh(ringGeometry, this.ringMaterial);
       this.planetRing.name = "ring";
       this.planetRing.receiveShadow = true;
-      this.planetRing.castShadow = true;
+      this.planetRing.castShadow = false;
       this.planetRing.rotation.x = this.ringTilt;
       this.planetPivotPoint.add(this.planetRing);
     }
@@ -312,9 +296,7 @@ export default class Planet {
     this.planetPivotPoint.rotation.z = 0;
 
     if (this.planetSphere) {
-      for (let i=0; i<6; i++) {
-        this.planetMaterial[i].dispose();
-      }
+      this.planetMaterial.dispose();
       this.planetSphere.geometry.dispose();
       this.planetSphere.removeFromParent();
     }
@@ -335,7 +317,7 @@ export default class Planet {
   removeTextures() {
     this.heightMap.destroy();
     this.normalMap.destroy();
-    this.textureMap.destroy();
+    this.planetTextureMap.destroy();
     this.ringTextureMap.destroy();
   }
 
@@ -354,18 +336,14 @@ export default class Planet {
   }
 
   updateMaterial() {
-    for (let i=0; i<6; i++) {
-      if (this.normalMap.maps.length) {
-        this.planetMaterial[i].normalMap = this.normalMap.maps[i];
-      }
-      this.planetMaterial[i].map = this.textureMap.maps[i];
-      this.planetMaterial[i].visible = true;
-      this.planetMaterial[i].needsUpdate = true;
+    this.planetMaterial.normalMap = this.normalMap.map;
+    this.planetMaterial.map = this.planetTextureMap.map;
+    this.planetMaterial.visible = true;
+    this.planetMaterial.needsUpdate = true;
 
-      this.ringMaterial.map = this.ringTextureMap.maps[0];
-      this.ringMaterial.visible = true;
-      this.ringMaterial.needsUpdate = true;
-    }
+    this.ringMaterial.map = this.ringTextureMap.map;
+    this.ringMaterial.visible = true;
+    this.ringMaterial.needsUpdate = true;
   }
 
   determineFuturePosition(time) {
