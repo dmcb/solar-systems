@@ -60,9 +60,12 @@ export default {
       float frq2 = 5.0;
 
       float strength = 0.0;
+      float frequency = 1.0;
       float gain = 1.0;
+
       for (int i=0; i<octaves; i++) {
-        strength += (snoise(vec2(coordinate*4.5*float(i)*(2.7*density+0.6), seed*float(i)))+(thickness*0.35))*gain;
+        strength += (snoise(vec2(coordinate*4.5*frequency*(2.7*density+0.6), seed*frequency))+(thickness*0.35))*gain;
+        frequency *= 2.0;
         gain *= 0.85;
       }
 

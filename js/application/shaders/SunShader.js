@@ -7,8 +7,7 @@ export default {
     {
       gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(position, 1.0);
 
-      vec4 posInView = viewMatrix * modelMatrix * vec4(position, 1.0);
-      vec3 V = normalize(-posInView.xyz); 
+      vec3 V = vec3(0,0,1.0);
       vec3 N = normalize(normalMatrix * normal);
 
       vNdotV = max(0., dot(N, V));
