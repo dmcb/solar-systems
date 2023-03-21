@@ -86,6 +86,7 @@ export default class Planet {
     this.ringDistance = this.seed.fakeGaussianRandom(0,2)*3+0.85;
     this.ringTilt = (this.seed.fakeGaussianRandom()*180-90) * Math.PI/180;
     this.ringDensity = this.seed.getRandom();
+    this.ringDefinition = this.seed.getRandom();
     this.ringThickness = this.seed.fakeGaussianRandom(0,2);
     this.ringColourVariability = this.seed.getRandom();
   
@@ -233,6 +234,7 @@ export default class Planet {
         uColour: {value: this.colour},
         uSeed: {value: this.terrainSeed},
         uDensity: {value: this.ringDensity},
+        uDefinition: {value: this.ringDefinition},
         uThickness: {value: this.ringThickness},
         uColourVariability: {value: this.ringColourVariability}
       }
@@ -681,6 +683,17 @@ export default class Planet {
       this.debugFolder
         .add(this, 'ringDensity')
         .name('ringDensity')
+        .min(0)
+        .max(1)
+        .step(0.001)
+        .onFinishChange(() => {
+          this.removeTextures();
+          this.generateTextures();
+        });
+
+      this.debugFolder
+        .add(this, 'ringDefinition')
+        .name('ringDefinition')
         .min(0)
         .max(1)
         .step(0.001)
