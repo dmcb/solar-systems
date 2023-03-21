@@ -64,7 +64,7 @@ export default {
       float gain = 1.0;
 
       for (int i=0; i<octaves; i++) {
-        strength += (snoise(vec2(coordinate*4.5*frequency*(2.7*density+0.6), seed*frequency))+(thickness*0.35))*gain;
+        strength += (snoise(vec2(coordinate*frequency*(density+0.1), seed*frequency))+((thickness-0.5)*0.5))*gain;
         frequency *= 2.0;
         gain *= 0.85;
       }
@@ -76,15 +76,15 @@ export default {
     {
       float coordinate = vUv.x;
 
-      float strength = max(0.0, baseNoise(coordinate, uDensity, uThickness, uSeed));
+      float strength = max(0.0, baseNoise(coordinate, uDensity, uThickness, uSeed*48.1));
       float colourRedStrength = max(0.0, baseNoise(coordinate, uDensity, uThickness, uSeed*36.2));
-      float colourGreenStrength = max(0.0, baseNoise(coordinate, uDensity, uThickness, uSeed*26.8));
-      float colourBlueStrength = max(0.0, baseNoise(coordinate, uDensity, uThickness, uSeed*4.7));
+      float colourGreenStrength = max(0.0, baseNoise(coordinate, uDensity, uThickness, uSeed*106.8));
+      float colourBlueStrength = max(0.0, baseNoise(coordinate, uDensity, uThickness, uSeed*79.7));
 
       gl_FragColor = vec4(
-        uColour.r*(0.9-uColourVariability*0.4)+colourRedStrength*(0.1+uColourVariability)*0.4,
-        uColour.g*(0.9-uColourVariability*0.4)+colourGreenStrength*(0.1+uColourVariability)*0.4, 
-        uColour.b*(0.9-uColourVariability*0.4)+colourBlueStrength*(0.1+uColourVariability)*0.4, 
+        uColour.r*(0.9-uColourVariability*0.2)+colourRedStrength*(0.1+uColourVariability)*0.2,
+        uColour.g*(0.9-uColourVariability*0.2)+colourGreenStrength*(0.1+uColourVariability)*0.2, 
+        uColour.b*(0.9-uColourVariability*0.2)+colourBlueStrength*(0.1+uColourVariability)*0.2, 
         strength
       \);
     }
