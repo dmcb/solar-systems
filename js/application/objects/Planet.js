@@ -2,8 +2,9 @@ import * as THREE from 'three';
 import Application from '../Application.js';
 import Map from '../utils/Map.js';
 import NormalShader from '../shaders/NormalShader.js';
-import GasPlanetShader from '../shaders/GasPlanetShader.js';
-import RockyPlanetShader from '../shaders/RockyPlanetShader.js';
+import GasPlanetTextureShader from '../shaders/GasPlanetTextureShader.js';
+import RockyPlanetHeightShader from '../shaders/RockyPlanetHeightShader.js';
+import RockyPlanetTextureShader from '../shaders/RockyPlanetTextureShader.js';
 import RingShader from '../shaders/RingShader.js';
 
 const exaggeratedDistanceFromSunModifier = 1.25;
@@ -184,7 +185,7 @@ export default class Planet {
     this.colour.setHSL(this.hue, this.saturation, this.lightness);
     if (this.rocky) {
       this.queue.add(() => {this.heightMap.generate(
-        RockyPlanetShader,
+        RockyPlanetHeightShader,
         {
           uColour: {value: new THREE.Vector3(1,1,1)},
           uSeed: {value: this.terrainSeed},
@@ -200,26 +201,20 @@ export default class Planet {
         }
       )});
       this.queue.add(() => {this.planetTextureMap.generate(
-        RockyPlanetShader,
+        RockyPlanetTextureShader,
         {
+          uHeightMap: {value: this.heightMap.map},
           uColour: {value: this.colour},
           uSeed: {value: this.terrainSeed},
           uAmplitude: {value: this.terrainAmplitude},
           uCratering: {value: this.terrainCratering},
-          uFrequency: {value: this.terrainFrequency}
+          uFrequency: {value: this.terrainFrequency},
         }
       )});
     }
     else {
-      this.queue.add(() => {this.heightMap.generate(
-        GasPlanetShader,
-        {
-          uColour: {value: new THREE.Vector3(1,1,1)},
-          uSeed: {value: this.terrainSeed}
-        }
-      )});
       this.queue.add(() => {this.planetTextureMap.generate(
-        GasPlanetShader,
+        GasPlanetTextureShader,
         {
           uColour: {value: this.colour},
           uSeed: {value: this.terrainSeed},
