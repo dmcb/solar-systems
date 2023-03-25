@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import Application from '../Application.js';
 import Map from '../utils/Map.js';
+import DisplacementShader from '../shaders/DisplacementShader.js';
 import NormalShader from '../shaders/NormalShader.js';
 import RoughnessShader from '../shaders/RoughnessShader.js';
 import GasPlanetTextureShader from '../shaders/GasPlanetTextureShader.js';
@@ -22,6 +23,7 @@ export default class Planet {
     this.queue = this.application.queue;
 
     this.heightMap = new Map();
+    this.displacementMap = new Map();
     this.normalMap = new Map();
     this.roughnessMap = new Map();
     this.planetTextureMap = new Map();
@@ -86,7 +88,7 @@ export default class Planet {
     // Set rings
     this.hasRings = Math.round(this.seed.fakeGaussianRandom(this.size-4));
     this.ringSize = Math.abs(this.seed.fakeGaussianRandom(0,2)-0.5)*2*3.85+0.15;
-    this.ringDistance = this.seed.fakeGaussianRandom(0,2)*3+0.85;
+    this.ringDistance = this.seed.fakeGaussianRandom(0,2)*2.5+0.5;
     this.ringTilt = (this.seed.fakeGaussianRandom()*180-90) * Math.PI/180;
     this.ringDensity = this.seed.getRandom();
     this.ringDefinition = this.seed.getRandom();
@@ -203,6 +205,13 @@ export default class Planet {
           uHeight: {value: this.terrainHeight},
           uRidgeHeight: {value: this.terrainRidgeHeight},
           uRidgeDistribution: {value: this.terrainRidgeDistribution}
+        }
+      )});
+      this.queue.add(() => {this.displacementMap.generate(
+        DisplacementShader,
+        {
+          uHeightMap: {value: this.heightMap.map},
+          uWaterLevel: {value: waterLevel}
         }
       )});
       this.queue.add(() => {this.normalMap.generate(
@@ -329,6 +338,7 @@ export default class Planet {
 
   removeTextures() {
     this.heightMap.destroy();
+    this.displacementMap.destroy();
     this.normalMap.destroy();
     this.roughnessMap.destroy();
     this.planetTextureMap.destroy();
@@ -352,7 +362,7 @@ export default class Planet {
   updateMaterial() {
     this.planetMaterial.normalMap = this.normalMap.map;
     this.planetMaterial.roughnessMap = this.roughnessMap.map;
-    this.planetMaterial.displacementMap = this.heightMap.map;
+    this.planetMaterial.displacementMap = this.displacementMap.map;
     this.planetMaterial.map = this.planetTextureMap.map;
     this.planetMaterial.visible = true;
     this.planetMaterial.needsUpdate = true;
@@ -712,8 +722,8 @@ export default class Planet {
       this.debugFolder
         .add(this, 'ringDistance')
         .name('ringDistance')
-        .min(0.85)
-        .max(3.85)
+        .min(0.5)
+        .max(3.0)
         .step(0.01)
         .onChange(() => {
           this.removeFromScene();
