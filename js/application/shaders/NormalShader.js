@@ -12,11 +12,12 @@ export default {
   fragmentShader: /* glsl */`
     uniform sampler2D uHeightMap;
     uniform float uResolution;
+    uniform float uWaterLevel;
 
     varying vec2 vUv;
 
     float getHeight(vec2 uv) {
-      return texture(uHeightMap, uv).r;
+      return max(uWaterLevel, texture(uHeightMap, uv).r);
     }
     
     vec4 bumpFromDepth(vec2 uv, float resolution, float scale) {

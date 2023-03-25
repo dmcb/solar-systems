@@ -12,12 +12,7 @@ export default {
   fragmentShader: /* glsl */`
     uniform sampler2D uHeightMap;
     uniform vec3 uColour;
-    uniform int uIndex;
-    uniform float uAmplitude;
-    uniform float uCratering;
-    uniform float uFrequency;
-    uniform float uResolution;
-    uniform float uSeed;
+    uniform float uWaterLevel;
   
     varying vec2 vUv;
 
@@ -27,7 +22,14 @@ export default {
 
     void main()
     {
-      gl_FragColor = vec4(getHeight(vUv)*uColour.r, getHeight(vUv)*uColour.g, getHeight(vUv)*uColour.b, 1.0);
+      vec3 colour = uColour;
+      float height = getHeight(vUv);
+
+      if (height < uWaterLevel) {
+        colour = vec3(0.0, 0.0, 1.0);
+      }
+
+      gl_FragColor = vec4(colour, 1.0);
   }
   `,
 };

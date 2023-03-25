@@ -123,11 +123,12 @@ export default class Planet {
     });
 
     // Set terrain
+    this.waterLevel = this.seed.fakeGaussianRandom();
     this.terrainSeed = this.seed.getRandom();
     this.terrainScale = this.seed.fakeGaussianRandom(0,2);
     this.terrainRidgeScale = this.seed.fakeGaussianRandom(0,2);
     this.terrainHeight = this.seed.fakeGaussianRandom(0,2);
-    this.terrainRidgeHeight = this.seed.fakeGaussianRandom(0,2)*2-1;
+    this.terrainRidgeHeight = this.seed.fakeGaussianRandom()*2-1;
     this.terrainRidgeDistribution = this.seed.fakeGaussianRandom(0,2);
     this.terrainBandLength = this.seed.fakeGaussianRandom(0,2);
     this.terrainSmoothness = this.seed.fakeGaussianRandom(1,2);
@@ -185,6 +186,10 @@ export default class Planet {
   generateTextures() {
     this.colour = new THREE.Color();
     this.colour.setHSL(this.hue, this.saturation, this.lightness);
+    let waterLevel = this.waterLevel * 0.1 + 0.45;
+    if (!this.habitable) {
+      waterLevel = 0;
+    }
     if (this.rocky) {
       this.queue.add(() => {this.heightMap.generate(
         RockyPlanetHeightShader,
@@ -201,7 +206,8 @@ export default class Planet {
       this.queue.add(() => {this.normalMap.generate(
         NormalShader,
         {
-          uHeightMap: {value: this.heightMap.map}
+          uHeightMap: {value: this.heightMap.map},
+          uWaterLevel: {value: waterLevel}
         }
       )});
       this.queue.add(() => {this.planetTextureMap.generate(
@@ -209,10 +215,7 @@ export default class Planet {
         {
           uHeightMap: {value: this.heightMap.map},
           uColour: {value: this.colour},
-          uSeed: {value: this.terrainSeed},
-          uAmplitude: {value: this.terrainAmplitude},
-          uCratering: {value: this.terrainCratering},
-          uFrequency: {value: this.terrainFrequency},
+          uWaterLevel: {value: waterLevel}
         }
       )});
     }
@@ -443,7 +446,7 @@ export default class Planet {
         .name('atmosphere')
         .min(0)
         .max(1)
-        .step(1)
+        .step(0.01)
         .onFinishChange(() => {
           this.removeTextures();
           this.generateTextures();
@@ -455,6 +458,17 @@ export default class Planet {
         .min(0)
         .max(1)
         .step(1)
+        .onFinishChange(() => {
+          this.removeTextures();
+          this.generateTextures();
+        });
+
+      this.debugFolder
+        .add(this, 'waterLevel')
+        .name('waterLevel')
+        .min(0)
+        .max(1)
+        .step(0.01)
         .onFinishChange(() => {
           this.removeTextures();
           this.generateTextures();

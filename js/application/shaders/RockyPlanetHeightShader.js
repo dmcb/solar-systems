@@ -173,7 +173,7 @@ export default {
         gain *= 0.5;
       }
 
-      return pow(strength, (uRidgeDistribution+0.15)*1.5);
+      return pow(strength, (uRidgeDistribution+0.15)*2.5);
     }
 
     void main()
