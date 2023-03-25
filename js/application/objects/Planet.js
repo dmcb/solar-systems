@@ -116,7 +116,7 @@ export default class Planet {
     // Generate untextured materials
     this.planetMaterial = new THREE.MeshStandardMaterial({
       visible: false,
-      normalScale: new THREE.Vector2(0.25, 0.25)
+      normalScale: new THREE.Vector2(0.5, 0.5)
     });
     this.ringMaterial = new THREE.MeshPhongMaterial({ 
       visible: false,
@@ -130,7 +130,7 @@ export default class Planet {
     this.terrainScale = this.seed.fakeGaussianRandom(0,2);
     this.terrainRidgeScale = this.seed.fakeGaussianRandom(0,2);
     this.terrainHeight = this.seed.fakeGaussianRandom(0,2);
-    this.terrainRidgeHeight = this.seed.fakeGaussianRandom()*2-1;
+    this.terrainRidgeHeight = this.seed.fakeGaussianRandom(0,3)*2-1;
     this.terrainRidgeDistribution = this.seed.fakeGaussianRandom(0,2);
     this.terrainBandLength = this.seed.fakeGaussianRandom(0,2);
     this.terrainSmoothness = this.seed.fakeGaussianRandom(1,2);
