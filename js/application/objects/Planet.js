@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import Application from '../Application.js';
 import Map from '../utils/Map.js';
 import NormalShader from '../shaders/NormalShader.js';
+import RoughnessShader from '../shaders/RoughnessShader.js';
 import GasPlanetTextureShader from '../shaders/GasPlanetTextureShader.js';
 import RockyPlanetHeightShader from '../shaders/RockyPlanetHeightShader.js';
 import RockyPlanetTextureShader from '../shaders/RockyPlanetTextureShader.js';
@@ -22,6 +23,7 @@ export default class Planet {
 
     this.heightMap = new Map();
     this.normalMap = new Map();
+    this.roughnessMap = new Map();
     this.planetTextureMap = new Map();
     this.ringTextureMap = new Map(256, 1);
 
@@ -210,6 +212,13 @@ export default class Planet {
           uWaterLevel: {value: waterLevel}
         }
       )});
+      this.queue.add(() => {this.roughnessMap.generate(
+        RoughnessShader,
+        {
+          uHeightMap: {value: this.heightMap.map},
+          uWaterLevel: {value: waterLevel}
+        }
+      )});
       this.queue.add(() => {this.planetTextureMap.generate(
         RockyPlanetTextureShader,
         {
@@ -321,6 +330,7 @@ export default class Planet {
   removeTextures() {
     this.heightMap.destroy();
     this.normalMap.destroy();
+    this.roughnessMap.destroy();
     this.planetTextureMap.destroy();
     this.ringTextureMap.destroy();
   }
@@ -341,6 +351,7 @@ export default class Planet {
 
   updateMaterial() {
     this.planetMaterial.normalMap = this.normalMap.map;
+    this.planetMaterial.roughnessMap = this.roughnessMap.map;
     this.planetMaterial.displacementMap = this.heightMap.map;
     this.planetMaterial.map = this.planetTextureMap.map;
     this.planetMaterial.visible = true;
