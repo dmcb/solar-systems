@@ -28,9 +28,9 @@ export default class GradientMap {
       gradient.addColorStop(waterLevel*0.95, "blue");
       gradient.addColorStop(waterLevel*0.99, "#33ffbb");
       gradient.addColorStop(waterLevel, "#DDCDB5");
-      gradient.addColorStop(waterLevel*1.05, "#669900");
-      gradient.addColorStop(waterLevel*1.15, "#006600");
-      gradient.addColorStop(waterLevel*1.18, "#b4a190");
+      gradient.addColorStop(waterLevel*1.02, "#669900");
+      gradient.addColorStop(waterLevel*1.11, "#006600");
+      gradient.addColorStop(waterLevel*1.23, "#b4a190");
       gradient.addColorStop(waterLevel*1.3, "white");
     }
     else {
