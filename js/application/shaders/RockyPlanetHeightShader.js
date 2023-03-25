@@ -18,6 +18,7 @@ export default {
     uniform float uRidgeScale;
     uniform float uHeight;
     uniform float uRidgeHeight;
+    uniform float uRidgeDistribution;
     uniform float uResolution;
     uniform float uSeed;
   
@@ -158,17 +159,34 @@ export default {
       return strength;
     }
 
+    float ridgeNoise(vec3 coordinate, float scale, float seed)
+    {
+      int octaves = 12;
+
+      float strength = 0.0;
+      float frequency = 1.0;
+      float gain = 1.0;
+
+      for (int i=0; i<octaves; i++) {
+        strength += abs(snoise(vec4(coordinate * scale * frequency, seed)) * gain);
+        frequency *= 2.0;
+        gain *= 0.5;
+      }
+
+      return pow(strength, (uRidgeDistribution+0.15)*1.5);
+    }
+
     void main()
     {
       float x = vUv.x;
       float y = 1.0 - vUv.y;
       vec3 sphericalCoord = getSphericalCoord(x*uResolution, y*uResolution, uResolution);
 
-      float baseHeight = baseNoise(sphericalCoord, 1.5*uScale+0.5, uSeed*152.0);
-      baseHeight = baseHeight * (0.4 * uHeight + 0.1) + 0.5;
+      float baseHeight = baseNoise(sphericalCoord, 1.5*uScale+0.5, uSeed*102.8);
+      baseHeight = baseHeight * (0.2 * uHeight) + 0.5;
 
-      float ridgeHeight = baseNoise(sphericalCoord, 4.5*uRidgeScale+0.5, uSeed);
-      ridgeHeight *= 0.2*max(uRidgeHeight, 0.0);
+      float ridgeHeight = ridgeNoise(sphericalCoord, 1.5*uRidgeScale+0.5, uSeed*312.3);
+      ridgeHeight *= 0.3 * uRidgeHeight;
 
       float height = baseHeight + ridgeHeight;
 

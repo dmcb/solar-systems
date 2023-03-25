@@ -127,7 +127,8 @@ export default class Planet {
     this.terrainScale = this.seed.fakeGaussianRandom(0,2);
     this.terrainRidgeScale = this.seed.fakeGaussianRandom(0,2);
     this.terrainHeight = this.seed.fakeGaussianRandom(0,2);
-    this.terrainRidgeHeight = this.seed.fakeGaussianRandom(0,2);
+    this.terrainRidgeHeight = this.seed.fakeGaussianRandom(0,2)*2-1;
+    this.terrainRidgeDistribution = this.seed.fakeGaussianRandom(0,2);
     this.terrainBandLength = this.seed.fakeGaussianRandom(0,2);
     this.terrainSmoothness = this.seed.fakeGaussianRandom(1,2);
     if (this.rocky) {
@@ -193,7 +194,8 @@ export default class Planet {
           uScale: {value: this.terrainScale},
           uRidgeScale: {value: this.terrainRidgeScale},
           uHeight: {value: this.terrainHeight},
-          uRidgeHeight: {value: this.terrainRidgeHeight}
+          uRidgeHeight: {value: this.terrainRidgeHeight},
+          uRidgeDistribution: {value: this.terrainRidgeDistribution}
         }
       )});
       this.queue.add(() => {this.normalMap.generate(
@@ -340,7 +342,7 @@ export default class Planet {
     this.planetMaterial.map = this.planetTextureMap.map;
     this.planetMaterial.visible = true;
     this.planetMaterial.needsUpdate = true;
-    const flatness = Math.pow((1-((Math.min(this.size, 6)-1)/5))*0.8, 8); 
+    const flatness = Math.pow((1-((Math.min(this.size, 4.5)-1)/3.5))*0.8, 8); 
     console.log(flatness);
     this.planetMaterial.displacementScale = flatness;
 
@@ -505,6 +507,17 @@ export default class Planet {
       this.debugFolder
         .add(this, 'terrainRidgeHeight')
         .name('terrainRidgeHeight')
+        .min(-1)
+        .max(1)
+        .step(0.01)
+        .onFinishChange(() => {
+          this.removeTextures();
+          this.generateTextures();
+        });
+
+        this.debugFolder
+        .add(this, 'terrainRidgeDistribution')
+        .name('terrainRidgeDist')
         .min(0)
         .max(1)
         .step(0.01)
