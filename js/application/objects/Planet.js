@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import Application from '../Application.js';
-import Map from '../utils/Map.js';
+import ShaderMap from '../utils/ShaderMap.js';
+import GradientMap from '../utils/GradientMap.js';
 import DisplacementShader from '../shaders/DisplacementShader.js';
 import NormalShader from '../shaders/NormalShader.js';
 import RoughnessShader from '../shaders/RoughnessShader.js';
@@ -22,12 +23,13 @@ export default class Planet {
     this.debug = this.application.debug;
     this.queue = this.application.queue;
 
-    this.heightMap = new Map();
-    this.displacementMap = new Map();
-    this.normalMap = new Map();
-    this.roughnessMap = new Map();
-    this.planetTextureMap = new Map();
-    this.ringTextureMap = new Map(256, 1);
+    this.heightMap = new ShaderMap();
+    this.displacementMap = new ShaderMap();
+    this.normalMap = new ShaderMap();
+    this.biomeMap = new GradientMap();
+    this.roughnessMap = new ShaderMap();
+    this.planetTextureMap = new ShaderMap();
+    this.ringTextureMap = new ShaderMap(256, 1);
 
     this.planetNumber = planetNumber;
     this.minimumDistance = minimumDistance;
@@ -228,12 +230,12 @@ export default class Planet {
           uWaterLevel: {value: waterLevel}
         }
       )});
+      this.queue.add(() => {this.biomeMap.generate(waterLevel, this.colour)});
       this.queue.add(() => {this.planetTextureMap.generate(
         RockyPlanetTextureShader,
         {
           uHeightMap: {value: this.heightMap.map},
-          uColour: {value: this.colour},
-          uWaterLevel: {value: waterLevel}
+          uBiomeMap: {value: this.biomeMap.map}
         }
       )});
     }

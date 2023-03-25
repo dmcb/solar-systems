@@ -11,8 +11,7 @@ export default {
 
   fragmentShader: /* glsl */`
     uniform sampler2D uHeightMap;
-    uniform vec3 uColour;
-    uniform float uWaterLevel;
+    uniform sampler2D uBiomeMap;
   
     varying vec2 vUv;
 
@@ -22,12 +21,8 @@ export default {
 
     void main()
     {
-      vec3 colour = uColour;
       float height = getHeight(vUv);
-
-      if (height < uWaterLevel) {
-        colour = vec3(0.0, 0.0, 1.0);
-      }
+      vec3 colour = texture(uBiomeMap, vec2(height, 0.0)).rgb;
 
       gl_FragColor = vec4(colour, 1.0);
   }

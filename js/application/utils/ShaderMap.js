@@ -1,11 +1,8 @@
 import * as THREE from 'three';
 import Application from '../Application.js';
-import EventEmitter from './EventEmitter.js';
 
-export default class Map extends EventEmitter {
+export default class ShaderMap {
   constructor(resolutionX, resolutionY) {
-    super();
-
     this.application = new Application();
     this.renderer = this.application.renderer;
     this.resolutionX = resolutionX;
@@ -47,8 +44,6 @@ export default class Map extends EventEmitter {
     geometry.dispose();
     material.dispose();
     planeMesh.removeFromParent();
-
-    this.trigger('generation');
   }
 
   destroy() {
