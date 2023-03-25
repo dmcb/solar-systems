@@ -107,14 +107,14 @@ export default class Planet {
     this.rotationSpeed = this.seed.fakeGaussianRandom(-2);
     this.tilt = (this.seed.fakeGaussianRandom()*180-90) * Math.PI/180;
 
-    // Set oblateness
+    // Set oblateness and flattening
     const oblatenessRolls = Math.max(1, 10-(18*Math.pow(this.rotationSpeed, 1.2)*Math.pow(this.size/6, 1.2)));
     this.oblateness = Math.abs(this.seed.fakeGaussianRandom(0, oblatenessRolls)-0.5)*2;
   
     // Generate untextured materials
     this.planetMaterial = new THREE.MeshStandardMaterial({
       visible: false,
-      normalScale: new THREE.Vector2(0.3, 0.3)
+      normalScale: new THREE.Vector2(0.25, 0.25)
     });
     this.ringMaterial = new THREE.MeshPhongMaterial({ 
       visible: false,
@@ -124,9 +124,10 @@ export default class Planet {
 
     // Set terrain
     this.terrainSeed = this.seed.getRandom();
-    this.terrainAmplitude = this.seed.fakeGaussianRandom(0,2);
-    this.terrainCratering = this.seed.fakeGaussianRandom(0,2);
-    this.terrainFrequency = this.seed.fakeGaussianRandom(0,2);
+    this.terrainScale = this.seed.fakeGaussianRandom(0,2);
+    this.terrainRidgeScale = this.seed.fakeGaussianRandom(0,2);
+    this.terrainHeight = this.seed.fakeGaussianRandom(0,2);
+    this.terrainRidgeHeight = this.seed.fakeGaussianRandom(0,2);
     this.terrainBandLength = this.seed.fakeGaussianRandom(0,2);
     this.terrainSmoothness = this.seed.fakeGaussianRandom(1,2);
     if (this.rocky) {
@@ -189,9 +190,10 @@ export default class Planet {
         {
           uColour: {value: new THREE.Vector3(1,1,1)},
           uSeed: {value: this.terrainSeed},
-          uAmplitude: {value: this.terrainAmplitude},
-          uCratering: {value: this.terrainCratering},
-          uFrequency: {value: this.terrainFrequency}
+          uScale: {value: this.terrainScale},
+          uRidgeScale: {value: this.terrainRidgeScale},
+          uHeight: {value: this.terrainHeight},
+          uRidgeHeight: {value: this.terrainRidgeHeight}
         }
       )});
       this.queue.add(() => {this.normalMap.generate(
@@ -248,7 +250,7 @@ export default class Planet {
 
   addToScene() {
     // Create geometry
-    let sphereGeometry = new THREE.SphereGeometry(this.size, 64, 32);
+    let sphereGeometry = new THREE.SphereGeometry(this.size, 128, 64);
     // Add mesh to scene
     this.planetSphere = new THREE.Mesh(sphereGeometry, this.planetMaterial);
     this.planetSphere.name = "planetCore";
@@ -334,9 +336,13 @@ export default class Planet {
 
   updateMaterial() {
     this.planetMaterial.normalMap = this.normalMap.map;
+    this.planetMaterial.displacementMap = this.heightMap.map;
     this.planetMaterial.map = this.planetTextureMap.map;
     this.planetMaterial.visible = true;
     this.planetMaterial.needsUpdate = true;
+    const flatness = Math.pow((1-((Math.min(this.size, 6)-1)/5))*0.8, 8); 
+    console.log(flatness);
+    this.planetMaterial.displacementScale = flatness;
 
     this.ringMaterial.map = this.ringTextureMap.map;
     this.ringMaterial.visible = true;
@@ -464,8 +470,8 @@ export default class Planet {
         });
 
       this.debugFolder
-        .add(this, 'terrainAmplitude')
-        .name('terrainAmplitude')
+        .add(this, 'terrainScale')
+        .name('terrainScale')
         .min(0)
         .max(1)
         .step(0.01)
@@ -475,8 +481,8 @@ export default class Planet {
         });
 
       this.debugFolder
-        .add(this, 'terrainCratering')
-        .name('terrainCratering')
+        .add(this, 'terrainHeight')
+        .name('terrainHeight')
         .min(0)
         .max(1)
         .step(0.01)
@@ -486,8 +492,19 @@ export default class Planet {
         });
 
       this.debugFolder
-        .add(this, 'terrainFrequency')
-        .name('terrainFrequency')
+        .add(this, 'terrainRidgeScale')
+        .name('terrainRidgeScale')
+        .min(0)
+        .max(1)
+        .step(0.01)
+        .onFinishChange(() => {
+          this.removeTextures();
+          this.generateTextures();
+        });
+
+      this.debugFolder
+        .add(this, 'terrainRidgeHeight')
+        .name('terrainRidgeHeight')
         .min(0)
         .max(1)
         .step(0.01)
@@ -560,6 +577,7 @@ export default class Planet {
         .onChange(() => {
           this.removeFromScene();
           this.addToScene();
+          this.updateMaterial();
         });
 
       this.debugFolder

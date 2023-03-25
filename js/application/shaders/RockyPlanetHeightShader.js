@@ -14,9 +14,10 @@ export default {
 
     uniform vec3 uColour;
     uniform int uIndex;
-    uniform float uAmplitude;
-    uniform float uCratering;
-    uniform float uFrequency;
+    uniform float uScale;
+    uniform float uRidgeScale;
+    uniform float uHeight;
+    uniform float uRidgeHeight;
     uniform float uResolution;
     uniform float uSeed;
   
@@ -140,18 +141,19 @@ export default {
 
     }
 
-    float baseNoise(vec3 pos, float amp, float frq, float cratering, float seed)
+    float baseNoise(vec3 coordinate, float scale, float seed)
     {
-      const int octaves = 16;
+      int octaves = 12;
 
       float strength = 0.0;
+      float frequency = 1.0;
       float gain = 1.0;
-      for(int i=0; i<octaves; i++) {
-        strength +=  snoise(vec4(pos.x*gain/frq, pos.y*gain/frq, pos.z*gain/frq, seed+float(i)*300.0)) * amp/gain;
-        gain *= 1.5;
-      }
 
-      strength = (abs(strength - 0.3) * cratering ) + 0.4;
+      for (int i=0; i<octaves; i++) {
+        strength += snoise(vec4(coordinate * scale * frequency, seed)) * gain;
+        frequency *= 2.0;
+        gain *= 0.5;
+      }
 
       return strength;
     }
@@ -162,9 +164,15 @@ export default {
       float y = 1.0 - vUv.y;
       vec3 sphericalCoord = getSphericalCoord(x*uResolution, y*uResolution, uResolution);
 
-      float strength = baseNoise(sphericalCoord, uAmplitude*0.4+0.05, uFrequency*0.7+0.4, uCratering*2.0+0.5, uSeed+52.284);
+      float baseHeight = baseNoise(sphericalCoord, 1.5*uScale+0.5, uSeed*152.0);
+      baseHeight = baseHeight * (0.4 * uHeight + 0.1) + 0.5;
 
-      gl_FragColor = vec4(strength * uColour.r, strength * uColour.g, strength * uColour.b, 1.0);
+      float ridgeHeight = baseNoise(sphericalCoord, 4.5*uRidgeScale+0.5, uSeed);
+      ridgeHeight *= 0.2*max(uRidgeHeight, 0.0);
+
+      float height = baseHeight + ridgeHeight;
+
+      gl_FragColor = vec4(height, height, height, 1.0);
   }
   `,
 };
