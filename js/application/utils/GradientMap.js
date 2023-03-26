@@ -24,14 +24,18 @@ export default class GradientMap {
     const gradient = ctx.createLinearGradient(0, 0, this.canvas.width, 0);
     
     if (waterLevel) {
+      gradient.addColorStop(waterLevel*0.5, "#000044");
       gradient.addColorStop(waterLevel*0.8, "#000066");
-      gradient.addColorStop(waterLevel*0.95, "blue");
-      gradient.addColorStop(waterLevel*0.99, "#33ffbb");
-      gradient.addColorStop(waterLevel, "#DDCDB5");
-      gradient.addColorStop(waterLevel*1.02, "#669900");
-      gradient.addColorStop(waterLevel*1.11, "#006600");
-      gradient.addColorStop(waterLevel*1.23, "#b4a190");
-      gradient.addColorStop(waterLevel*1.3, "white");
+      gradient.addColorStop(waterLevel*0.94, "#0000ff");
+      gradient.addColorStop(waterLevel*0.97, "#0047fe");
+      gradient.addColorStop(waterLevel, "#29d67a");
+      gradient.addColorStop(waterLevel, "#dcd39f");
+      gradient.addColorStop(waterLevel*1.02, "#749909");
+      gradient.addColorStop(waterLevel*1.07, "#215322");
+      gradient.addColorStop(waterLevel*1.13, "#214A21");
+      gradient.addColorStop(waterLevel*1.19, "#746354");
+      gradient.addColorStop(waterLevel*1.28, "#D3D0CD");
+      gradient.addColorStop(waterLevel*1.29, "#ffffff");
     }
     else {
       console.log(colour.getHexString());

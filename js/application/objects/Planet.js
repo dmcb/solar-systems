@@ -90,7 +90,7 @@ export default class Planet {
     // Set rings
     this.hasRings = Math.round(this.seed.fakeGaussianRandom(this.size-4));
     this.ringSize = Math.abs(this.seed.fakeGaussianRandom(0,2)-0.5)*2*3.85+0.15;
-    this.ringDistance = this.seed.fakeGaussianRandom(0,2)*2.5+0.5;
+    this.ringDistance = this.seed.fakeGaussianRandom(0,2)*2+0.5;
     this.ringTilt = (this.seed.fakeGaussianRandom()*180-90) * Math.PI/180;
     this.ringDensity = this.seed.getRandom();
     this.ringDefinition = this.seed.getRandom();
@@ -131,6 +131,7 @@ export default class Planet {
     // Set terrain
     this.waterLevel = this.seed.fakeGaussianRandom();
     this.terrainSeed = this.seed.getRandom();
+    this.biomeColourVariability = this.seed.getRandom();
     this.terrainScale = this.seed.fakeGaussianRandom(0,2);
     this.terrainRidgeScale = this.seed.fakeGaussianRandom(0,2);
     this.terrainHeight = this.seed.fakeGaussianRandom(0,2);
@@ -193,8 +194,10 @@ export default class Planet {
     this.colour = new THREE.Color();
     this.colour.setHSL(this.hue, this.saturation, this.lightness);
     let waterLevel = this.waterLevel * 0.1 + 0.45;
+    let colourVariability = this.biomeColourVariability
     if (!this.habitable) {
       waterLevel = 0;
+      colourVariability = 0;
     }
     if (this.rocky) {
       this.queue.add(() => {this.heightMap.generate(
@@ -235,7 +238,9 @@ export default class Planet {
         RockyPlanetTextureShader,
         {
           uHeightMap: {value: this.heightMap.map},
-          uBiomeMap: {value: this.biomeMap.map}
+          uBiomeMap: {value: this.biomeMap.map},
+          uSeed: {value: this.terrainSeed},
+          uColourVariability: {value: colourVariability}
         }
       )});
     }
@@ -454,6 +459,87 @@ export default class Planet {
       this.debugFolder = this.debug.ui.addFolder('Planet ' + this.planetNumber).close();
 
       this.debugFolder
+        .add(this, 'size')
+        .name('size')
+        .min(1)
+        .max(6)
+        .step(0.001)
+        .onChange(() => {
+          this.removeFromScene();
+          this.addToScene();
+          this.updateMaterial();
+        });
+
+      this.debugFolder
+        .add(this, 'rotationSpeed')
+        .name('rotationSpeed')
+        .min(0)
+        .max(1)
+        .step(0.01)
+        .onChange(() => {
+          this.removeFromScene();
+          this.addToScene();
+        });
+
+      this.debugFolder
+        .add(this, 'oblateness')
+        .name('oblateness')
+        .min(0)
+        .max(1)
+        .step(0.01)
+        .onChange(() => {
+          this.removeFromScene();
+          this.addToScene();
+        });
+
+      this.debugFolder
+        .add(this, 'tilt')
+        .name('tilt')
+        .min(-90 * Math.PI/180)
+        .max(90 * Math.PI/180)
+        .step(0.001)
+        .onChange(() => {
+          this.removeFromScene();
+          this.addToScene();
+        });
+
+      this.debugFolder
+        .add(this, 'toggleDebugAxisLine');
+
+      this.debugFolder
+        .add(this, 'orbitAxis')
+        .name('orbitAxis')
+        .min(-30)
+        .max(30)
+        .step(0.1)
+        .onChange(() => {
+          this.removeFromScene();
+          this.addToScene();
+        });
+
+      this.debugFolder
+        .add(this, 'orbitEccentricity')
+        .name('orbitEccentricity')
+        .min(0)
+        .max(0.6)
+        .step(0.01)
+        .onChange(() => {
+          this.removeFromScene();
+          this.addToScene();
+        });
+
+      this.debugFolder
+        .add(this, 'orbitOffset')
+        .name('orbitOffset')
+        .min(0)
+        .max(360)
+        .step(1)
+        .onChange(() => {
+          this.removeFromScene();
+          this.addToScene();
+        });
+
+      this.debugFolder
         .add(this, 'rocky')
         .name('rocky')
         .min(0)
@@ -586,6 +672,17 @@ export default class Planet {
         });
 
       this.debugFolder
+        .add(this, 'biomeColourVariability')
+        .name('biomeColourVar')
+        .min(0)
+        .max(1)
+        .step(0.001)
+        .onFinishChange(() => {
+          this.removeTextures();
+          this.generateTextures();
+        });
+
+      this.debugFolder
         .add(this, 'hue')
         .name('hue')
         .min(0)
@@ -619,87 +716,6 @@ export default class Planet {
         });
 
       this.debugFolder
-        .add(this, 'size')
-        .name('size')
-        .min(1)
-        .max(6)
-        .step(0.001)
-        .onChange(() => {
-          this.removeFromScene();
-          this.addToScene();
-          this.updateMaterial();
-        });
-
-      this.debugFolder
-        .add(this, 'rotationSpeed')
-        .name('rotationSpeed')
-        .min(0)
-        .max(1)
-        .step(0.01)
-        .onChange(() => {
-          this.removeFromScene();
-          this.addToScene();
-        });
-
-      this.debugFolder
-        .add(this, 'oblateness')
-        .name('oblateness')
-        .min(0)
-        .max(1)
-        .step(0.01)
-        .onChange(() => {
-          this.removeFromScene();
-          this.addToScene();
-        });
-
-      this.debugFolder
-        .add(this, 'tilt')
-        .name('tilt')
-        .min(-90 * Math.PI/180)
-        .max(90 * Math.PI/180)
-        .step(0.001)
-        .onChange(() => {
-          this.removeFromScene();
-          this.addToScene();
-        });
-
-      this.debugFolder
-        .add(this, 'toggleDebugAxisLine');
-
-      this.debugFolder
-        .add(this, 'orbitAxis')
-        .name('orbitAxis')
-        .min(-30)
-        .max(30)
-        .step(0.1)
-        .onChange(() => {
-          this.removeFromScene();
-          this.addToScene();
-        });
-
-      this.debugFolder
-        .add(this, 'orbitEccentricity')
-        .name('orbitEccentricity')
-        .min(0)
-        .max(0.6)
-        .step(0.01)
-        .onChange(() => {
-          this.removeFromScene();
-          this.addToScene();
-        });
-
-      this.debugFolder
-        .add(this, 'orbitOffset')
-        .name('orbitOffset')
-        .min(0)
-        .max(360)
-        .step(1)
-        .onChange(() => {
-          this.removeFromScene();
-          this.addToScene();
-        });
-
-      this.debugFolder
         .add(this, 'hasRings')
         .name('hasRings')
         .min(0)
@@ -725,7 +741,7 @@ export default class Planet {
         .add(this, 'ringDistance')
         .name('ringDistance')
         .min(0.5)
-        .max(3.0)
+        .max(2.5)
         .step(0.01)
         .onChange(() => {
           this.removeFromScene();

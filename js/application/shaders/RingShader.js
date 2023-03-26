@@ -57,8 +57,6 @@ export default {
     float baseNoise(float coordinate, float density, float definition, float thickness, float seed)
     {
       int octaves = 12;
-      float amp2 = 2.0;
-      float frq2 = 5.0;
 
       float strength = 0.0;
       float frequency = 1.0;
@@ -87,7 +85,7 @@ export default {
         uColour.g*(0.9-uColourVariability*0.2)+colourGreenStrength*(0.1+uColourVariability)*0.2, 
         uColour.b*(0.9-uColourVariability*0.2)+colourBlueStrength*(0.1+uColourVariability)*0.2, 
         strength
-      \);
+      );
     }
   `,
 };
