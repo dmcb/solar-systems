@@ -142,6 +142,35 @@ export default {
 
     }
 
+    vec3 hash33(vec3 p)
+    {
+      p = vec3( dot(p,vec3(127.1,311.7, 74.7)),
+        dot(p,vec3(269.5,183.3,246.1)),
+        dot(p,vec3(113.5,271.9,124.6)));
+
+      return fract(sin(p)*43758.5453123);
+    }
+
+    float craters(vec3 x) 
+    { 
+      vec3 p = floor(x);
+      vec3 f = fract(x);
+    
+      float va = 0.;
+      float wt = 0.;
+      for (int i = -2; i <= 2; i++) 
+        for (int j = -2; j <= 2; j++)
+          for (int k = -2; k <= 2; k++) { 
+            vec3 g = vec3(i,j,k);
+            vec3 o = 0.8 * hash33(p + g);
+            float d = distance(f - g, o);
+            float w = exp(-4. * d);
+            va += w * sin(2.*PI * sqrt(d));
+            wt += w;
+          }
+      return abs(va / wt);
+    }
+
     float baseNoise(vec3 coordinate, float scale, float seed)
     {
       int octaves = 12;
@@ -176,6 +205,22 @@ export default {
       return pow(strength, (uRidgeDistribution+0.15)*2.5);
     }
 
+    float craterNoise(vec3 coordinate, float scale, float seed)
+    {
+      int octaves = 5;
+    
+      float strength = 0.0;
+    
+      for (int i=0; i<octaves; i++) {
+        float craterNoise = craters(0.4 * pow(2.2, float(i)) * coordinate * scale);
+        craterNoise = 0.4 * exp(-3. * craterNoise);
+        float w = clamp(3. * pow(0.4, float(i)), 0., 1.);
+        strength += w * (craterNoise);
+      }
+    
+      return strength;
+    }
+
     void main()
     {
       float x = vUv.x;
@@ -188,7 +233,10 @@ export default {
       float ridgeHeight = ridgeNoise(sphericalCoord, 1.5*uRidgeScale+0.5, uSeed*312.3);
       ridgeHeight *= 0.3 * uRidgeHeight;
 
-      float height = baseHeight + ridgeHeight;
+      float craterHeight = craterNoise(sphericalCoord, 1.5*uScale+0.5, uSeed*18.3);
+      craterHeight = 0.0;
+
+      float height = baseHeight + ridgeHeight + craterHeight;
 
       gl_FragColor = vec4(height, height, height, 1.0);
   }
