@@ -129,16 +129,19 @@ export default class Planet {
     });
 
     // Set terrain
-    let crateringAdjustment = -2;
     if (this.habitable) {
-      crateringAdjustment = -5;
+      this.cratering = this.seed.fakeGaussianRandom(-1, 4);
+      this.craterErosion = this.seed.fakeGaussianRandom(2, 4);
+      this.craterProminence = this.seed.fakeGaussianRandom(-2, 4);
+    }
+    else {
+      this.cratering = this.seed.getRandom();
+      this.craterErosion = this.seed.getRandom();
+      this.craterProminence = this.seed.getRandom();
     }
     this.waterLevel = this.seed.fakeGaussianRandom();
     this.terrainSeed = this.seed.getRandom();
     this.biomeColourVariability = this.seed.getRandom();
-    this.cratering = this.seed.getRandom(crateringAdjustment);
-    this.craterErosion = this.seed.getRandom(-crateringAdjustment);
-    this.craterProminence = this.seed.getRandom(crateringAdjustment);
     this.terrainScale = this.seed.fakeGaussianRandom(-1,4);
     this.terrainRidgeScale = this.seed.fakeGaussianRandom(0,2);
     this.terrainHeight = this.seed.fakeGaussianRandom(0,2);
