@@ -15,6 +15,9 @@ export default {
     uniform vec3 uColour;
     uniform int uIndex;
     uniform float uScale;
+    uniform float uCratering;
+    uniform float uCraterErosion;
+    uniform float uCraterProminence;
     uniform float uRidgeScale;
     uniform float uHeight;
     uniform float uRidgeHeight;
@@ -148,7 +151,7 @@ export default {
         dot(p,vec3(269.5,183.3,246.1)),
         dot(p,vec3(113.5,271.9,124.6)));
 
-      return fract(sin(p)*43758.5453123);
+      return fract(sin(p)*43758.5453123*uSeed);
     }
 
     float craters(vec3 x) 
@@ -227,15 +230,20 @@ export default {
       float y = 1.0 - vUv.y;
       vec3 sphericalCoord = getSphericalCoord(x*uResolution, y*uResolution, uResolution);
 
-      float baseHeight = baseNoise(sphericalCoord, 1.5*uScale+0.5, uSeed*102.8);
+      // Base 
+      float baseHeight = baseNoise(sphericalCoord, 1.5*uScale+0.5, uSeed*71.4);
       baseHeight = baseHeight * (0.2 * uHeight) + 0.5;
 
-      float ridgeHeight = ridgeNoise(sphericalCoord, 1.5*uRidgeScale+0.5, uSeed*312.3);
-      ridgeHeight *= 0.3 * uRidgeHeight;
+      // Ridges
+      float ridgeHeight = ridgeNoise(sphericalCoord, 1.5*uRidgeScale+0.5, uSeed*249.3);
+      ridgeHeight *= 0.2 * uRidgeHeight;
 
-      float craterHeight = craterNoise(sphericalCoord, 1.5*uScale+0.5, uSeed*18.3);
-      craterHeight = 0.0;
+      // Craters
+      float craterArea = baseNoise(sphericalCoord, 0.7*uCraterErosion+0.1, uSeed*29.8);
+      float craterHeight = craterNoise(sphericalCoord, 3.8*uCratering+0.1, uSeed*18.3);
+      craterHeight *= craterArea * (uCraterProminence * 0.5);
 
+      // Add all noise
       float height = baseHeight + ridgeHeight + craterHeight;
 
       gl_FragColor = vec4(height, height, height, 1.0);

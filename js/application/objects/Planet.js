@@ -129,10 +129,17 @@ export default class Planet {
     });
 
     // Set terrain
+    let crateringAdjustment = -2;
+    if (this.habitable) {
+      crateringAdjustment = -5;
+    }
     this.waterLevel = this.seed.fakeGaussianRandom();
     this.terrainSeed = this.seed.getRandom();
     this.biomeColourVariability = this.seed.getRandom();
-    this.terrainScale = this.seed.fakeGaussianRandom(0,2);
+    this.cratering = this.seed.getRandom(crateringAdjustment);
+    this.craterErosion = this.seed.getRandom(-crateringAdjustment);
+    this.craterProminence = this.seed.getRandom(crateringAdjustment);
+    this.terrainScale = this.seed.fakeGaussianRandom(-1,4);
     this.terrainRidgeScale = this.seed.fakeGaussianRandom(0,2);
     this.terrainHeight = this.seed.fakeGaussianRandom(0,2);
     this.terrainRidgeHeight = this.seed.fakeGaussianRandom(0,3)*2-1;
@@ -142,7 +149,7 @@ export default class Planet {
     if (this.rocky) {
       // Earthy tones for rocky planets
       this.hue = this.seed.getRandom()/8;
-      this.saturation = this.seed.fakeGaussianRandom(-1,3);
+      this.saturation = this.seed.fakeGaussianRandom(-1,5);
       this.lightness = this.seed.fakeGaussianRandom(-1,3)*0.8+0.2;
     }
     else {
@@ -206,6 +213,9 @@ export default class Planet {
           uColour: {value: new THREE.Vector3(1,1,1)},
           uSeed: {value: this.terrainSeed},
           uScale: {value: this.terrainScale},
+          uCratering: {value: this.cratering},
+          uCraterErosion: {value: this.craterErosion},
+          uCraterProminence: {value: this.craterProminence},
           uRidgeScale: {value: this.terrainRidgeScale},
           uHeight: {value: this.terrainHeight},
           uRidgeHeight: {value: this.terrainRidgeHeight},
@@ -373,8 +383,7 @@ export default class Planet {
     this.planetMaterial.map = this.planetTextureMap.map;
     this.planetMaterial.visible = true;
     this.planetMaterial.needsUpdate = true;
-    const flatness = Math.pow((1-((Math.min(this.size, 4.5)-1)/3.5))*0.8, 8); 
-    console.log(flatness);
+    const flatness = Math.pow((1-((Math.min(this.size, 4.5)-1)/3.5))*0.8, 7); 
     this.planetMaterial.displacementScale = flatness;
 
     this.ringMaterial.map = this.ringTextureMap.map;
@@ -584,6 +593,17 @@ export default class Planet {
         });
 
       this.debugFolder
+        .add(this, 'biomeColourVariability')
+        .name('biomeColourVar')
+        .min(0)
+        .max(1)
+        .step(0.01)
+        .onFinishChange(() => {
+          this.removeTextures();
+          this.generateTextures();
+        });
+
+      this.debugFolder
         .add(this, 'terrainSeed')
         .name('terrainSeed')
         .min(0)
@@ -672,11 +692,33 @@ export default class Planet {
         });
 
       this.debugFolder
-        .add(this, 'biomeColourVariability')
-        .name('biomeColourVar')
+        .add(this, 'cratering')
+        .name('cratering')
         .min(0)
         .max(1)
-        .step(0.001)
+        .step(0.01)
+        .onFinishChange(() => {
+          this.removeTextures();
+          this.generateTextures();
+        });
+
+      this.debugFolder
+        .add(this, 'craterErosion')
+        .name('craterErosion')
+        .min(0)
+        .max(1)
+        .step(0.01)
+        .onFinishChange(() => {
+          this.removeTextures();
+          this.generateTextures();
+        });
+
+      this.debugFolder
+        .add(this, 'craterProminence')
+        .name('craterProminence')
+        .min(0)
+        .max(1)
+        .step(0.01)
         .onFinishChange(() => {
           this.removeTextures();
           this.generateTextures();
