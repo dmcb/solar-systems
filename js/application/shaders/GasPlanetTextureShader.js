@@ -20,7 +20,8 @@ export default {
   
     varying vec2 vUv;
 
-    vec3 getSphericalCoord(float x, float y, float width) {
+    vec3 getSphericalCoord(float x, float y, float width)
+    {
       float lat = y / width * PI - PI / 2.0;
       float lng = x / width * 2.0 * PI - PI;
   
@@ -29,7 +30,7 @@ export default {
           sin(lat),
           cos(lat) * sin(lng)
       );
-  }
+    }
 
     //	Simplex 4D Noise 
     //	by Ian McEwan, Ashima Arts
@@ -138,25 +139,44 @@ export default {
 
     }
 
+    float baseNoise(vec3 coordinate, float seed)
+    {
+      int octaves = 12;
+
+      float strength = 0.0;
+      float frequency = 1.0;
+      float gain = 1.0;
+
+      for (int i=0; i<octaves; i++) {
+        strength += snoise(vec4(coordinate * frequency, seed)) * gain;
+        frequency *= 2.0;
+        gain *= 0.5;
+      }
+
+      return strength;
+    }
+
     void main()
     {
-      const int octaves = 16;
-
       float x = vUv.x;
       float y = 1.0 - vUv.y;
       vec3 sphericalCoord = getSphericalCoord(x*uResolution, y*uResolution, uResolution);
 
-      float amp = 0.57;
+      vec3 warp = vec3(
+        baseNoise(sphericalCoord * vec3(1.0, 1.0, uBandLength*2.0+1.0), uSeed*71.4),
+        baseNoise(sphericalCoord * vec3(1.0, 1.0, uBandLength*2.0+1.0)+vec3(5.2,1.3,1.8), uSeed*71.4),
+        baseNoise(sphericalCoord * vec3(1.0, 1.0, uBandLength*2.0+1.0)+vec3(2.2,1.8,1.9), uSeed*71.4)
+      );
 
-      float strength = 0.0;
-      float gain = 1.0;
-      for(int i=0; i<octaves; i++) {
-        strength +=  snoise(vec4(sphericalCoord.x*gain, sphericalCoord.y*gain, sphericalCoord.z*(uBandLength*7.0+3.0)*gain, uSeed*uResolution)) * amp/gain;
-        gain *= 1.5;
-      }
+      vec3 warp2 = vec3(
+        baseNoise(sphericalCoord + warp * (0.2+uSmoothness)*2.0 + vec3(1.7,9.2,2.7), uSeed*71.4),
+        baseNoise(sphericalCoord + warp * (0.2+uSmoothness)*2.0 + vec3(1.3,2.8,7.9), uSeed*71.4),
+        baseNoise(sphericalCoord + warp * (0.2+uSmoothness)*2.0 + vec3(4.3,2.1,3.9), uSeed*71.4)
+      );
 
-      strength = ( abs(strength - 0.3) * (1.0-uSmoothness*0.95) ) + 0.4;
-      gl_FragColor = vec4(strength * uColour.r, strength * uColour.g, strength * uColour.b, 1.0);
-  }
+      float strength = baseNoise(sphericalCoord + warp2 * (0.2+uSmoothness)*2.0, uSeed*71.4);
+
+      gl_FragColor = vec4(strength*uColour+0.2, 1.0);
+    }
   `,
 };
