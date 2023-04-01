@@ -156,27 +156,32 @@ export default {
       return strength;
     }
 
+    float band(vec3 coordinate, float bandLength, float smoothness, float seed)
+    {
+      vec3 warp = vec3(
+        baseNoise(coordinate * vec3(1.0, 1.0, bandLength*2.0+1.0), seed*71.4),
+        baseNoise(coordinate * vec3(1.0, 1.0, bandLength*2.0+1.0)+vec3(5.2,1.3,1.8), seed*71.4),
+        baseNoise(coordinate * vec3(1.0, 1.0, bandLength*2.0+1.0)+vec3(2.2,8.8,1.9), seed*71.4)
+      );
+
+      vec3 warp2 = vec3(
+        baseNoise(coordinate + warp * (0.2+smoothness)*1.8 + vec3(1.7,9.2,2.7), seed*71.4),
+        baseNoise(coordinate + warp * (0.2+smoothness)*1.8 + vec3(1.3,2.8,1.9), seed*71.4),
+        baseNoise(coordinate + warp * (0.2+smoothness)*1.8 + vec3(2.3,4.1,3.9), seed*71.4)
+      );
+
+      return baseNoise(coordinate + warp2 * (0.2+smoothness)*1.8, seed*71.4);
+    }
+
     void main()
     {
       float x = vUv.x;
       float y = 1.0 - vUv.y;
       vec3 sphericalCoord = getSphericalCoord(x*uResolution, y*uResolution, uResolution);
 
-      vec3 warp = vec3(
-        baseNoise(sphericalCoord * vec3(1.0, 1.0, uBandLength*2.0+1.0), uSeed*71.4),
-        baseNoise(sphericalCoord * vec3(1.0, 1.0, uBandLength*2.0+1.0)+vec3(5.2,1.3,1.8), uSeed*71.4),
-        baseNoise(sphericalCoord * vec3(1.0, 1.0, uBandLength*2.0+1.0)+vec3(2.2,1.8,1.9), uSeed*71.4)
-      );
+      float strength = band(sphericalCoord, uBandLength, uSmoothness, uSeed);
 
-      vec3 warp2 = vec3(
-        baseNoise(sphericalCoord + warp * (0.2+uSmoothness)*2.0 + vec3(1.7,9.2,2.7), uSeed*71.4),
-        baseNoise(sphericalCoord + warp * (0.2+uSmoothness)*2.0 + vec3(1.3,2.8,7.9), uSeed*71.4),
-        baseNoise(sphericalCoord + warp * (0.2+uSmoothness)*2.0 + vec3(4.3,2.1,3.9), uSeed*71.4)
-      );
-
-      float strength = baseNoise(sphericalCoord + warp2 * (0.2+uSmoothness)*2.0, uSeed*71.4);
-
-      gl_FragColor = vec4(strength*uColour+0.2, 1.0);
+      gl_FragColor = vec4(strength*uColour, 1.0);
     }
   `,
 };
