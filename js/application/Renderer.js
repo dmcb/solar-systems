@@ -34,9 +34,9 @@ export default class Renderer {
     this.bloomPass = new SelectiveBloomEffect(this.scene, this.camera.instance, {
       blendFunction: BlendFunction.ADD,
 			mipmapBlur: true,
-			luminanceThreshold: 0.15,
+			luminanceThreshold: 0.16,
 			luminanceSmoothing: 0.05,
-			intensity: 1.2
+			intensity: 1.0
     });
     this.bloomPass.inverted = true;
 

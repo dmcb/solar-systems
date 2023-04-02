@@ -94,7 +94,7 @@ export default class Planet {
     this.ringTilt = (this.seed.fakeGaussianRandom()*180-90) * Math.PI/180;
     this.ringDensity = this.seed.getRandom();
     this.ringDefinition = this.seed.getRandom();
-    this.ringThickness = this.seed.fakeGaussianRandom(0,2);
+    this.ringThickness = this.seed.fakeGaussianRandom(0,3);
     this.ringColourVariability = this.seed.getRandom();
   
     // With complete size and rings defined, set occupied area
@@ -148,7 +148,7 @@ export default class Planet {
     this.terrainRidgeHeight = this.seed.fakeGaussianRandom(0,3)*2-1;
     this.terrainRidgeDistribution = this.seed.fakeGaussianRandom(0,2);
     this.terrainBandLength = this.seed.fakeGaussianRandom(0,2);
-    this.terrainSmoothness = this.seed.fakeGaussianRandom(1,2);
+    this.terrainSmoothness = this.seed.fakeGaussianRandom(0,2);
     if (this.rocky) {
       // Earthy tones for rocky planets
       this.hue = this.seed.getRandom()/8;
@@ -262,9 +262,11 @@ export default class Planet {
         GasPlanetTextureShader,
         {
           uColour: {value: this.colour},
+          uScale: {value: this.terrainScale},
           uSeed: {value: this.terrainSeed},
           uBandLength: {value: this.terrainBandLength},
-          uSmoothness: {value: this.terrainSmoothness}
+          uSmoothness: {value: this.terrainSmoothness},
+          uColourVariability: {value: this.biomeColourVariability}
         }
       )});
     }

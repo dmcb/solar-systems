@@ -13,14 +13,17 @@ export default {
     #define PI 3.1415926538
 
     uniform vec3 uColour;
+    uniform float uColourVariability;
     uniform float uBandLength;
     uniform float uResolution;
     uniform float uSmoothness;
+    uniform float uScale;
     uniform float uSeed;
   
     varying vec2 vUv;
 
-    vec3 getSphericalCoord(float x, float y, float width) {
+    vec3 getSphericalCoord(float x, float y, float width)
+    {
       float lat = y / width * PI - PI / 2.0;
       float lng = x / width * 2.0 * PI - PI;
   
@@ -29,7 +32,7 @@ export default {
           sin(lat),
           cos(lat) * sin(lng)
       );
-  }
+    }
 
     //	Simplex 4D Noise 
     //	by Ian McEwan, Ashima Arts
@@ -138,25 +141,59 @@ export default {
 
     }
 
+    float baseNoise(vec3 coordinate, float seed)
+    {
+      int octaves = 12;
+
+      float strength = 0.0;
+      float frequency = 1.0;
+      float gain = 1.0;
+
+      for (int i=0; i<octaves; i++) {
+        strength += snoise(vec4(coordinate * frequency, seed)) * gain;
+        frequency *= 2.0;
+        gain *= 0.5;
+      }
+
+      return strength;
+    }
+
+    vec3 band(vec3 coordinate, float bandLength, float smoothness, vec3 colour, float colourVariability, float scale, float seed)
+    {
+      vec3 warp = vec3(
+        baseNoise(coordinate * vec3(1.0, 1.0, bandLength*8.0+1.0), seed*71.4),
+        baseNoise(coordinate * vec3(1.0, 1.0, bandLength*8.0+1.0)+vec3(5.2,1.3,1.8), seed*71.4),
+        baseNoise(coordinate * vec3(1.0, 1.0, bandLength*8.0+1.0)+vec3(2.2,8.8,1.9), seed*71.4)
+      );
+
+      vec3 warp2 = vec3(
+        baseNoise(coordinate + warp * (0.2+scale)*1.2 + vec3(1.7,9.2,2.7), seed*71.4),
+        baseNoise(coordinate + warp * (0.2+scale)*1.2 + vec3(1.3,2.8,1.9), seed*71.4),
+        baseNoise(coordinate + warp * (0.2+scale)*1.2 + vec3(2.3,4.1,3.9), seed*71.4)
+      );
+
+      vec3 warp3 = vec3(
+        baseNoise(coordinate + warp2 * (0.2+scale*colourVariability)*1.2, seed*(93.7)),
+        baseNoise(coordinate + warp2 * (0.2+scale*colourVariability)*1.2, seed*(93.7+0.125*colourVariability)),
+        baseNoise(coordinate + warp2 * (0.2+scale*colourVariability)*1.2, seed*(93.7+0.25*colourVariability))
+      );
+
+      return vec3(
+        clamp(0.0, 1.0, colour.r-((1.0-smoothness)*0.6*warp3.x)),
+        clamp(0.0, 1.0, colour.g-((1.0-smoothness)*0.6*warp3.y)),
+        clamp(0.0, 1.0, colour.b-((1.0-smoothness)*0.6*warp3.z))
+      );
+    }
+
     void main()
     {
-      const int octaves = 16;
-
       float x = vUv.x;
       float y = 1.0 - vUv.y;
       vec3 sphericalCoord = getSphericalCoord(x*uResolution, y*uResolution, uResolution);
 
-      float amp = 0.57;
+      vec3 colour = band(sphericalCoord, uBandLength, uSmoothness, uColour, uColourVariability, uScale, uSeed);
 
-      float strength = 0.0;
-      float gain = 1.0;
-      for(int i=0; i<octaves; i++) {
-        strength +=  snoise(vec4(sphericalCoord.x*gain, sphericalCoord.y*gain, sphericalCoord.z*(uBandLength*7.0+3.0)*gain, uSeed*uResolution)) * amp/gain;
-        gain *= 1.5;
-      }
-
-      strength = ( abs(strength - 0.3) * (1.0-uSmoothness*0.95) ) + 0.4;
-      gl_FragColor = vec4(strength * uColour.r, strength * uColour.g, strength * uColour.b, 1.0);
-  }
+      gl_FragColor = vec4(colour, 1.0);
+    }
   `,
 };
