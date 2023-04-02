@@ -181,25 +181,25 @@ export default {
         baseNoise((coordinate + noiseStep1) * (0.2+scale)*1.2, seed*71.4)
       );
 
-      float noiseStrength = baseNoise((coordinate + noiseStep2) * (0.2+scale)*1.2, seed*71.4);
+      float noiseStrength = (1.0-smoothness)*baseNoise((coordinate + noiseStep2) * (0.2+scale)*1.2, seed*71.4)+(smoothness*0.5);
   
       // Colours
       vec3 col_top = vec3(1.0, 1.0, 1.0);
       vec3 col_bot = vec3(0.0, 0.0, 0.0);
-      vec3 col_mid1 = mix(colour, uColourMid1, colourVariability*0.4+0.6);
+      vec3 col_mid1 = mix(colour, uColourMid1, colourVariability*0.6+0.4);
       vec3 col_mid2 = colour;
-      vec3 col_mid3 = mix(colour, uColourMid2, colourVariability*0.4+0.6);
+      vec3 col_mid3 = mix(colour, uColourMid2, colourVariability*0.6+0.4);
 
       // Mix
-      vec3 col_mid = mix(col_mid1, col_mid2, clamp(noiseStep1+0.3*colourVariability, 0.0, 1.0));
-      col_mid = mix(col_mid, col_mid3, clamp(noiseStep2+0.3*colourVariability, 0.0, 1.0));
+      vec3 col_mid = mix(col_mid1, col_mid2, clamp(noiseStep1, 0.0, 1.0));
+      col_mid = mix(col_mid, col_mid3, clamp(noiseStep2, 0.0, 1.0));
       float pos = clamp(noiseStrength, 0.0, 1.0) * 2.0 - 1.0;
       vec3 color = mix(col_mid, col_top, clamp(pos, 0.0, 1.0));
       color = mix(color, col_bot, clamp(-pos, 0.0, 1.0));
       color = color / max3(color);
-      color = (clamp((0.7 * pow(noiseStrength,3.) + pow(noiseStrength,2.) + 0.2*noiseStrength), 0.0, 1.0) * 0.9 + 0.1) * color;
+      color = (clamp((0.4 * pow(noiseStrength,3.) + pow(noiseStrength,2.) + 0.5*noiseStrength), 0.0, 1.0) * 0.9 + 0.1) * color;
 
-      return (1.0-smoothness*0.8)*color + smoothness*0.8*colour;
+      return color;
     }
 
     void main()
