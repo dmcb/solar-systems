@@ -149,17 +149,27 @@ export default class Planet {
     this.terrainRidgeDistribution = this.seed.fakeGaussianRandom(0,2);
     this.terrainBandLength = this.seed.fakeGaussianRandom(0,2);
     this.terrainSmoothness = this.seed.fakeGaussianRandom(0,2);
+    // Earthy tones for rocky planets
     if (this.rocky) {
-      // Earthy tones for rocky planets
-      this.hue = this.seed.getRandom()/8;
-      this.saturation = this.seed.fakeGaussianRandom(-1,5);
-      this.lightness = this.seed.fakeGaussianRandom(-1,3)*0.8+0.2;
+      this.colour = new THREE.Color().setHSL(
+        this.seed.getRandom()/7,
+        this.seed.fakeGaussianRandom(-1,3),
+        this.seed.fakeGaussianRandom(-1,3)*0.7+0.2
+      );
     }
     else {
-      this.hue = this.seed.getRandom();
-      this.saturation = this.seed.fakeGaussianRandom(0,4)*0.6+0.4;
-      this.lightness = this.seed.fakeGaussianRandom(0,4)*0.6+0.4;
+      this.colour = new THREE.Color().setHSL(
+        this.seed.getRandom(),
+        this.seed.fakeGaussianRandom(0,4)*0.6+0.4,
+        this.seed.fakeGaussianRandom(0,4)*0.6+0.3
+      );
     }
+    this.colourMid1 = new THREE.Color();
+    this.colourMid1.copy(this.colour);
+    this.colourMid1.offsetHSL(Math.abs(this.seed.getRandom()-0.5), Math.abs(this.seed.getRandom()-0.5), Math.abs(this.seed.getRandom()-0.5));
+    this.colourMid2 = new THREE.Color();
+    this.colourMid2.copy(this.colour);
+    this.colourMid2.offsetHSL(Math.abs(this.seed.getRandom()-0.5), Math.abs(this.seed.getRandom()-0.5), -Math.abs(this.seed.getRandom()-0.5));
   }
 
   generateOrbit() {
@@ -201,8 +211,6 @@ export default class Planet {
   }
 
   generateTextures() {
-    this.colour = new THREE.Color();
-    this.colour.setHSL(this.hue, this.saturation, this.lightness);
     let waterLevel = this.waterLevel * 0.1 + 0.45;
     let colourVariability = this.biomeColourVariability
     if (!this.habitable) {
@@ -262,6 +270,8 @@ export default class Planet {
         GasPlanetTextureShader,
         {
           uColour: {value: this.colour},
+          uColourMid1: {value: this.colourMid1},
+          uColourMid2: {value: this.colourMid2},
           uScale: {value: this.terrainScale},
           uSeed: {value: this.terrainSeed},
           uBandLength: {value: this.terrainBandLength},
@@ -730,34 +740,25 @@ export default class Planet {
         });
 
       this.debugFolder
-        .add(this, 'hue')
-        .name('hue')
-        .min(0)
-        .max(1)
-        .step(0.01)
-        .onFinishChange(() => {
+        .addColor(this, 'colour')
+        .name('colour')
+        .onChange(() => {
           this.removeTextures();
           this.generateTextures();
         });
 
       this.debugFolder
-        .add(this, 'saturation')
-        .name('saturation')
-        .min(0)
-        .max(1)
-        .step(0.01)
-        .onFinishChange(() => {
+        .addColor(this, 'colourMid1')
+        .name('colourMid1')
+        .onChange(() => {
           this.removeTextures();
           this.generateTextures();
         });
 
       this.debugFolder
-        .add(this, 'lightness')
-        .name('lightness')
-        .min(0)
-        .max(1)
-        .step(0.01)
-        .onFinishChange(() => {
+        .addColor(this, 'colourMid2')
+        .name('colourMid2')
+        .onChange(() => {
           this.removeTextures();
           this.generateTextures();
         });

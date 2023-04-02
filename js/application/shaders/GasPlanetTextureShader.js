@@ -13,6 +13,8 @@ export default {
     #define PI 3.1415926538
 
     uniform vec3 uColour;
+    uniform vec3 uColourMid1;
+    uniform vec3 uColourMid2;
     uniform float uColourVariability;
     uniform float uBandLength;
     uniform float uResolution;
@@ -141,48 +143,63 @@ export default {
 
     }
 
+    float hash(float p) { p = fract(p * 0.011); p *= p + 7.5; p *= p + p; return fract(p); }
+
     float baseNoise(vec3 coordinate, float seed)
     {
       int octaves = 12;
 
       float strength = 0.0;
-      float frequency = 1.0;
-      float gain = 1.0;
+      float frequency = 2.0;
+      float gain = 0.5;
 
       for (int i=0; i<octaves; i++) {
-        strength += snoise(vec4(coordinate * frequency, seed)) * gain;
+        strength += snoise(vec4(coordinate * frequency, seed + 100.0*float(i))) * gain;
         frequency *= 2.0;
         gain *= 0.5;
       }
 
-      return strength;
+      return strength*0.5+0.5;
+    }
+
+    float max3 (vec3 v) 
+    {
+      return max (max (v.x, v.y), v.z);
     }
 
     vec3 band(vec3 coordinate, float bandLength, float smoothness, vec3 colour, float colourVariability, float scale, float seed)
     {
-      vec3 warp = vec3(
-        baseNoise(coordinate * vec3(1.0, 1.0, bandLength*8.0+1.0), seed*71.4),
-        baseNoise(coordinate * vec3(1.0, 1.0, bandLength*8.0+1.0)+vec3(5.2,1.3,1.8), seed*71.4),
-        baseNoise(coordinate * vec3(1.0, 1.0, bandLength*8.0+1.0)+vec3(2.2,8.8,1.9), seed*71.4)
+      vec3 noiseStep1 = vec3(
+        baseNoise(coordinate * vec3(1.0, 1.0, bandLength*5.0+1.0), seed*71.4),
+        baseNoise(coordinate * vec3(1.0, 1.0, bandLength*5.0+1.0), seed*71.4),
+        baseNoise(coordinate * vec3(1.0, 1.0, bandLength*5.0+1.0), seed*71.4)
       );
 
-      vec3 warp2 = vec3(
-        baseNoise(coordinate + warp * (0.2+scale)*1.2 + vec3(1.7,9.2,2.7), seed*71.4),
-        baseNoise(coordinate + warp * (0.2+scale)*1.2 + vec3(1.3,2.8,1.9), seed*71.4),
-        baseNoise(coordinate + warp * (0.2+scale)*1.2 + vec3(2.3,4.1,3.9), seed*71.4)
+      vec3 noiseStep2 = vec3(
+        baseNoise((coordinate + noiseStep1) * (0.2+scale)*1.2, seed*71.4),
+        baseNoise((coordinate + noiseStep1) * (0.2+scale)*1.2, seed*71.4),
+        baseNoise((coordinate + noiseStep1) * (0.2+scale)*1.2, seed*71.4)
       );
 
-      vec3 warp3 = vec3(
-        baseNoise(coordinate + warp2 * (0.2+scale*colourVariability)*1.2, seed*(93.7)),
-        baseNoise(coordinate + warp2 * (0.2+scale*colourVariability)*1.2, seed*(93.7+0.125*colourVariability)),
-        baseNoise(coordinate + warp2 * (0.2+scale*colourVariability)*1.2, seed*(93.7+0.25*colourVariability))
-      );
+      float noiseStrength = baseNoise((coordinate + noiseStep2) * (0.2+scale)*1.2, seed*71.4);
+  
+      // Colours
+      vec3 col_top = vec3(1.0, 1.0, 1.0);
+      vec3 col_bot = vec3(0.0, 0.0, 0.0);
+      vec3 col_mid1 = mix(colour, uColourMid1, colourVariability*0.4+0.6);
+      vec3 col_mid2 = colour;
+      vec3 col_mid3 = mix(colour, uColourMid2, colourVariability*0.4+0.6);
 
-      return vec3(
-        clamp(0.0, 1.0, colour.r-((1.0-smoothness)*0.6*warp3.x)),
-        clamp(0.0, 1.0, colour.g-((1.0-smoothness)*0.6*warp3.y)),
-        clamp(0.0, 1.0, colour.b-((1.0-smoothness)*0.6*warp3.z))
-      );
+      // Mix
+      vec3 col_mid = mix(col_mid1, col_mid2, clamp(noiseStep1+0.3*colourVariability, 0.0, 1.0));
+      col_mid = mix(col_mid, col_mid3, clamp(noiseStep2+0.3*colourVariability, 0.0, 1.0));
+      float pos = clamp(noiseStrength, 0.0, 1.0) * 2.0 - 1.0;
+      vec3 color = mix(col_mid, col_top, clamp(pos, 0.0, 1.0));
+      color = mix(color, col_bot, clamp(-pos, 0.0, 1.0));
+      color = color / max3(color);
+      color = (clamp((0.7 * pow(noiseStrength,3.) + pow(noiseStrength,2.) + 0.2*noiseStrength), 0.0, 1.0) * 0.9 + 0.1) * color;
+
+      return (1.0-smoothness*0.8)*color + smoothness*0.8*colour;
     }
 
     void main()
