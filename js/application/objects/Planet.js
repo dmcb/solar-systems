@@ -94,7 +94,7 @@ export default class Planet {
     this.ringTilt = (this.seed.fakeGaussianRandom()*180-90) * Math.PI/180;
     this.ringDensity = this.seed.getRandom();
     this.ringDefinition = this.seed.getRandom();
-    this.ringThickness = this.seed.fakeGaussianRandom(0,2);
+    this.ringThickness = this.seed.fakeGaussianRandom(0,3);
     this.ringColourVariability = this.seed.getRandom();
   
     // With complete size and rings defined, set occupied area
