@@ -2,16 +2,20 @@ import 'https://cdnjs.cloudflare.com/ajax/libs/seedrandom/3.0.5/seedrandom.min.j
 import EventEmitter from './EventEmitter.js';
 
 export default class Seed extends EventEmitter {
-  constructor () {
+  constructor (seed) {
     super();
   
-    this.updateSeed(Math.random().toString(36).substring(2,7));
+    this.updateSeed(seed);
+  }
+
+  resetSeed(value) {
+    this.updateSeed(value);
+    this.trigger('reset');
   }
 
   updateSeed(value) {
     this.value = value;
     this.seedRandom = new Math.seedrandom(value); 
-    this.trigger('set');
   }
 
   fakeGaussianRandom(howSkewed, howNormalized) {
