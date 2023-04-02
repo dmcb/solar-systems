@@ -63,9 +63,9 @@ export default {
       float gain = 1.0;
 
       for (int i=0; i<octaves; i++) {
-        strength += (snoise(vec2(coordinate*frequency*(density+0.1), seed*frequency))+((thickness-0.2)*0.35))*gain;
+        strength += (snoise(vec2(coordinate*frequency*(density+0.3), seed*frequency))+((thickness-0.5)*0.4))*gain;
         frequency *= 2.0;
-        gain *= 0.65 + definition*0.3;
+        gain *= 0.69 + definition*0.2;
       }
 
       return strength;
