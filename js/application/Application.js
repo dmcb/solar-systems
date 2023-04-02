@@ -34,7 +34,7 @@ export default class Application {
     // Setup
     THREE.ColorManagement.legacyMode = false;
     this.debug = new Debug();
-    this.seed = new Seed();
+    this.seed = new Seed(Math.random().toString(36).substring(2,7));
     this.time = new Time();
     this.scene = new THREE.Scene();
     this.progressBar = new ProgressBar();
@@ -47,7 +47,7 @@ export default class Application {
     this.renderer = new Renderer();
     this.controls = new Controls();
 
-    this.seed.on('set', () => {
+    this.seed.on('reset', () => {
       this.reset();
     });
 

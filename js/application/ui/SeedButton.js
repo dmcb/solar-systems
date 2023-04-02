@@ -16,7 +16,7 @@ export default class SeedButton {
   click() {
     let newSeed = prompt("Enter seed");
     if (newSeed) {
-      this.seed.updateSeed(newSeed)
+      this.seed.resetSeed(newSeed)
       this.element.innerHTML = 'Seed: ' + newSeed;
     }
   }
