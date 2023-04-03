@@ -179,16 +179,16 @@ export default {
       int octaves = 12;
 
       float strength = 0.0;
-      float frequency = 1.0;
-      float gain = 1.0;
+      float frequency = 2.0;
+      float gain = 0.5;
 
       for (int i=0; i<octaves; i++) {
-        strength += snoise(vec4(coordinate * scale * frequency, seed)) * gain;
+        strength += snoise(vec4(coordinate * scale * frequency, seed + 10.0*float(i))) * gain;
         frequency *= 2.0;
         gain *= 0.5;
       }
 
-      return strength;
+      return strength*0.5+0.5;
     }
 
     float ridgeNoise(vec3 coordinate, float scale, float seed)
@@ -196,16 +196,18 @@ export default {
       int octaves = 12;
 
       float strength = 0.0;
-      float frequency = 1.0;
-      float gain = 1.0;
+      float frequency = 2.0;
+      float gain = 0.5;
 
       for (int i=0; i<octaves; i++) {
-        strength += abs(snoise(vec4(coordinate * scale * frequency, seed)) * gain);
+        strength += abs(snoise(vec4(coordinate * scale * frequency, seed + 10.0*float(i))) * gain);
         frequency *= 2.0;
         gain *= 0.5;
       }
 
-      return pow(strength, (uRidgeDistribution+0.15)*2.5);
+      strength = clamp(strength, 0.0, 1.0);
+
+      return pow(strength, (uRidgeDistribution+0.8)*3.0);
     }
 
     float craterNoise(vec3 coordinate, float scale, float seed)
@@ -232,16 +234,16 @@ export default {
 
       // Base 
       float baseHeight = baseNoise(sphericalCoord, 1.5*uScale+0.5, uSeed*71.4);
-      baseHeight = baseHeight * (0.2 * uHeight) + 0.5;
+      baseHeight = 0.5 + ((baseHeight-0.5) * 0.2 * (uHeight + 0.4));
 
       // Ridges
-      float ridgeHeight = ridgeNoise(sphericalCoord, 1.5*uRidgeScale+0.5, uSeed*249.3);
-      ridgeHeight *= 0.2 * uRidgeHeight;
+      float ridgeHeight = ridgeNoise(sphericalCoord, 2.5*uRidgeScale+0.2, uSeed*12.3);
+      ridgeHeight *= uRidgeHeight;
 
       // Craters
-      float craterArea = baseNoise(sphericalCoord, 0.7*uCraterErosion+0.1, uSeed*29.8);
-      float craterHeight = craterNoise(sphericalCoord, 3.8*uCratering+0.1, uSeed*18.3);
-      craterHeight *= craterArea * (uCraterProminence * 0.5);
+      float craterArea = clamp(baseNoise(sphericalCoord, 0.7*(uCraterErosion+0.1), uSeed*29.8)-0.5, 0.0, 1.0);
+      float craterHeight = craterNoise(sphericalCoord, 3.8*uCratering+0.1, uSeed*18.3)-0.5;
+      craterHeight = mix(0.0, craterHeight, min(clamp(1.0, 2.0, craterArea), 1.0))*uCraterProminence*2.0;
 
       // Add all noise
       float height = baseHeight + ridgeHeight + craterHeight;

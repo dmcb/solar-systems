@@ -154,7 +154,7 @@ export default {
       float gain = 0.5;
 
       for (int i=0; i<octaves; i++) {
-        strength += snoise(vec4(coordinate * frequency, seed + 100.0*float(i))) * gain;
+        strength += snoise(vec4(coordinate * frequency, seed + 10.0*float(i))) * gain;
         frequency *= 2.0;
         gain *= 0.5;
       }
