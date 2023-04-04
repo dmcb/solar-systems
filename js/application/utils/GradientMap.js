@@ -18,29 +18,13 @@ export default class GradientMap {
     this.canvas.height = this.resolutionY;
   }
 
-  generate(waterLevel, colour) {
+  generate(colorStops) {
     this.destroy();
     const ctx = this.canvas.getContext("2d");
     const gradient = ctx.createLinearGradient(0, 0, this.canvas.width, 0);
     
-    if (waterLevel) {
-      gradient.addColorStop(waterLevel*0.5, "#000044");
-      gradient.addColorStop(waterLevel*0.8, "#000066");
-      gradient.addColorStop(waterLevel*0.94, "#0000ff");
-      gradient.addColorStop(waterLevel*0.97, "#0047fe");
-      gradient.addColorStop(waterLevel, "#29d67a");
-      gradient.addColorStop(waterLevel, "#dcd39f");
-      gradient.addColorStop(waterLevel*1.02, "#749909");
-      gradient.addColorStop(waterLevel*1.07, "#215322");
-      gradient.addColorStop(waterLevel*1.13, "#214A21");
-      gradient.addColorStop(waterLevel*1.19, "#746354");
-      gradient.addColorStop(waterLevel*1.28, "#D3D0CD");
-      gradient.addColorStop(waterLevel*1.29, "#ffffff");
-    }
-    else {
-      console.log(colour.getHexString());
-      gradient.addColorStop(0, "black");
-      gradient.addColorStop(1, "#"+colour.getHexString());
+    for (let i = 0; i < colorStops.length; i++) {
+      gradient.addColorStop(colorStops[i].stop, '#'+colorStops[i].colour.getHexString());
     }
     
     ctx.fillStyle = gradient;

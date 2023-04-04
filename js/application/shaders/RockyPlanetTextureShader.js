@@ -12,7 +12,6 @@ export default {
   fragmentShader: /* glsl */`
     uniform sampler2D uHeightMap;
     uniform sampler2D uBiomeMap;
-    uniform float uColourVariability;
     uniform float uSeed;
   
     varying vec2 vUv;
@@ -78,16 +77,7 @@ export default {
       float height = getHeight(vUv);
       vec3 colour = texture(uBiomeMap, vec2(height, 0.0)).rgb;
 
-      float colourRedStrength = baseNoise(height, uSeed*91.3);
-      float colourGreenStrength = baseNoise(height, uSeed*141.8);
-      float colourBlueStrength = baseNoise(height, uSeed*58.7);
-
-      gl_FragColor = vec4(
-        colour.r*(1.0-uColourVariability*0.2)+colourRedStrength*(uColourVariability*0.2),
-        colour.g*(1.0-uColourVariability*0.2)+colourGreenStrength*(uColourVariability*0.2), 
-        colour.b*(1.0-uColourVariability*0.2)+colourBlueStrength*(uColourVariability*0.2), 
-        1.0
-      );
+      gl_FragColor = vec4(colour, 1.0);
   }
   `,
 };

@@ -234,7 +234,7 @@ export default {
 
       // Base 
       float baseHeight = baseNoise(sphericalCoord, uScale+0.1, uSeed*71.4);
-      baseHeight = 0.5 + ((baseHeight-0.5) * 0.2 * (uHeight + 0.4));
+      baseHeight = 0.5 + ((baseHeight-0.5) * 0.8 * (uHeight + 0.4));
 
       // Ridges
       float ridgeHeight = ridgeNoise(sphericalCoord, uRidgeScale*0.4+0.1, uSeed*12.3);

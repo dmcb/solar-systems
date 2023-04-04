@@ -10,10 +10,10 @@ export default class ShaderMap {
     this.map = null;
 
     if (!this.resolutionX) {
-      this.resolutionX = 1536;
+      this.resolutionX = 2048;
     }
     if (!this.resolutionY) {
-      this.resolutionY = 768;
+      this.resolutionY = 1024;
     }
   }
 

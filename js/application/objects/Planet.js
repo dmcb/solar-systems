@@ -212,10 +212,8 @@ export default class Planet {
 
   generateTextures() {
     let waterLevel = this.waterLevel * 0.1 + 0.45;
-    let colourVariability = this.biomeColourVariability
     if (!this.habitable) {
       waterLevel = 0;
-      colourVariability = 0;
     }
     if (this.rocky) {
       this.queue.add(() => {this.heightMap.generate(
@@ -254,14 +252,38 @@ export default class Planet {
           uWaterLevel: {value: waterLevel}
         }
       )});
-      this.queue.add(() => {this.biomeMap.generate(waterLevel, this.colour)});
+      if (this.habitable) {
+        this.queue.add(() => {this.biomeMap.generate(
+          [
+            {stop: waterLevel*0.4, colour: new THREE.Color('#000044')},
+            {stop: waterLevel*0.8, colour: new THREE.Color('#000066')},
+            {stop: waterLevel*0.96, colour: new THREE.Color('#0000ff')},
+            {stop: waterLevel*0.98, colour: new THREE.Color('#0047fe')},
+            {stop: waterLevel*1.0, colour: new THREE.Color('#29d67a')},
+            {stop: waterLevel*1.0, colour: new THREE.Color('#dcd39f').offsetHSL(this.biomeColourVariability*-0.24, 0, 0)},
+            {stop: waterLevel*1.02, colour: new THREE.Color('#749909').offsetHSL(this.biomeColourVariability*-0.24, 0, 0)},
+            {stop: waterLevel*1.07, colour: new THREE.Color('#215322').offsetHSL(this.biomeColourVariability*-0.24, 0, 0)},
+            {stop: waterLevel*1.14, colour: new THREE.Color('#214A21').offsetHSL(this.biomeColourVariability*-0.24, 0, 0)},
+            {stop: waterLevel*1.25, colour: new THREE.Color('#746354').offsetHSL(this.biomeColourVariability*-0.24, 0, 0)},
+            {stop: waterLevel*1.28, colour: new THREE.Color('#D3D0CD').offsetHSL(this.biomeColourVariability*-0.24, 0, 0)},
+            {stop: waterLevel*1.29, colour: new THREE.Color('#ffffff')}
+          ]
+        )});
+      }
+      else {
+        this.queue.add(() => {this.biomeMap.generate(
+          [
+            {stop: 0, colour: new THREE.Color('#000000')},
+            {stop: 1, colour: this.colour}
+          ]
+        )});
+      }
       this.queue.add(() => {this.planetTextureMap.generate(
         RockyPlanetTextureShader,
         {
           uHeightMap: {value: this.heightMap.map},
           uBiomeMap: {value: this.biomeMap.map},
           uSeed: {value: this.terrainSeed},
-          uColourVariability: {value: colourVariability}
         }
       )});
     }
@@ -398,7 +420,7 @@ export default class Planet {
     this.planetMaterial.map = this.planetTextureMap.map;
     this.planetMaterial.visible = true;
     this.planetMaterial.needsUpdate = true;
-    const flatness = Math.pow((1-((Math.min(this.size, 4.5)-1)/3.5))*0.8, 7); 
+    const flatness = Math.pow((1-((Math.min(this.size, 4.5)-1)/3.5))*0.75, 7); 
     this.planetMaterial.displacementScale = flatness;
 
     this.ringMaterial.map = this.ringTextureMap.map;
