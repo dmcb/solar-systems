@@ -233,16 +233,16 @@ export default {
       vec3 sphericalCoord = getSphericalCoord(x*uResolution, y*uResolution, uResolution);
 
       // Base 
-      float baseHeight = baseNoise(sphericalCoord, 1.5*uScale+0.5, uSeed*71.4);
+      float baseHeight = baseNoise(sphericalCoord, uScale+0.1, uSeed*71.4);
       baseHeight = 0.5 + ((baseHeight-0.5) * 0.2 * (uHeight + 0.4));
 
       // Ridges
-      float ridgeHeight = ridgeNoise(sphericalCoord, uRidgeScale*0.8+0.2, uSeed*12.3);
+      float ridgeHeight = ridgeNoise(sphericalCoord, uRidgeScale*0.4+0.1, uSeed*12.3);
       ridgeHeight *= uRidgeHeight*1.6;
 
       // Craters
       float craterArea = clamp(baseNoise(sphericalCoord, 1.0, uSeed*29.8)-uCraterErosion*0.5, 0.0, 1.0);
-      float craterHeight = craterNoise(sphericalCoord, 3.8*uCratering+0.1, uSeed*18.3);
+      float craterHeight = craterNoise(sphericalCoord, 3.8*uCratering+0.1, uSeed*18.3)-0.5;
       craterHeight = craterHeight*craterArea*uCraterProminence*0.5;
 
       // Add all noise
