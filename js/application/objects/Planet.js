@@ -169,12 +169,16 @@ export default class Planet {
         this.seed.fakeGaussianRandom(0,4)*0.6+0.3
       );
     }
-    this.colourMid1 = new THREE.Color();
-    this.colourMid1.copy(this.colour);
-    this.colourMid1.offsetHSL(Math.abs(this.seed.getRandom()-0.5), Math.abs(this.seed.getRandom()-0.5), Math.abs(this.seed.getRandom()-0.5));
-    this.colourMid2 = new THREE.Color();
-    this.colourMid2.copy(this.colour);
-    this.colourMid2.offsetHSL(Math.abs(this.seed.getRandom()-0.5), Math.abs(this.seed.getRandom()-0.5), -Math.abs(this.seed.getRandom()-0.5));
+    this.colourMid1 = new THREE.Color().copy(this.colour);
+    this.colourMid2 = new THREE.Color().copy(this.colour);
+    if (this.rocky) {
+      this.colourMid1.offsetHSL(Math.abs(this.seed.getRandom()*0.2-0.1), Math.abs(this.seed.getRandom()-0.5), Math.abs(this.seed.getRandom()-0.5));
+      this.colourMid2.offsetHSL(Math.abs(this.seed.getRandom()*0.2-0.1), Math.abs(this.seed.getRandom()-0.5), -Math.abs(this.seed.getRandom()-0.5));
+    }
+    else {
+      this.colourMid1.offsetHSL(Math.abs(this.seed.getRandom()-0.5), Math.abs(this.seed.getRandom()-0.5), Math.abs(this.seed.getRandom()-0.5));
+      this.colourMid2.offsetHSL(Math.abs(this.seed.getRandom()-0.5), Math.abs(this.seed.getRandom()-0.5), -Math.abs(this.seed.getRandom()-0.5));
+    }
   }
 
   generateOrbit() {
@@ -293,11 +297,12 @@ export default class Planet {
         this.queue.add(() => {this.biomeMap.generate([
           [
             {stop: 0, colour: new THREE.Color('#000000')},
-            {stop: 1, colour: this.colour}
+            {stop: 0.5, colour: this.colour},
+            {stop: 1, colour: new THREE.Color('#FFFFFF')},
           ],
           [
-            {stop: 0, colour: new THREE.Color('#000000')},
-            {stop: 1, colour: this.colour}
+            {stop: 0, colour: this.colourMid1},
+            {stop: 1, colour: this.colourMid2}
           ]
         ])});
       }
