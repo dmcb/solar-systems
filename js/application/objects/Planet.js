@@ -172,12 +172,12 @@ export default class Planet {
     this.colourMid1 = new THREE.Color().copy(this.colour);
     this.colourMid2 = new THREE.Color().copy(this.colour);
     if (this.rocky) {
-      this.colourMid1.offsetHSL(Math.abs(this.seed.getRandom()*0.2-0.1), Math.abs(this.seed.getRandom()-0.5), Math.abs(this.seed.getRandom()-0.5));
-      this.colourMid2.offsetHSL(Math.abs(this.seed.getRandom()*0.2-0.1), Math.abs(this.seed.getRandom()-0.5), -Math.abs(this.seed.getRandom()-0.5));
+      this.colourMid1.offsetHSL(this.seed.getRandom()*0.2-0.1, this.seed.getRandom()-0.5, Math.abs(this.seed.getRandom()-0.5));
+      this.colourMid2.offsetHSL(this.seed.getRandom()*0.2-0.1, this.seed.getRandom()-0.5, -Math.abs(this.seed.getRandom()-0.5));
     }
     else {
-      this.colourMid1.offsetHSL(Math.abs(this.seed.getRandom()-0.5), Math.abs(this.seed.getRandom()-0.5), Math.abs(this.seed.getRandom()-0.5));
-      this.colourMid2.offsetHSL(Math.abs(this.seed.getRandom()-0.5), Math.abs(this.seed.getRandom()-0.5), -Math.abs(this.seed.getRandom()-0.5));
+      this.colourMid1.offsetHSL(this.seed.getRandom()-0.5, this.seed.getRandom()-0.5, Math.abs(this.seed.getRandom()-0.5));
+      this.colourMid2.offsetHSL(this.seed.getRandom()-0.5, this.seed.getRandom()-0.5, -Math.abs(this.seed.getRandom()-0.5));
     }
   }
 
