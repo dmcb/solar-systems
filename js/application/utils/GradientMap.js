@@ -3,6 +3,7 @@ import * as THREE from 'three';
 export default class GradientMap {
   constructor(resolutionX, resolutionY) {
     this.canvas = document.createElement("canvas");
+    console.log(this.canvas);
     this.resolutionX = resolutionX;
     this.resolutionY = resolutionY;
     this.map = null;
@@ -11,25 +12,34 @@ export default class GradientMap {
       this.resolutionX = 256;
     }
     if (!this.resolutionY) {
-      this.resolutionY = 1;
+      this.resolutionY = 2;
     }
 
     this.canvas.width = this.resolutionX;
     this.canvas.height = this.resolutionY;
   }
 
-  generate(colorStops) {
+  generate(colorRanges) {
     this.destroy();
+
     const ctx = this.canvas.getContext("2d");
-    const gradient = ctx.createLinearGradient(0, 0, this.canvas.width, 0);
     
-    for (let i = 0; i < colorStops.length; i++) {
-      gradient.addColorStop(colorStops[i].stop, '#'+colorStops[i].colour.getHexString());
+    for (let i = 0; i < colorRanges.length; i++) {
+      let colorStops = colorRanges[i];
+      let gradient = ctx.createLinearGradient(0, 0, this.canvas.width, 0);
+
+      for (let j = 0; j < colorStops.length; j++) {
+        let colorStop = colorStops[j];
+        gradient.addColorStop(colorStop.stop, '#'+colorStop.colour.getHexString());
+      }
+
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, i, this.canvas.width, i+1);
     }
-    
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
     this.map = new THREE.CanvasTexture(this.canvas);
+    this.map.magFilter = THREE.NearestFilter;
+    this.map.minFilter = THREE.NearestFilter;
   }
 
   destroy() {

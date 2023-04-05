@@ -5,6 +5,7 @@ import GradientMap from '../utils/GradientMap.js';
 import DisplacementShader from '../shaders/DisplacementShader.js';
 import NormalShader from '../shaders/NormalShader.js';
 import RoughnessShader from '../shaders/RoughnessShader.js';
+import MoistureShader from '../shaders/MoistureShader.js';
 import GasPlanetTextureShader from '../shaders/GasPlanetTextureShader.js';
 import RockyPlanetHeightShader from '../shaders/RockyPlanetHeightShader.js';
 import RockyPlanetTextureShader from '../shaders/RockyPlanetTextureShader.js';
@@ -27,6 +28,7 @@ export default class Planet {
     this.displacementMap = new ShaderMap();
     this.normalMap = new ShaderMap();
     this.biomeMap = new GradientMap();
+    this.moistureMap = new ShaderMap();
     this.roughnessMap = new ShaderMap();
     this.planetTextureMap = new ShaderMap();
     this.ringTextureMap = new ShaderMap(256, 1);
@@ -140,8 +142,11 @@ export default class Planet {
       this.craterProminence = this.seed.getRandom();
     }
     this.waterLevel = this.seed.fakeGaussianRandom();
+    this.heat = this.seed.fakeGaussianRandom(-8*(this.minimumDistance/this.maximumDistance)+4);
     this.terrainSeed = this.seed.getRandom();
     this.biomeColourVariability = this.seed.getRandom();
+    this.moistureScale = this.seed.getRandom();
+    this.moistureDefinition = this.seed.getRandom();
     this.terrainScale = this.seed.fakeGaussianRandom(-1,4);
     this.terrainRidgeScale = this.seed.fakeGaussianRandom(0,2);
     this.terrainHeight = this.seed.fakeGaussianRandom(0,2);
@@ -253,36 +258,65 @@ export default class Planet {
         }
       )});
       if (this.habitable) {
-        this.queue.add(() => {this.biomeMap.generate(
+        this.queue.add(() => {this.biomeMap.generate([
+          [
+            {stop: waterLevel*0.4, colour: new THREE.Color('#000044')},
+            {stop: waterLevel*0.8, colour: new THREE.Color('#000066')},
+            {stop: waterLevel*0.96, colour: new THREE.Color('#0000ff')},
+            {stop: waterLevel*0.98, colour: new THREE.Color('#0047fe')},
+            {stop: waterLevel*1.0, colour: new THREE.Color('#75C5C2')},
+            {stop: waterLevel*1.0, colour: new THREE.Color('#dcd39f')}, //.offsetHSL(this.biomeColourVariability*-0.24, 0, 0)},
+            {stop: waterLevel*1.02, colour: new THREE.Color('#749909')}, //.offsetHSL(this.biomeColourVariability*-0.24, 0, 0)},
+            {stop: waterLevel*1.07, colour: new THREE.Color('#215322')}, //.offsetHSL(this.biomeColourVariability*-0.24, 0, 0)},
+            {stop: waterLevel*1.14, colour: new THREE.Color('#214A21')}, //.offsetHSL(this.biomeColourVariability*-0.24, 0, 0)},
+            {stop: waterLevel*1.25, colour: new THREE.Color('#746354')}, //.offsetHSL(this.biomeColourVariability*-0.24, 0, 0)},
+            {stop: waterLevel*1.28, colour: new THREE.Color('#D3D0CD')}, //.offsetHSL(this.biomeColourVariability*-0.24, 0, 0)},
+            {stop: waterLevel*1.29, colour: new THREE.Color('#ffffff')}
+          ],
           [
             {stop: waterLevel*0.4, colour: new THREE.Color('#000044')},
             {stop: waterLevel*0.8, colour: new THREE.Color('#000066')},
             {stop: waterLevel*0.96, colour: new THREE.Color('#0000ff')},
             {stop: waterLevel*0.98, colour: new THREE.Color('#0047fe')},
             {stop: waterLevel*1.0, colour: new THREE.Color('#29d67a')},
-            {stop: waterLevel*1.0, colour: new THREE.Color('#dcd39f').offsetHSL(this.biomeColourVariability*-0.24, 0, 0)},
-            {stop: waterLevel*1.02, colour: new THREE.Color('#749909').offsetHSL(this.biomeColourVariability*-0.24, 0, 0)},
-            {stop: waterLevel*1.07, colour: new THREE.Color('#215322').offsetHSL(this.biomeColourVariability*-0.24, 0, 0)},
-            {stop: waterLevel*1.14, colour: new THREE.Color('#214A21').offsetHSL(this.biomeColourVariability*-0.24, 0, 0)},
-            {stop: waterLevel*1.25, colour: new THREE.Color('#746354').offsetHSL(this.biomeColourVariability*-0.24, 0, 0)},
-            {stop: waterLevel*1.28, colour: new THREE.Color('#D3D0CD').offsetHSL(this.biomeColourVariability*-0.24, 0, 0)},
-            {stop: waterLevel*1.29, colour: new THREE.Color('#ffffff')}
-          ]
-        )});
+            {stop: waterLevel*1.0, colour: new THREE.Color('#FBE1B6')}, //.offsetHSL(this.biomeColourVariability*-0.24, 0, 0)},
+            {stop: waterLevel*1.02, colour: new THREE.Color('#FBE1B6')}, //.offsetHSL(this.biomeColourVariability*-0.24, 0, 0)},
+            {stop: waterLevel*1.07, colour: new THREE.Color('#DAA46D')}, //.offsetHSL(this.biomeColourVariability*-0.24, 0, 0)},
+            {stop: waterLevel*1.14, colour: new THREE.Color('#9C4F20')}, //.offsetHSL(this.biomeColourVariability*-0.24, 0, 0)},
+            {stop: waterLevel*1.25, colour: new THREE.Color('#9C4F20')}, //.offsetHSL(this.biomeColourVariability*-0.24, 0, 0)},
+            {stop: waterLevel*1.28, colour: new THREE.Color('#9C4F20')}, //.offsetHSL(this.biomeColourVariability*-0.24, 0, 0)},
+            {stop: waterLevel*1.29, colour: new THREE.Color('#9C4F20')}
+          ],
+        ])});
       }
       else {
-        this.queue.add(() => {this.biomeMap.generate(
+        this.queue.add(() => {this.biomeMap.generate([
+          [
+            {stop: 0, colour: new THREE.Color('#000000')},
+            {stop: 1, colour: this.colour}
+          ],
           [
             {stop: 0, colour: new THREE.Color('#000000')},
             {stop: 1, colour: this.colour}
           ]
-        )});
+        ])});
       }
+      this.queue.add(() => {this.moistureMap.generate(
+        MoistureShader,
+        {
+          uSeed: {value: this.terrainSeed},
+          uScale: {value: this.terrainScale},
+          uDefinition: {value: this.moistureDefinition},
+          uScale: {value: this.moistureScale},
+          uHeat: {value: this.heat}
+        }
+      )});
       this.queue.add(() => {this.planetTextureMap.generate(
         RockyPlanetTextureShader,
         {
           uHeightMap: {value: this.heightMap.map},
           uBiomeMap: {value: this.biomeMap.map},
+          uMoistureMap: {value: this.moistureMap.map},
           uSeed: {value: this.terrainSeed},
         }
       )});
@@ -391,10 +425,12 @@ export default class Planet {
   }
 
   removeTextures() {
+    this.biomeMap.destroy();
     this.heightMap.destroy();
     this.displacementMap.destroy();
     this.normalMap.destroy();
     this.roughnessMap.destroy();
+    this.moistureMap.destroy();
     this.planetTextureMap.destroy();
     this.ringTextureMap.destroy();
   }
@@ -630,8 +666,41 @@ export default class Planet {
         });
 
       this.debugFolder
+        .add(this, 'heat')
+        .name('heat')
+        .min(0)
+        .max(1)
+        .step(0.01)
+        .onFinishChange(() => {
+          this.removeTextures();
+          this.generateTextures();
+        });
+
+      this.debugFolder
         .add(this, 'biomeColourVariability')
         .name('biomeColourVar')
+        .min(0)
+        .max(1)
+        .step(0.01)
+        .onFinishChange(() => {
+          this.removeTextures();
+          this.generateTextures();
+        });
+
+      this.debugFolder
+        .add(this, 'moistureDefinition')
+        .name('moistureDefinition')
+        .min(0)
+        .max(1)
+        .step(0.01)
+        .onFinishChange(() => {
+          this.removeTextures();
+          this.generateTextures();
+        });
+
+      this.debugFolder
+        .add(this, 'moistureScale')
+        .name('moistureScale')
         .min(0)
         .max(1)
         .step(0.01)

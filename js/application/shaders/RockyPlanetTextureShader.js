@@ -12,6 +12,7 @@ export default {
   fragmentShader: /* glsl */`
     uniform sampler2D uHeightMap;
     uniform sampler2D uBiomeMap;
+    uniform sampler2D uMoistureMap;
     uniform float uSeed;
   
     varying vec2 vUv;
@@ -75,7 +76,9 @@ export default {
     void main()
     {
       float height = getHeight(vUv);
-      vec3 colour = texture(uBiomeMap, vec2(height, 0.0)).rgb;
+      vec3 heightColour = texture(uBiomeMap, vec2(height, 1.0)).rgb;
+      vec3 moistureColour = texture(uBiomeMap, vec2(height, 0.0)).rgb;
+      vec3 colour = mix(heightColour, moistureColour, texture(uMoistureMap, vUv).r);
 
       gl_FragColor = vec4(colour, 1.0);
   }
