@@ -147,7 +147,7 @@ export default class Planet {
     this.biomeColourVariability = this.seed.getRandom();
     this.moistureScale = this.seed.getRandom();
     this.moistureDefinition = this.seed.getRandom();
-    this.terrainScale = this.seed.fakeGaussianRandom(-1,4);
+    this.terrainScale = this.seed.fakeGaussianRandom(0,2);
     this.terrainRidgeScale = this.seed.fakeGaussianRandom(0,2);
     this.terrainHeight = this.seed.fakeGaussianRandom(0,2);
     this.terrainRidgeHeight = this.seed.fakeGaussianRandom(0,3)*2-1;
@@ -461,7 +461,7 @@ export default class Planet {
     this.planetMaterial.map = this.planetTextureMap.map;
     this.planetMaterial.visible = true;
     this.planetMaterial.needsUpdate = true;
-    const flatness = Math.pow((1-((Math.min(this.size, 4.5)-1)/3.5))*0.75, 7); 
+    const flatness = Math.pow((1-((Math.min(this.size, 4.5)-1)/3.5))*0.8, 7); 
     this.planetMaterial.displacementScale = flatness;
 
     this.ringMaterial.map = this.ringTextureMap.map;

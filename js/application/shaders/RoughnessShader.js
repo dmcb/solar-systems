@@ -23,9 +23,9 @@ export default {
     void main()
     {
       vec2 uv = vUv;
-      float strength = 0.5;
+      float strength = 0.45;
 
-      if (getHeight(uv) >= uWaterLevel) {
+      if (getHeight(uv) > uWaterLevel) {
         strength = 1.0;
       }
 
