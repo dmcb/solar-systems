@@ -67,7 +67,7 @@ export default class Planet {
       this.atmosphere = this.seed.fakeGaussianRandom(atmosphereProbabilityBias, 10);
       if (this.atmosphere > 0.5 && this.atmosphere < 0.75) {
         this.habitable = 1;
-        this.inhabited = Math.round(this.seed.fakeGaussianRandom(-4));
+        this.inhabited = Math.round(this.seed.fakeGaussianRandom(-2));
         if (this.inhabited) {
           console.log('Planet ' + this.planetNumber + ' is inhabited');
         }

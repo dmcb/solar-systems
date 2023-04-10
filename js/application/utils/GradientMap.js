@@ -3,7 +3,6 @@ import * as THREE from 'three';
 export default class GradientMap {
   constructor(resolutionX, resolutionY) {
     this.canvas = document.createElement("canvas");
-    console.log(this.canvas);
     this.resolutionX = resolutionX;
     this.resolutionY = resolutionY;
     this.map = null;
