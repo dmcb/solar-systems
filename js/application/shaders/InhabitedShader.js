@@ -12,12 +12,10 @@ export default {
   fragmentShader: /* glsl */`
     #define PI 3.1415926538
 
+    uniform sampler2D uHeightMap;
     uniform float uResolution;
-    uniform float uSeed;
-    uniform float uScale;
-    uniform float uDefinition;
-    uniform float uHeat;
-  
+    uniform float uWaterLevel;
+
     varying vec2 vUv;
 
     vec3 getSphericalCoord(float x, float y, float width) {
@@ -29,6 +27,11 @@ export default {
           sin(lat),
           cos(lat) * sin(lng)
       );
+    }
+
+    float getHeight(vec2 uv) 
+    {
+      return max(uWaterLevel, texture(uHeightMap, uv).r);
     }
 
     //	Simplex 4D Noise 
@@ -152,18 +155,23 @@ export default {
         gain *= 0.5;
       }
 
-      return clamp(pow(strength*0.5+0.55+(0.65*uHeat), (uDefinition+1.0)*6.0), 0.0, 1.0);
+      return strength;
     }
-
+    
     void main()
     {
+      vec2 uv = vUv;
       float x = vUv.x;
       float y = 1.0 - vUv.y;
       vec3 sphericalCoord = getSphericalCoord(x*uResolution, y*uResolution, uResolution);
 
-      float strength = baseNoise(sphericalCoord, uScale*0.4+0.4, uSeed*35.7);
+      float strength = 0.0;
+
+      if (getHeight(uv) > uWaterLevel && getHeight(uv) < uWaterLevel + 0.03) {
+        strength = clamp(0.0, 1.0, pow(baseNoise(sphericalCoord, 4.0, 35.7), 2.7)*8.1);
+      }
 
       gl_FragColor = vec4(strength, strength, strength, 1.0);
-  }
+    }
   `,
 };

@@ -72,7 +72,6 @@ export default class Application {
     // }
 
     this.queue.on('progress', (progress) => {
-      console.log(progress);
       this.progressBar.update(progress);
     });
 

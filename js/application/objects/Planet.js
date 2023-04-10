@@ -5,6 +5,7 @@ import GradientMap from '../utils/GradientMap.js';
 import DisplacementShader from '../shaders/DisplacementShader.js';
 import NormalShader from '../shaders/NormalShader.js';
 import RoughnessShader from '../shaders/RoughnessShader.js';
+import InhabitedShader from '../shaders/InhabitedShader.js';
 import MoistureShader from '../shaders/MoistureShader.js';
 import GasPlanetTextureShader from '../shaders/GasPlanetTextureShader.js';
 import RockyPlanetHeightShader from '../shaders/RockyPlanetHeightShader.js';
@@ -29,9 +30,13 @@ export default class Planet {
     this.normalMap = new ShaderMap();
     this.biomeMap = new GradientMap();
     this.moistureMap = new ShaderMap();
+    this.inhabitedMap = new ShaderMap();
     this.roughnessMap = new ShaderMap();
     this.planetTextureMap = new ShaderMap();
     this.ringTextureMap = new ShaderMap(256, 1);
+    this.customUniforms = {
+      uInhabitedMap: { value: null },
+    };
 
     this.planetNumber = planetNumber;
     this.minimumDistance = minimumDistance;
@@ -124,6 +129,30 @@ export default class Planet {
       visible: false,
       normalScale: new THREE.Vector2(0.5, 0.5)
     });
+
+    // Hooks into planet material shader to add inhabited map
+    this.planetMaterial.onBeforeCompile = (shader) =>
+    {
+      shader.fragmentShader = shader.fragmentShader.replace(
+        '#include <common>',
+        `
+          #include <common>
+
+          uniform sampler2D uInhabitedMap;
+        `
+      )
+
+      shader.fragmentShader = shader.fragmentShader.replace(
+        '#include <output_fragment>',
+        `
+          outgoingLight = mix(outgoingLight, mix(outgoingLight, vec3(0.9, 0.9, 0.6), texture(uInhabitedMap, vUv).r), step(0.0, -reflectedLight.directDiffuse.b));
+          #include <output_fragment>
+        `
+      );
+
+      shader.uniforms.uInhabitedMap = this.customUniforms.uInhabitedMap;
+    }
+
     this.ringMaterial = new THREE.MeshPhongMaterial({ 
       visible: false,
       transparent: true,
@@ -292,6 +321,15 @@ export default class Planet {
             {stop: waterLevel*1.29, colour: new THREE.Color('#9C4F20')}
           ],
         ])});
+        if (this.inhabited) {
+          this.queue.add(() => {this.inhabitedMap.generate(
+            InhabitedShader,
+            {
+              uHeightMap: {value: this.heightMap.map},
+              uWaterLevel: {value: waterLevel}
+            }
+          )});
+        }
       }
       else {
         this.queue.add(() => {this.biomeMap.generate([
@@ -436,6 +474,7 @@ export default class Planet {
     this.normalMap.destroy();
     this.roughnessMap.destroy();
     this.moistureMap.destroy();
+    this.inhabitedMap.destroy();
     this.planetTextureMap.destroy();
     this.ringTextureMap.destroy();
   }
@@ -460,9 +499,11 @@ export default class Planet {
     this.planetMaterial.displacementMap = this.displacementMap.map;
     this.planetMaterial.map = this.planetTextureMap.map;
     this.planetMaterial.visible = true;
-    this.planetMaterial.needsUpdate = true;
+    this.customUniforms.uInhabitedMap.value = this.inhabitedMap.map;
     const flatness = Math.pow((1-((Math.min(this.size, 4.5)-1)/3.5))*0.8, 7); 
     this.planetMaterial.displacementScale = flatness;
+    this.planetMaterial.needsUpdate = true;
+
 
     this.ringMaterial.map = this.ringTextureMap.map;
     this.ringMaterial.visible = true;
@@ -651,6 +692,17 @@ export default class Planet {
       this.debugFolder
         .add(this, 'habitable')
         .name('habitable')
+        .min(0)
+        .max(1)
+        .step(1)
+        .onFinishChange(() => {
+          this.removeTextures();
+          this.generateTextures();
+        });
+
+      this.debugFolder
+        .add(this, 'inhabited')
+        .name('inhabited')
         .min(0)
         .max(1)
         .step(1)
