@@ -57,43 +57,11 @@ export default class Planet {
     this.rocky = Math.round(this.seed.fakeGaussianRandom((8*(this.maximumDistance-this.minimumDistance)/this.maximumDistance)-4));
     if (this.rocky) {
       this.size = this.seed.fakeGaussianRandom(-3)*3.5+1;
-      // Atmosphere probability mostly based off being not too far or too close to sun
-      let atmosphereProbabilityBias = -12*Math.abs(1-((this.maximumDistance-this.minimumDistance*1.3)/(this.maximumDistance*0.5)));
-      // But size also affects it
-      atmosphereProbabilityBias += Math.pow(Math.max(0, this.size-0.75), 3);
-      atmosphereProbabilityBias = Math.max(-9, atmosphereProbabilityBias);
-      // Would love orbit eccentricity to negatively affect this too
-      // console.log([this.minimumDistance, atmosphereProbabilityBias]);
-      this.atmosphere = this.seed.fakeGaussianRandom(atmosphereProbabilityBias, 10);
-      if (this.atmosphere > 0.5 && this.atmosphere < 0.75) {
-        this.habitable = 1;
-        this.inhabited = Math.round(this.seed.fakeGaussianRandom(-2));
-        if (this.inhabited) {
-          console.log('Planet ' + this.planetNumber + ' is inhabited');
-        }
-        else {
-          console.log('Planet ' + this.planetNumber + ' is habitable');
-        }
-      }
-      else {
-        this.habitable = 0;
-        this.inhabited = 0;
-        if (this.atmosphere >= 0.75) {
-          console.log('Planet ' + this.planetNumber + ' has a runaway greenhouse effect');
-        }
-        else {
-          console.log('Planet ' + this.planetNumber + ' lacks atmosphere');
-        }
-      }
-      this.sphereOfInfluenceCoefficient = 1.6;
+      this.sphereOfInfluenceCoefficient = 1.7;
     }
     else {
       this.size = this.seed.fakeGaussianRandom(1)*4.5+1.5;
-      this.atmosphere = 1;
-      this.habitable = 0;
-      this.inhabited = 0;
-      this.sphereOfInfluenceCoefficient = 2.1;
-      console.log('Planet ' + this.planetNumber + ' is a gas giant');
+      this.sphereOfInfluenceCoefficient = 2.0;
     }
 
     // Set rings
@@ -161,6 +129,68 @@ export default class Planet {
       side: THREE.DoubleSide
     });
 
+    // Set atmosphere
+    if (this.rocky) {
+      // Atmosphere probability mostly based off being not too far or too close to sun
+      let atmosphereProbabilityBias = -12*Math.abs(1-((this.maximumDistance-this.minimumDistance*1.3)/(this.maximumDistance*0.5)));
+      // But size also affects it
+      atmosphereProbabilityBias += Math.pow(Math.max(0, this.size-0.75), 3);
+      atmosphereProbabilityBias = Math.max(-9, atmosphereProbabilityBias);
+      // console.log([this.minimumDistance, atmosphereProbabilityBias]);
+      this.atmosphere = this.seed.fakeGaussianRandom(atmosphereProbabilityBias, 10);
+    }
+    else {
+      this.atmosphere = 1;
+    }
+
+
+    // Set heat
+    // In the future I'd like to tie this to the sun(s) total size and luminosity
+    // But for now it's purely based on goldilocks zone plus a little sway from atmosphere
+    this.heat = 0.8*Math.pow(1-((this.actualDistanceFromSun-this.solarSystem.minimumDistance))/(this.maximumDistance-this.solarSystem.minimumDistance), 2.4)+0.2*this.atmosphere;
+
+    // Determine habitability
+    if (this.rocky) {
+      if (this.heat > 0.4 && this.heat < 0.6) {
+        if (this.atmosphere > 0.4 && this.atmosphere < 0.75) {
+          this.habitable = 1;
+          this.inhabited = Math.round(this.seed.fakeGaussianRandom(-2));
+          if (this.inhabited) {
+            console.log('Planet ' + this.planetNumber + ' is inhabited');
+          }
+          else {
+            console.log('Planet ' + this.planetNumber + ' is habitable');
+          }
+        }
+        else {
+          this.habitable = 0;
+          this.inhabited = 0;
+          if (this.atmosphere >= 0.75) {
+            console.log('Planet ' + this.planetNumber + ' has a runaway greenhouse effect');
+          }
+          else {
+            console.log('Planet ' + this.planetNumber + ' lacks atmosphere');
+          }
+        }
+      }
+      else {
+        this.habitable = 0;
+        this.inhabited = 0;
+        if (this.heat <= 0.4) {
+          console.log('Planet ' + this.planetNumber + ' is too cold');
+        }
+        else {
+          console.log('Planet ' + this.planetNumber + ' is too hot');
+        }
+      }
+    }
+    else {
+      this.atmosphere = 0;
+      this.habitable = 0;
+      this.inhabited = 0;
+      console.log('Planet ' + this.planetNumber + ' is a gas giant');
+    }
+
     // Set terrain
     if (this.habitable) {
       this.cratering = this.seed.fakeGaussianRandom(-1, 4);
@@ -172,9 +202,7 @@ export default class Planet {
       this.craterErosion = this.seed.getRandom();
       this.craterProminence = this.seed.getRandom();
     }
-    this.waterLevel = this.seed.fakeGaussianRandom();
-    this.heat = 0.8*Math.pow(1-((this.actualDistanceFromSun-this.solarSystem.minimumDistance))/(this.maximumDistance-this.solarSystem.minimumDistance), 2.4)+0.2*this.atmosphere;
-    console.log(this.heat);
+    this.waterLevel = this.seed.fakeGaussianRandom(0, 3);
     this.terrainSeed = this.seed.getRandom();
     this.biomeColourVariability = this.seed.getRandom();
     this.moistureScale = this.seed.getRandom();
@@ -216,7 +244,7 @@ export default class Planet {
   generateOrbit() {
     // Rocky planets are closer to the sun
     if (this.rocky) {
-      this.projectedDistanceFromSun = this.seed.fakeGaussianRandom(-12,13)*this.maximumDistance*0.3 + this.minimumDistance;
+      this.projectedDistanceFromSun = this.seed.fakeGaussianRandom(-12,13)*this.maximumDistance*0.4 + this.minimumDistance;
     }
     else {
       this.projectedDistanceFromSun = this.seed.fakeGaussianRandom(-12,13)*this.maximumDistance + this.minimumDistance;
@@ -258,9 +286,11 @@ export default class Planet {
   }
 
   generateTextures() {
-    let waterLevel = this.waterLevel * 0.1 + 0.45;
+    let waterLevel = this.waterLevel * 0.2 + 0.45;
+    let heat = Math.min(Math.max(this.heat-0.4, 0.0)*5, 1.0);
     if (!this.habitable) {
       waterLevel = 0;
+      heat = this.heat;
     }
     if (this.rocky) {
       this.queue.add(() => {this.heightMap.generate(
@@ -360,7 +390,7 @@ export default class Planet {
           uScale: {value: this.terrainScale},
           uDefinition: {value: this.moistureDefinition},
           uScale: {value: this.moistureScale},
-          uHeat: {value: this.heat}
+          uHeat: {value: heat}
         }
       )});
       this.queue.add(() => {this.planetTextureMap.generate(
