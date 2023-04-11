@@ -168,18 +168,14 @@ export default {
       vec3 sphericalCoord = getSphericalCoord(x*uResolution, y*uResolution, uResolution);
       float height = getHeight(vUv);
 
+      float isWater = 1.0-step(uWaterLevel, height);
       float tiltStrength = pow(clamp(1.0-abs(uTilt*1.5), 0.0, 1.0), 1.2);
       float poleStrength = clamp(pow(abs(sphericalCoord.z), 1.2+uHeat*4.0), 0.0, 1.0);
-      float heatStrength = pow(uHeat, 3.0);
+      float heatStrength = pow(uHeat+0.5*isWater, 3.0);
       float strength = smoothstep(clamp(1.0+heatStrength-tiltStrength, 0.0, 1.0), 1.0, poleStrength);
 
-      // Need to factor in noise at some point
-      // strength *= (baseNoise(sphericalCoord, 0.5, uSeed)*0.5+0.5);
-      // Need to factor in height at some point
-      // strength *= max(height-uWaterLevel, 0.0);
-      // If height is below water level then make strength zero
-      // Eventually we will have ice on water somehow
-      strength *= step(uWaterLevel, height);
+      // Add noise
+      strength = pow(strength, 1.0+3.0*(baseNoise(sphericalCoord, 2.5, uSeed)*0.5+0.5));
       strength = clamp(strength, 0.0, 1.0);
 
       gl_FragColor = vec4(strength, strength, strength, 1.0);

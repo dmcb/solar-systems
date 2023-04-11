@@ -81,7 +81,7 @@ export default {
       vec3 heightColour = texture(uBiomeMap, vec2(height, 1.0)).rgb;
       vec3 moistureColour = texture(uBiomeMap, vec2(height, 0.0)).rgb;
       vec3 colour = mix(heightColour, moistureColour, texture(uMoistureMap, vUv).r);
-      colour = mix(colour, vec3(1.0), pow(texture(uIceMap, vUv).r, 0.6));
+      colour = mix(colour, vec3(3.0), pow(texture(uIceMap, vUv).r, 0.8));
 
       gl_FragColor = vec4(colour, 1.0);
   }
