@@ -388,8 +388,9 @@ export default class Planet {
           this.queue.add(() => {this.inhabitedMap.generate(
             InhabitedShader,
             {
-              uIceMap: {value: this.iceMap.map},
               uHeightMap: {value: this.heightMap.map},
+              uIceMap: {value: this.iceMap.map},
+              uMoistureMap: {value: this.moistureMap.map},
               uWaterLevel: {value: waterLevel}
             }
           )});

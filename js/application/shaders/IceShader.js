@@ -168,8 +168,8 @@ export default {
       vec3 sphericalCoord = getSphericalCoord(x*uResolution, y*uResolution, uResolution);
       float height = getHeight(vUv);
 
-      float tiltStrength = pow(clamp(1.0-abs(uTilt*2.0), 0.0, 1.0), 1.1);
-      float poleStrength = clamp(pow(abs(sphericalCoord.z), 1.0+uHeat*2.0), 0.0, 1.0);
+      float tiltStrength = pow(clamp(1.0-abs(uTilt*1.5), 0.0, 1.0), 1.2);
+      float poleStrength = clamp(pow(abs(sphericalCoord.z), 1.2+uHeat*4.0), 0.0, 1.0);
       float heatStrength = pow(uHeat, 3.0);
       float strength = smoothstep(clamp(1.0+heatStrength-tiltStrength, 0.0, 1.0), 1.0, poleStrength);
 
