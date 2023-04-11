@@ -12,6 +12,7 @@ export default {
   fragmentShader: /* glsl */`
     #define PI 3.1415926538
 
+    uniform sampler2D uIceMap;
     uniform sampler2D uHeightMap;
     uniform float uResolution;
     uniform float uWaterLevel;
@@ -32,6 +33,11 @@ export default {
     float getHeight(vec2 uv) 
     {
       return max(uWaterLevel, texture(uHeightMap, uv).r);
+    }
+
+    float getIce(vec2 uv) 
+    {
+      return texture(uIceMap, uv).r;
     }
 
     //	Simplex 4D Noise 
@@ -168,7 +174,7 @@ export default {
       float strength = 0.0;
 
       if (getHeight(uv) > uWaterLevel && getHeight(uv) < uWaterLevel + 0.03) {
-        strength = clamp(0.0, 1.0, pow(baseNoise(sphericalCoord, 4.0, 35.7), 2.7)*8.1);
+        strength = clamp(pow(baseNoise(sphericalCoord, 4.0, 35.7), 2.7)*8.1-getIce(uv), 0.0, 1.0);
       }
 
       gl_FragColor = vec4(strength, strength, strength, 1.0);

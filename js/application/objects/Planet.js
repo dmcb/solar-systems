@@ -333,6 +333,26 @@ export default class Planet {
           uWaterLevel: {value: waterLevel}
         }
       )});
+      this.queue.add(() => {this.moistureMap.generate(
+        MoistureShader,
+        {
+          uSeed: {value: this.terrainSeed},
+          uScale: {value: this.terrainScale},
+          uDefinition: {value: this.moistureDefinition},
+          uScale: {value: this.moistureScale},
+          uHeat: {value: heat}
+        }
+      )});
+      this.queue.add(() => {this.iceMap.generate(
+        IceShader,
+        {
+          uHeat: {value: heat},
+          uHeightMap: {value: this.heightMap.map},
+          uTilt: {value: tilt},
+          uWaterLevel: {value: waterLevel},
+          uSeed: {value: this.terrainSeed}
+        }
+      )});
       if (this.habitable) {
         this.queue.add(() => {this.biomeMap.generate([
           [
@@ -368,6 +388,7 @@ export default class Planet {
           this.queue.add(() => {this.inhabitedMap.generate(
             InhabitedShader,
             {
+              uIceMap: {value: this.iceMap.map},
               uHeightMap: {value: this.heightMap.map},
               uWaterLevel: {value: waterLevel}
             }
@@ -387,26 +408,6 @@ export default class Planet {
           ]
         ])});
       }
-      this.queue.add(() => {this.moistureMap.generate(
-        MoistureShader,
-        {
-          uSeed: {value: this.terrainSeed},
-          uScale: {value: this.terrainScale},
-          uDefinition: {value: this.moistureDefinition},
-          uScale: {value: this.moistureScale},
-          uHeat: {value: heat}
-        }
-      )});
-      this.queue.add(() => {this.iceMap.generate(
-        IceShader,
-        {
-          uHeat: {value: heat},
-          uHeightMap: {value: this.heightMap.map},
-          uTilt: {value: tilt},
-          uWaterLevel: {value: waterLevel},
-          uSeed: {value: this.terrainSeed}
-        }
-      )});
       this.queue.add(() => {this.planetTextureMap.generate(
         RockyPlanetTextureShader,
         {
