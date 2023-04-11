@@ -68,13 +68,14 @@ export default class SolarSystem {
     else {
       secondSun.destroy();
     }
+    this.minimumDistanceForNextPlanet = this.minimumDistance;
 
     // Add planets
     let planetNumber = 1;
-    while (this.minimumDistance < this.maximumDistance) {
-      let planet = new Planet(planetNumber, this.minimumDistance, this.maximumDistance, this.direction);
-      this.minimumDistance = planet.nextNeighbourMinimumDistance();
-      if (this.minimumDistance < this.maximumDistance) {
+    while (this.minimumDistanceForNextPlanet < this.maximumDistance) {
+      let planet = new Planet(planetNumber, this.minimumDistanceForNextPlanet, this.maximumDistance, this.direction);
+      this.minimumDistanceForNextPlanet = planet.nextNeighbourMinimumDistance();
+      if (this.minimumDistanceForNextPlanet < this.maximumDistance) {
         this.planets.push(planet);
         planetNumber++;
       }

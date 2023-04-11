@@ -85,12 +85,14 @@ export default class Planet {
           console.log('Planet ' + this.planetNumber + ' lacks atmosphere');
         }
       }
+      this.sphereOfInfluenceCoefficient = 1.6;
     }
     else {
       this.size = this.seed.fakeGaussianRandom(1)*4.5+1.5;
       this.atmosphere = 1;
       this.habitable = 0;
       this.inhabited = 0;
+      this.sphereOfInfluenceCoefficient = 2.1;
       console.log('Planet ' + this.planetNumber + ' is a gas giant');
     }
 
@@ -109,7 +111,7 @@ export default class Planet {
     if (this.hasRings) {
       this.planetOccupiedArea += this.ringSize + this.ringDistance;
     }
-    this.planetSphereOfInfluence = this.planetOccupiedArea * 1.8;
+    this.planetSphereOfInfluence = this.planetOccupiedArea * this.sphereOfInfluenceCoefficient;
 
     // Generate orbit
     this.orbitalPosition = this.seed.getRandom()*2*Math.PI;
@@ -171,7 +173,8 @@ export default class Planet {
       this.craterProminence = this.seed.getRandom();
     }
     this.waterLevel = this.seed.fakeGaussianRandom();
-    this.heat = this.seed.fakeGaussianRandom(-8*(this.minimumDistance/this.maximumDistance)+4);
+    this.heat = 0.8*Math.pow(1-((this.actualDistanceFromSun-this.solarSystem.minimumDistance))/(this.maximumDistance-this.solarSystem.minimumDistance), 2.4)+0.2*this.atmosphere;
+    console.log(this.heat);
     this.terrainSeed = this.seed.getRandom();
     this.biomeColourVariability = this.seed.getRandom();
     this.moistureScale = this.seed.getRandom();
@@ -211,7 +214,13 @@ export default class Planet {
   }
 
   generateOrbit() {
-    this.projectedDistanceFromSun = this.seed.fakeGaussianRandom(-12,13)*this.maximumDistance + this.minimumDistance;
+    // Rocky planets are closer to the sun
+    if (this.rocky) {
+      this.projectedDistanceFromSun = this.seed.fakeGaussianRandom(-12,13)*this.maximumDistance*0.3 + this.minimumDistance;
+    }
+    else {
+      this.projectedDistanceFromSun = this.seed.fakeGaussianRandom(-12,13)*this.maximumDistance + this.minimumDistance;
+    }
     this.actualDistanceFromSun = this.projectedDistanceFromSun + this.planetSphereOfInfluence;
     this.orbitAxis = this.seed.fakeGaussianRandom(0,6*Math.pow(this.maximumDistance/this.actualDistanceFromSun, 1.5))*60-30;
     this.orbitEccentricity = Math.abs(this.seed.fakeGaussianRandom(0,5*Math.pow(this.maximumDistance/this.actualDistanceFromSun, 1.5))*1.2-0.6);
