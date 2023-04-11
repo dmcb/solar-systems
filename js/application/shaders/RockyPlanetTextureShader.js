@@ -13,6 +13,7 @@ export default {
     uniform sampler2D uHeightMap;
     uniform sampler2D uBiomeMap;
     uniform sampler2D uMoistureMap;
+    uniform sampler2D uIceMap;
     uniform float uSeed;
   
     varying vec2 vUv;
@@ -69,7 +70,8 @@ export default {
       return strength;
     }
 
-    float getHeight(vec2 uv) {
+    float getHeight(vec2 uv)
+    {
       return texture(uHeightMap, uv).r;
     }
 
@@ -79,6 +81,7 @@ export default {
       vec3 heightColour = texture(uBiomeMap, vec2(height, 1.0)).rgb;
       vec3 moistureColour = texture(uBiomeMap, vec2(height, 0.0)).rgb;
       vec3 colour = mix(heightColour, moistureColour, texture(uMoistureMap, vUv).r);
+      colour = mix(colour, vec3(1.0), texture(uIceMap, vUv).r);
 
       gl_FragColor = vec4(colour, 1.0);
   }

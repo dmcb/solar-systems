@@ -7,6 +7,7 @@ import NormalShader from '../shaders/NormalShader.js';
 import RoughnessShader from '../shaders/RoughnessShader.js';
 import InhabitedShader from '../shaders/InhabitedShader.js';
 import MoistureShader from '../shaders/MoistureShader.js';
+import IceShader from '../shaders/IceShader.js';
 import GasPlanetTextureShader from '../shaders/GasPlanetTextureShader.js';
 import RockyPlanetHeightShader from '../shaders/RockyPlanetHeightShader.js';
 import RockyPlanetTextureShader from '../shaders/RockyPlanetTextureShader.js';
@@ -30,6 +31,7 @@ export default class Planet {
     this.normalMap = new ShaderMap();
     this.biomeMap = new GradientMap();
     this.moistureMap = new ShaderMap();
+    this.iceMap = new ShaderMap();
     this.inhabitedMap = new ShaderMap();
     this.roughnessMap = new ShaderMap();
     this.planetTextureMap = new ShaderMap();
@@ -97,7 +99,8 @@ export default class Planet {
     // Generate untextured materials
     this.planetMaterial = new THREE.MeshStandardMaterial({
       visible: false,
-      normalScale: new THREE.Vector2(0.5, 0.5)
+      normalScale: new THREE.Vector2(0.5, 0.5),
+      metalness: 0.5,
     });
 
     // Hooks into planet material shader to add inhabited map
@@ -286,7 +289,8 @@ export default class Planet {
   }
 
   generateTextures() {
-    let waterLevel = this.waterLevel * 0.2 + 0.45;
+    let tilt = (this.tilt / (Math.PI*0.5));
+    let waterLevel = this.waterLevel * 0.2 + 0.425;
     let heat = Math.min(Math.max(this.heat-0.4, 0.0)*5, 1.0);
     if (!this.habitable) {
       waterLevel = 0;
@@ -393,12 +397,23 @@ export default class Planet {
           uHeat: {value: heat}
         }
       )});
+      this.queue.add(() => {this.iceMap.generate(
+        IceShader,
+        {
+          uHeat: {value: heat},
+          uHeightMap: {value: this.heightMap.map},
+          uTilt: {value: tilt},
+          uWaterLevel: {value: waterLevel},
+          uSeed: {value: this.terrainSeed}
+        }
+      )});
       this.queue.add(() => {this.planetTextureMap.generate(
         RockyPlanetTextureShader,
         {
           uHeightMap: {value: this.heightMap.map},
           uBiomeMap: {value: this.biomeMap.map},
           uMoistureMap: {value: this.moistureMap.map},
+          uIceMap: {value: this.iceMap.map},
           uSeed: {value: this.terrainSeed},
         }
       )});
@@ -513,6 +528,7 @@ export default class Planet {
     this.normalMap.destroy();
     this.roughnessMap.destroy();
     this.moistureMap.destroy();
+    this.iceMap.destroy();
     this.inhabitedMap.destroy();
     this.planetTextureMap.destroy();
     this.ringTextureMap.destroy();
@@ -536,6 +552,7 @@ export default class Planet {
     this.planetMaterial.normalMap = this.normalMap.map;
     this.planetMaterial.roughnessMap = this.roughnessMap.map;
     this.planetMaterial.displacementMap = this.displacementMap.map;
+    this.planetMaterial.metalnessMap = this.iceMap.map;
     this.planetMaterial.map = this.planetTextureMap.map;
     this.planetMaterial.visible = true;
     this.customUniforms.uInhabitedMap.value = this.inhabitedMap.map;
@@ -668,6 +685,10 @@ export default class Planet {
         .onChange(() => {
           this.removeFromScene();
           this.addToScene();
+        })
+        .onFinishChange(() => {
+          this.removeTextures();
+          this.generateTextures();
         });
 
       this.debugFolder

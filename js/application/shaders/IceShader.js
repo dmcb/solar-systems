@@ -12,30 +12,24 @@ export default {
   fragmentShader: /* glsl */`
     #define PI 3.1415926538
 
-    uniform vec3 uColour;
-    uniform float uScale;
-    uniform float uCratering;
-    uniform float uCraterErosion;
-    uniform float uCraterProminence;
-    uniform float uRidgeScale;
-    uniform float uHeight;
-    uniform float uRidgeHeight;
-    uniform float uRidgeDistribution;
+    uniform sampler2D uHeightMap;
     uniform float uResolution;
     uniform float uSeed;
+    uniform float uHeat;
+    uniform float uTilt;
+    uniform float uWaterLevel;
   
     varying vec2 vUv;
 
-    vec3 getSphericalCoord(float x, float y, float width)
-    {
-        float lat = y / width * PI - PI / 2.0;
-        float lng = x / width * 2.0 * PI - PI;
-    
-        return vec3(
-            cos(lat) * cos(lng),
-            sin(lat),
-            cos(lat) * sin(lng)
-        );
+    vec3 getSphericalCoord(float x, float y, float width) {
+      float lat = y / width * PI - PI / 2.0;
+      float lng = x / width * 2.0 * PI - PI;
+  
+      return vec3(
+          cos(lat) * cos(lng),
+          sin(lat),
+          cos(lat) * sin(lng)
+      );
     }
 
     //	Simplex 4D Noise 
@@ -145,35 +139,6 @@ export default {
 
     }
 
-    vec3 hash33(vec3 p)
-    {
-      p = vec3( dot(p,vec3(127.1,311.7, 74.7)),
-        dot(p,vec3(269.5,183.3,246.1)),
-        dot(p,vec3(113.5,271.9,124.6)));
-
-      return fract(sin(p)*43758.5453123*uSeed);
-    }
-
-    float craters(vec3 x) 
-    { 
-      vec3 p = floor(x);
-      vec3 f = fract(x);
-    
-      float va = 0.;
-      float wt = 0.;
-      for (int i = -2; i <= 2; i++) 
-        for (int j = -2; j <= 2; j++)
-          for (int k = -2; k <= 2; k++) { 
-            vec3 g = vec3(i,j,k);
-            vec3 o = 0.8 * hash33(p + g);
-            float d = distance(f - g, o);
-            float w = exp(-4. * d);
-            va += w * sin(2.*PI * sqrt(d));
-            wt += w;
-          }
-      return abs(va / wt);
-    }
-
     float baseNoise(vec3 coordinate, float scale, float seed)
     {
       int octaves = 12;
@@ -188,42 +153,12 @@ export default {
         gain *= 0.5;
       }
 
-      return strength*0.5+0.5;
-    }
-
-    float ridgeNoise(vec3 coordinate, float scale, float seed)
-    {
-      int octaves = 12;
-
-      float strength = 0.0;
-      float frequency = 2.0;
-      float gain = 0.5;
-
-      for (int i=0; i<octaves; i++) {
-        strength += abs(snoise(vec4(coordinate * scale * frequency, seed + 10.0*float(i))) * gain);
-        frequency *= 2.0;
-        gain *= 0.5;
-      }
-
-      strength = clamp(strength, 0.0, 1.0);
-
-      return pow(strength, (uRidgeDistribution+0.7)*2.2);
-    }
-
-    float craterNoise(vec3 coordinate, float scale, float seed)
-    {
-      int octaves = 5;
-    
-      float strength = 0.0;
-    
-      for (int i=0; i<octaves; i++) {
-        float craterNoise = craters(0.4 * pow(2.2, float(i)) * coordinate * scale);
-        craterNoise = 0.4 * exp(-3. * craterNoise);
-        float w = clamp(3. * pow(0.4, float(i)), 0., 1.);
-        strength += w * (craterNoise);
-      }
-    
       return strength;
+    }
+
+    float getHeight(vec2 uv)
+    {
+      return texture(uHeightMap, uv).r;
     }
 
     void main()
@@ -231,24 +166,23 @@ export default {
       float x = vUv.x;
       float y = 1.0 - vUv.y;
       vec3 sphericalCoord = getSphericalCoord(x*uResolution, y*uResolution, uResolution);
+      float height = getHeight(vUv);
 
-      // Base 
-      float baseHeight = baseNoise(sphericalCoord, uScale+0.1, uSeed*71.4);
-      baseHeight = 0.5 + ((baseHeight-0.5) * 0.8 * (uHeight + 0.4));
+      float tiltStrength = pow(clamp(1.0-abs(uTilt*2.0), 0.0, 1.0), 1.1);
+      float poleStrength = clamp(pow(abs(sphericalCoord.z), 1.0+uHeat*2.0), 0.0, 1.0);
+      float heatStrength = pow(uHeat, 3.0);
+      float strength = smoothstep(clamp(1.0+heatStrength-tiltStrength, 0.0, 1.0), 1.0, poleStrength);
 
-      // Ridges
-      float ridgeHeight = ridgeNoise(sphericalCoord, uRidgeScale*0.4+0.1, uSeed*12.3);
-      ridgeHeight *= uRidgeHeight*1.6;
+      // Need to factor in noise at some point
+      // strength *= (baseNoise(sphericalCoord, 0.5, uSeed)*0.5+0.5);
+      // Need to factor in height at some point
+      // strength *= max(height-uWaterLevel, 0.0);
+      // If height is below water level then make strength zero
+      // Eventually we will have ice on water somehow
+      strength *= step(uWaterLevel, height);
+      strength = clamp(strength, 0.0, 1.0);
 
-      // Craters
-      float craterArea = clamp(baseNoise(sphericalCoord, 1.0, uSeed*29.8)-uCraterErosion*0.5, 0.0, 1.0);
-      float craterHeight = craterNoise(sphericalCoord, 3.8*uCratering+0.1, uSeed*18.3)-0.5;
-      craterHeight = craterHeight*craterArea*uCraterProminence*0.5;
-
-      // Add all noise
-      float height = baseHeight + ridgeHeight + craterHeight;
-
-      gl_FragColor = vec4(height, height, height, 1.0);
+      gl_FragColor = vec4(strength, strength, strength, 1.0);
   }
   `,
 };
