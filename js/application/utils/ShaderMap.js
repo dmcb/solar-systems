@@ -28,6 +28,7 @@ export default class ShaderMap {
     camera.updateProjectionMatrix();
 
     let textureScene = new THREE.Scene();
+    textureScene.background = new THREE.Color('black');
     let geometry = new THREE.PlaneGeometry(this.resolutionX, this.resolutionY);
     let material = new THREE.ShaderMaterial({
       uniforms: uniforms,
@@ -38,7 +39,7 @@ export default class ShaderMap {
     planeMesh.position.z = -10;
     textureScene.add(planeMesh);
     this.renderer.instance.setRenderTarget(renderTarget);
-    this.renderer.instance.render(textureScene, camera);
+    this.renderer.instance.render(textureScene, camera, renderTarget, true);
     this.renderer.instance.setRenderTarget(null);
     this.map = renderTarget.texture;
     geometry.dispose();
