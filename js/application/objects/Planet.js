@@ -235,8 +235,8 @@ export default class Planet {
     this.colourMid1 = new THREE.Color().copy(this.colour);
     this.colourMid2 = new THREE.Color().copy(this.colour);
     if (this.rocky) {
-      this.colourMid1.offsetHSL(this.seed.getRandom()*0.25-0.125, 0, Math.abs(this.seed.getRandom()-0.5));
-      this.colourMid2.offsetHSL(this.seed.getRandom()*0.25-0.125, 0, -Math.abs(this.seed.getRandom()-0.5));
+      this.colourMid1.offsetHSL(this.seed.getRandom()*0.35-0.175, 0, Math.abs(this.seed.getRandom()-0.5));
+      this.colourMid2.offsetHSL(this.seed.getRandom()*0.35-0.175, 0, -Math.abs(this.seed.getRandom()-0.5));
     }
     else {
       this.colourMid1.offsetHSL(this.seed.getRandom()-0.5, this.seed.getRandom()-0.5, Math.abs(this.seed.getRandom()-0.5));
@@ -289,12 +289,14 @@ export default class Planet {
   }
 
   generateTextures() {
+    let biomeVariability = this.heat;
     let tilt = (this.tilt / (Math.PI*0.5));
-    let waterLevel = this.waterLevel * 0.2 + 0.425;
+    let waterLevel = this.waterLevel * 0.2 + 0.4;
     let heat = Math.min(Math.max(this.heat-0.4, 0.0)*5, 1.0);
     if (!this.habitable) {
       waterLevel = 0;
       heat = this.heat;
+      biomeVariability = this.biomeColourVariability;
     }
     if (this.rocky) {
       this.queue.add(() => {this.heightMap.generate(
@@ -340,20 +342,20 @@ export default class Planet {
           uScale: {value: this.terrainScale},
           uDefinition: {value: this.moistureDefinition},
           uScale: {value: this.moistureScale},
-          uHeat: {value: heat}
-        }
-      )});
-      this.queue.add(() => {this.iceMap.generate(
-        IceShader,
-        {
-          uHeat: {value: heat},
-          uHeightMap: {value: this.heightMap.map},
-          uTilt: {value: tilt},
-          uWaterLevel: {value: waterLevel},
-          uSeed: {value: this.terrainSeed}
+          uVariability: {value: biomeVariability}
         }
       )});
       if (this.habitable) {
+        this.queue.add(() => {this.iceMap.generate(
+          IceShader,
+          {
+            uHeat: {value: heat},
+            uHeightMap: {value: this.heightMap.map},
+            uTilt: {value: tilt},
+            uWaterLevel: {value: waterLevel},
+            uSeed: {value: this.terrainSeed}
+          }
+        )});
         this.queue.add(() => {this.biomeMap.generate([
           [
             {stop: waterLevel*0.4, colour: new THREE.Color('#000044')},

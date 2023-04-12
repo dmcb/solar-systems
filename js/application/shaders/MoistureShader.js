@@ -16,7 +16,7 @@ export default {
     uniform float uSeed;
     uniform float uScale;
     uniform float uDefinition;
-    uniform float uHeat;
+    uniform float uVariability;
   
     varying vec2 vUv;
 
@@ -152,7 +152,7 @@ export default {
         gain *= 0.5;
       }
 
-      return clamp(pow(strength*0.5+0.55+(0.65*uHeat), (uDefinition+1.0)*6.0), 0.0, 1.0);
+      return clamp(pow(strength*0.5+0.55+(0.65*uVariability), (uDefinition+1.0)*6.0), 0.0, 1.0);
     }
 
     void main()

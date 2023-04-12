@@ -167,11 +167,11 @@ export default {
       float y = 1.0 - vUv.y;
       vec3 sphericalCoord = getSphericalCoord(x*uResolution, y*uResolution, uResolution);
       float height = getHeight(vUv);
-
       float isWater = 1.0-step(uWaterLevel, height);
+
       float tiltStrength = pow(clamp(1.0-abs(uTilt*1.5), 0.0, 1.0), 1.2);
       float poleStrength = clamp(pow(abs(sphericalCoord.z), 1.2+uHeat*4.0), 0.0, 1.0);
-      float heatStrength = pow(uHeat+0.5*isWater, 3.0);
+      float heatStrength = pow(uHeat+0.7*isWater, 3.0);
       float strength = smoothstep(clamp(1.0+heatStrength-tiltStrength, 0.0, 1.0), 1.0, poleStrength);
 
       // Add noise
