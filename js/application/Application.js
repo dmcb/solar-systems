@@ -32,7 +32,7 @@ export default class Application {
     this.canvas = canvas;
 
     // Setup
-    THREE.ColorManagement.legacyMode = false;
+    THREE.ColorManagement.enabled = true;
     this.debug = new Debug();
     this.seed = new Seed(Math.random().toString(36).substring(2,7));
     this.time = new Time();
