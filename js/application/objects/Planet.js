@@ -118,7 +118,7 @@ export default class Planet {
       shader.fragmentShader = shader.fragmentShader.replace(
         '#include <output_fragment>',
         `
-          outgoingLight = mix(outgoingLight, mix(outgoingLight, vec3(0.9, 0.9, 0.6), texture(uInhabitedMap, vUv).r), step(0.0, -reflectedLight.directDiffuse.b));
+          outgoingLight = mix(outgoingLight, mix(outgoingLight, vec3(0.9, 0.9, 0.6), texture(uInhabitedMap, vMapUv.xy).r), step(0.0, -reflectedLight.directDiffuse.b));
           #include <output_fragment>
         `
       );
