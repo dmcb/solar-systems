@@ -176,7 +176,7 @@ export default {
 
       // Add noise
       strength = pow(strength, 1.0+3.0*(baseNoise(sphericalCoord, 2.5, uSeed)*0.5+0.5));
-      strength = clamp(strength, 0.0, 1.0);
+      strength = clamp(strength*4.0, 0.0, 1.0);
 
       gl_FragColor = vec4(strength, strength, strength, 1.0);
   }

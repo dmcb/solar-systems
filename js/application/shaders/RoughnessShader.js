@@ -32,7 +32,12 @@ export default {
       float ice = getIce(uv);
 
       if (ice > 0.0) {
-        strength = min(1.0, 1.0 - ice * 8.0);
+        if (getHeight(uv) > uWaterLevel) {
+          strength = max(0.0, 1.0 - ice);
+        }
+        else {
+          strength = max(0.0, 0.45 - ice);
+        }
       }
       else if (getHeight(uv) > uWaterLevel) {
         strength = 1.0;
