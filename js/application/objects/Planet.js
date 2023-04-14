@@ -150,6 +150,17 @@ export default class Planet {
     // In the future I'd like to tie this to the sun(s) total size and luminosity
     // But for now it's purely based on goldilocks zone plus a little sway from atmosphere
     this.heat = 0.8*Math.pow(1-((this.actualDistanceFromSun-this.solarSystem.minimumDistance))/(this.maximumDistance-this.solarSystem.minimumDistance), 2.4)+0.2*this.atmosphere;
+    // Make water level lower on colder and hotter planets
+    this.heatWaterBias = Math.abs(0.5-this.heat);
+    if (this.heatWaterBias > 0.08) {
+      this.heatWaterBias = 2;
+    }
+    else if (this.heatWaterBias > 0.04) {
+      this.heatWaterBias = 1;
+    }
+    else {
+      this.heatWaterBias = 0;
+    }
 
     // Determine habitability
     if (this.rocky) {
@@ -204,7 +215,7 @@ export default class Planet {
       this.craterErosion = this.seed.getRandom();
       this.craterProminence = this.seed.getRandom();
     }
-    this.waterLevel = this.seed.fakeGaussianRandom(0, 3);
+    this.waterLevel = this.seed.fakeGaussianRandom(-this.heatWaterBias, 3);
     this.terrainSeed = this.seed.getRandom();
     this.biomeColourVariability = this.seed.getRandom();
     this.moistureScale = this.seed.getRandom();
@@ -288,10 +299,10 @@ export default class Planet {
   }
 
   generateTextures() {
-    let biomeVariability = this.heat;
     let tilt = (this.tilt / (Math.PI*0.5));
     let waterLevel = this.waterLevel * 0.2 + 0.4;
     let heat = Math.min(Math.max(this.heat-0.4, 0.0)*5, 1.0);
+    let biomeVariability = heat;
     if (!this.habitable) {
       waterLevel = 0;
       heat = this.heat;
