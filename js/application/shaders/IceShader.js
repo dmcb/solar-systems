@@ -169,9 +169,9 @@ export default {
       float height = getHeight(vUv);
       float isWater = 1.0-step(uWaterLevel, height);
 
-      float tiltStrength = pow(clamp(1.0-abs(uTilt*1.5), 0.0, 1.0), 1.2);
-      float poleStrength = clamp(pow(abs(sphericalCoord.z), 1.2+uHeat*4.0), 0.0, 1.0);
-      float heatStrength = pow(uHeat+0.7*isWater, 3.0);
+      float tiltStrength = pow(clamp(1.0-abs(uTilt*1.5), 0.0, 1.0), 1.0);
+      float poleStrength = clamp(pow(abs(sphericalCoord.z), 1.0+uHeat*3.0), 0.0, 1.0);
+      float heatStrength = pow(uHeat+0.4*isWater, 3.0);
       float strength = smoothstep(clamp(1.0+heatStrength-tiltStrength, 0.0, 1.0), 1.0, poleStrength);
 
       // Add noise

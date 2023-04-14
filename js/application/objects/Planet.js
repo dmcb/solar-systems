@@ -100,7 +100,6 @@ export default class Planet {
     this.planetMaterial = new THREE.MeshStandardMaterial({
       visible: false,
       normalScale: new THREE.Vector2(0.5, 0.5),
-      metalness: 0.5,
     });
 
     // Hooks into planet material shader to add inhabited map
@@ -328,13 +327,6 @@ export default class Planet {
           uWaterLevel: {value: waterLevel}
         }
       )});
-      this.queue.add(() => {this.roughnessMap.generate(
-        RoughnessShader,
-        {
-          uHeightMap: {value: this.heightMap.map},
-          uWaterLevel: {value: waterLevel}
-        }
-      )});
       this.queue.add(() => {this.moistureMap.generate(
         MoistureShader,
         {
@@ -356,6 +348,14 @@ export default class Planet {
             uSeed: {value: this.terrainSeed}
           }
         )});
+        this.queue.add(() => {this.roughnessMap.generate(
+          RoughnessShader,
+          {
+            uHeightMap: {value: this.heightMap.map},
+            uWaterLevel: {value: waterLevel},
+            uIceMap: {value: this.iceMap.map},
+          }
+        )});
         this.queue.add(() => {this.biomeMap.generate([
           [
             {stop: waterLevel*0.4, colour: new THREE.Color('#000044')},
@@ -368,8 +368,6 @@ export default class Planet {
             {stop: waterLevel*1.07, colour: new THREE.Color('#215322')}, //.offsetHSL(this.biomeColourVariability*-0.24, 0, 0)},
             {stop: waterLevel*1.14, colour: new THREE.Color('#214A21')}, //.offsetHSL(this.biomeColourVariability*-0.24, 0, 0)},
             {stop: waterLevel*1.25, colour: new THREE.Color('#746354')}, //.offsetHSL(this.biomeColourVariability*-0.24, 0, 0)},
-            {stop: waterLevel*1.28, colour: new THREE.Color('#D3D0CD')}, //.offsetHSL(this.biomeColourVariability*-0.24, 0, 0)},
-            {stop: waterLevel*1.29, colour: new THREE.Color('#ffffff')}
           ],
           [
             {stop: waterLevel*0.4, colour: new THREE.Color('#000044')},
@@ -382,8 +380,6 @@ export default class Planet {
             {stop: waterLevel*1.07, colour: new THREE.Color('#DAA46D')}, //.offsetHSL(this.biomeColourVariability*-0.24, 0, 0)},
             {stop: waterLevel*1.14, colour: new THREE.Color('#9C4F20')}, //.offsetHSL(this.biomeColourVariability*-0.24, 0, 0)},
             {stop: waterLevel*1.25, colour: new THREE.Color('#9C4F20')}, //.offsetHSL(this.biomeColourVariability*-0.24, 0, 0)},
-            {stop: waterLevel*1.28, colour: new THREE.Color('#9C4F20')}, //.offsetHSL(this.biomeColourVariability*-0.24, 0, 0)},
-            {stop: waterLevel*1.29, colour: new THREE.Color('#9C4F20')}
           ],
         ])});
         if (this.inhabited) {
@@ -556,7 +552,6 @@ export default class Planet {
     this.planetMaterial.normalMap = this.normalMap.map;
     this.planetMaterial.roughnessMap = this.roughnessMap.map;
     this.planetMaterial.displacementMap = this.displacementMap.map;
-    this.planetMaterial.metalnessMap = this.iceMap.map;
     this.planetMaterial.map = this.planetTextureMap.map;
     this.planetMaterial.visible = true;
     this.customUniforms.uInhabitedMap.value = this.inhabitedMap.map;

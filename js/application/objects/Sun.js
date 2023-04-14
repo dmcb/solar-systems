@@ -78,7 +78,7 @@ export default class Sun {
     const sunsPivotPoint = this.scene.getObjectByName('sunsPivotPoint');
     sunsPivotPoint.add(this.sunPivotPoint);
 
-    this.sunLight = new THREE.PointLight(this.illuminationColour, this.brightness, this.solarSystemRadius*1.5);
+    this.sunLight = new THREE.PointLight(this.illuminationColour, this.brightness, this.solarSystemRadius*2.0);
     this.sunLight.position.set( 0, 0, 0 );
     this.sunLight.castShadow = true;
     this.sunLight.shadow.mapSize.width = 2048;
