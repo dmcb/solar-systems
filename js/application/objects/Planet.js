@@ -96,7 +96,7 @@ export default class Planet {
     const oblatenessRolls = Math.max(1, 10-(18*Math.pow(this.rotationSpeed, 1.2)*Math.pow(this.size/6, 1.2)));
     this.oblateness = Math.abs(this.seed.fakeGaussianRandom(0, oblatenessRolls)-0.5)*2;
   
-    // Generate untextured materials
+    // Set placeholder planet surface material
     this.planetMaterial = new THREE.MeshStandardMaterial({
       visible: false,
       normalScale: new THREE.Vector2(0.5, 0.5),
@@ -125,10 +125,11 @@ export default class Planet {
       shader.uniforms.uInhabitedMap = this.customUniforms.uInhabitedMap;
     }
 
+    // Set placeholder ring surface material
     this.ringMaterial = new THREE.MeshPhongMaterial({ 
       visible: false,
       transparent: true,
-      side: THREE.DoubleSide
+      side: THREE.DoubleSide,
     });
 
     // Set atmosphere
@@ -145,7 +146,6 @@ export default class Planet {
       this.atmosphere = 1;
     }
 
-
     // Set heat
     // In the future I'd like to tie this to the sun(s) total size and luminosity
     // But for now it's purely based on goldilocks zone plus a little sway from atmosphere
@@ -155,7 +155,7 @@ export default class Planet {
     if (this.heatWaterBias > 0.08) {
       this.heatWaterBias = 2;
     }
-    else if (this.heatWaterBias > 0.04) {
+    else if (this.heatWaterBias > 0.05) {
       this.heatWaterBias = 1;
     }
     else {
@@ -215,7 +215,7 @@ export default class Planet {
       this.craterErosion = this.seed.getRandom();
       this.craterProminence = this.seed.getRandom();
     }
-    this.waterLevel = this.seed.fakeGaussianRandom(-this.heatWaterBias, 3);
+    this.waterLevel = this.seed.fakeGaussianRandom(-this.heatWaterBias, 4);
     this.terrainSeed = this.seed.getRandom();
     this.biomeColourVariability = this.seed.getRandom();
     this.moistureScale = this.seed.getRandom();
@@ -468,17 +468,32 @@ export default class Planet {
   }
 
   addToScene() {
-    // Create geometry
+    // Add planet
     let sphereGeometry = new THREE.SphereGeometry(this.size, 128, 64);
-    // Add mesh to scene
     this.planetSphere = new THREE.Mesh(sphereGeometry, this.planetMaterial);
     this.planetSphere.name = "planetCore";
     this.planetSphere.receiveShadow = true;
     this.planetSphere.castShadow = true;
-    // Add oblateness to planet
     this.planetSphere.geometry.scale(1, 1, (1-this.oblateness+7)/8);
     this.planetPivotPoint.add(this.planetSphere);
-    this.planetPivotPoint.position.copy(this.determinePointInOrbit(this.orbitalPosition));
+
+    // Add atmosphere
+    let atmosphereGeometry = new THREE.SphereGeometry(this.size*1.06, 128, 64);
+    let atmosphereMaterial = new THREE.MeshStandardMaterial({
+      side: THREE.FrontSide,
+      transparent: true,
+      opacity: Math.pow(this.atmosphere*0.85, 3),
+      color: this.colour,
+      depthWrite: false,
+      depthTest: true,
+      visible: false // disabled for now
+    });
+    this.planetAtmosphere = new THREE.Mesh(atmosphereGeometry, atmosphereMaterial);
+    this.planetAtmosphere.name = "planetAtmosphere";
+    this.planetAtmosphere.receiveShadow = true;
+    this.planetAtmosphere.castShadow = false;
+    this.planetAtmosphere.geometry.scale(1, 1, (1-this.oblateness+7)/8);
+    this.planetPivotPoint.add(this.planetAtmosphere);
 
     // Add rings
     if (this.hasRings) {
@@ -502,6 +517,9 @@ export default class Planet {
     // Tilt planet and rings
     this.planetPivotPoint.rotation.y = this.tilt;
 
+    // Set position in orbit
+    this.planetPivotPoint.position.copy(this.determinePointInOrbit(this.orbitalPosition));
+
     // Add orbit
     this.setOrbit();
     this.showOrbit();
@@ -515,8 +533,15 @@ export default class Planet {
 
     if (this.planetSphere) {
       this.planetMaterial.dispose();
+      this.planetSphere.material.dispose();
       this.planetSphere.geometry.dispose();
       this.planetSphere.removeFromParent();
+    }
+
+    if (this.planetAtmosphere) {
+      this.planetAtmosphere.material.dispose();
+      this.planetAtmosphere.geometry.dispose();
+      this.planetAtmosphere.removeFromParent();
     }
 
     if (this.axisLine) {
@@ -524,6 +549,7 @@ export default class Planet {
     }
     
     if (this.planetRing) {
+      this.ringMaterial.dispose();
       this.planetRing.material.dispose();
       this.planetRing.geometry.dispose();
       this.planetRing.removeFromParent();
@@ -755,8 +781,8 @@ export default class Planet {
         .max(1)
         .step(0.01)
         .onFinishChange(() => {
-          this.removeTextures();
-          this.generateTextures();
+          this.removeFromScene();
+          this.addToScene();
         });
 
       this.debugFolder

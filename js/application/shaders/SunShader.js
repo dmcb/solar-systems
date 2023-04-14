@@ -118,7 +118,8 @@ export default {
         strength += clamp(pow(abs(snoise(vec3(vUv*30.0*(1.2-uScale)*i, uTime*0.0005*uVolatility))), uIntensity), uSmoothness, 1.0-uSmoothness) * 0.7 * (uBrightness + 0.5)/(i + 0.5);
       }
 
-      gl_FragColor = vec4((1.2-(vNdotV*0.8)) * strength * uSurfaceColour, 1.0);
+      float fresnel = clamp(1.2-vNdotV*0.8, 0.0, 1.0);
+      gl_FragColor = vec4(fresnel * strength * uSurfaceColour, 1.0);
     }
   `,
 };
