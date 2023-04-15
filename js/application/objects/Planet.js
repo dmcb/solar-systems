@@ -136,7 +136,7 @@ export default class Planet {
 
     // Set atmosphere
     // I can't help but think I want to refine this a bit more
-    let heatFromSun = Math.pow(1-((this.actualDistanceFromSun-(this.minimumDistanceFromSuns/2)))/(this.maximumDistance-(this.minimumDistanceFromSuns/2)), (1.0-this.sunHeat)*3);
+    let heatFromSun = Math.pow(1-((this.actualDistanceFromSun-(this.minimumDistanceFromSuns*this.sunHeat*2.2)))/(this.maximumDistance-(this.minimumDistanceFromSuns*this.sunHeat*2.2)), (1.0-this.sunHeat)*4);
     if (this.rocky) {
       // Atmosphere probability based off of heat and planet size
       let atmosphereProbabilityBias = -Math.pow(Math.abs(0.5-heatFromSun), 0.5)*10;
