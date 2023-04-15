@@ -17,7 +17,7 @@ const exaggeratedDistanceFromSunModifier = 1.25;
 // To do: timeModifier shouldn't be locked away in Planet but set by the scene
 const timeModifier = 0.0003125;
 export default class Planet {
-  constructor(planetNumber, minimumDistance, maximumDistance, direction) {
+  constructor(planetNumber, minimumDistanceFromSuns, minimumDistance, maximumDistance, direction, sunHeat) {
     this.application = new Application();
     this.seed = this.application.seed;
     this.scene = this.application.scene;
@@ -41,9 +41,11 @@ export default class Planet {
     };
 
     this.planetNumber = planetNumber;
+    this.minimumDistanceFromSuns = minimumDistanceFromSuns;
     this.minimumDistance = minimumDistance;
     this.maximumDistance = maximumDistance;
     this.direction = direction;
+    this.sunHeat = sunHeat;
 
     this.generateProperties();
     this.addTouchPoint();
@@ -133,39 +135,39 @@ export default class Planet {
     });
 
     // Set atmosphere
+    // I can't help but think I want to refine this a bit more
+    let heatFromSun = Math.pow(1-((this.actualDistanceFromSun-(this.minimumDistanceFromSuns/2)))/(this.maximumDistance-(this.minimumDistanceFromSuns/2)), (1.0-this.sunHeat)*3);
     if (this.rocky) {
-      // Atmosphere probability mostly based off being not too far or too close to sun
-      let atmosphereProbabilityBias = -12*Math.abs(1-((this.maximumDistance-this.minimumDistance*1.3)/(this.maximumDistance*0.5)));
-      // But size also affects it
-      atmosphereProbabilityBias += Math.pow(Math.max(0, this.size-0.75), 3);
-      atmosphereProbabilityBias = Math.max(-9, atmosphereProbabilityBias);
-      // console.log([this.minimumDistance, atmosphereProbabilityBias]);
-      this.atmosphere = this.seed.fakeGaussianRandom(atmosphereProbabilityBias, 10);
+      // Atmosphere probability based off of heat and planet size
+      let atmosphereProbabilityBias = -Math.pow(Math.abs(0.5-heatFromSun), 0.5)*10;
+      atmosphereProbabilityBias += Math.pow(this.size/4.5, 1.5)*10;
+      atmosphereProbabilityBias = Math.max(-5, Math.min(5, atmosphereProbabilityBias));
+      this.atmosphere = this.seed.fakeGaussianRandom(atmosphereProbabilityBias, 6);
     }
     else {
       this.atmosphere = 1;
     }
 
     // Set heat
-    // In the future I'd like to tie this to the sun(s) total size and luminosity
-    // But for now it's purely based on goldilocks zone plus a little sway from atmosphere
-    this.heat = 0.8*Math.pow(1-((this.actualDistanceFromSun-this.solarSystem.minimumDistance))/(this.maximumDistance-this.solarSystem.minimumDistance), 2.4)+0.2*this.atmosphere;
-    // Make water level lower on colder and hotter planets
-    this.heatWaterBias = Math.abs(0.5-this.heat);
-    if (this.heatWaterBias > 0.08) {
-      this.heatWaterBias = 2;
+    this.heat = 0.8*heatFromSun+0.2*this.atmosphere;
+    console.log(this.heat);
+    // Set water level, and make water level lower on colder and hotter planets
+    let heatWaterBias = Math.abs(0.5-this.heat);
+    if (heatWaterBias > 0.08) {
+      heatWaterBias = 2;
     }
-    else if (this.heatWaterBias > 0.05) {
-      this.heatWaterBias = 1;
+    else if (heatWaterBias > 0.05) {
+      heatWaterBias = 1;
     }
     else {
-      this.heatWaterBias = 0;
+      heatWaterBias = 0;
     }
+    this.waterLevel = this.seed.fakeGaussianRandom(-heatWaterBias, 4);
 
     // Determine habitability
     if (this.rocky) {
       if (this.heat > 0.4 && this.heat < 0.6) {
-        if (this.atmosphere > 0.4 && this.atmosphere < 0.75) {
+        if (this.atmosphere >= 0.4 && this.atmosphere <= 0.6) {
           this.habitable = 1;
           this.inhabited = Math.round(this.seed.fakeGaussianRandom(-2));
           if (this.inhabited) {
@@ -178,7 +180,7 @@ export default class Planet {
         else {
           this.habitable = 0;
           this.inhabited = 0;
-          if (this.atmosphere >= 0.75) {
+          if (this.atmosphere > 0.6) {
             console.log('Planet ' + this.planetNumber + ' has a runaway greenhouse effect');
           }
           else {
@@ -189,7 +191,7 @@ export default class Planet {
       else {
         this.habitable = 0;
         this.inhabited = 0;
-        if (this.heat <= 0.4) {
+        if (this.heat < 0.4) {
           console.log('Planet ' + this.planetNumber + ' is too cold');
         }
         else {
@@ -215,7 +217,6 @@ export default class Planet {
       this.craterErosion = this.seed.getRandom();
       this.craterProminence = this.seed.getRandom();
     }
-    this.waterLevel = this.seed.fakeGaussianRandom(-this.heatWaterBias, 4);
     this.terrainSeed = this.seed.getRandom();
     this.biomeColourVariability = this.seed.getRandom();
     this.moistureScale = this.seed.getRandom();
@@ -392,8 +393,6 @@ export default class Planet {
             {stop: waterLevel*1.02, colour: new THREE.Color('#E5C9B6')}, //.offsetHSL(this.biomeColourVariability*-0.24, 0, 0)},
             {stop: waterLevel*1.07, colour: new THREE.Color('#DAA46D')}, //.offsetHSL(this.biomeColourVariability*-0.24, 0, 0)},
             {stop: waterLevel*1.14, colour: new THREE.Color('#9C4F20')}, //.offsetHSL(this.biomeColourVariability*-0.24, 0, 0)},
-            {stop: waterLevel*1.19, colour: new THREE.Color('#9E705C')},
-            {stop: waterLevel*1.25, colour: new THREE.Color('#A69385')}, //.offsetHSL(this.biomeColourVariability*-0.24, 0, 0)},
             {stop: waterLevel*1.29, colour: new THREE.Color('#746354')}, //.offsetHSL(this.biomeColourVariability*-0.24, 0, 0)},
           ],
         ])});

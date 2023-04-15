@@ -55,25 +55,29 @@ export default class SolarSystem {
     this.sunsPivotPoint.name = "sunsPivotPoint";
     this.scene.add(this.sunsPivotPoint);
     let sun = new Sun(1, this.direction);
-    this.minimumDistance = sun.size*3;
+    this.minimumDistanceFromSuns = sun.size*3;
     sun.addToScene();
+    this.sunHeat = sun.heat;
     this.suns.push(sun);
     let secondSun = new Sun(2, this.direction);
     if (sun.size + secondSun.size < 16 && this.seed.getRandom() > 0.5) {
       this.sunDistance = this.seed.fakeGaussianRandom(0,2)*35+5;
       secondSun.addToScene();
+      this.sunHeat += secondSun.heat;
       this.suns.push(secondSun);
       this.placeSuns();
     }
     else {
       secondSun.destroy();
     }
-    this.minimumDistanceForNextPlanet = this.minimumDistance;
+    this.minimumDistanceForNextPlanet = this.minimumDistanceFromSuns;
+
+    console.log(this.sunHeat);
 
     // Add planets
     let planetNumber = 1;
     while (this.minimumDistanceForNextPlanet < this.maximumDistance) {
-      let planet = new Planet(planetNumber, this.minimumDistanceForNextPlanet, this.maximumDistance, this.direction);
+      let planet = new Planet(planetNumber, this.minimumDistanceFromSuns, this.minimumDistanceForNextPlanet, this.maximumDistance, this.direction, this.sunHeat);
       this.minimumDistanceForNextPlanet = planet.nextNeighbourMinimumDistance();
       if (this.minimumDistanceForNextPlanet < this.maximumDistance) {
         this.planets.push(planet);
@@ -102,7 +106,7 @@ export default class SolarSystem {
       this.suns[1].sunPivotPoint.position.x = this.suns[1].sunPivotPoint.position.x - centerOfMass;
       this.suns[1].distanceFromCenter = Math.abs(this.suns[1].sunPivotPoint.position.x);
       // Determine minimum distance
-      this.minimumDistance = Math.max(this.suns[0].distanceFromCenter+this.suns[0].size/2, this.suns[1].distanceFromCenter+this.suns[1].size/2) * 1.75;
+      this.minimumDistanceFromSuns = Math.max(this.suns[0].distanceFromCenter+this.suns[0].size/2, this.suns[1].distanceFromCenter+this.suns[1].size/2) * 1.75;
     }
   }
 
