@@ -227,6 +227,7 @@ export default class Planet {
     this.terrainRidgeDistribution = this.seed.fakeGaussianRandom(0,2);
     this.terrainBandLength = this.seed.fakeGaussianRandom(0,2);
     this.terrainSmoothness = this.seed.fakeGaussianRandom(0,2);
+
     // Earthy tones for rocky planets
     if (this.rocky) {
       this.colour = new THREE.Color().setHSL(
@@ -375,10 +376,11 @@ export default class Planet {
             {stop: waterLevel*0.98, colour: new THREE.Color('#0047fe')},
             {stop: waterLevel*1.0, colour: new THREE.Color('#75C5C2')},
             {stop: waterLevel*1.0, colour: new THREE.Color('#dcd39f')}, //.offsetHSL(this.biomeColourVariability*-0.24, 0, 0)},
-            {stop: waterLevel*1.02, colour: new THREE.Color('#749909')}, //.offsetHSL(this.biomeColourVariability*-0.24, 0, 0)},
-            {stop: waterLevel*1.07, colour: new THREE.Color('#215322')}, //.offsetHSL(this.biomeColourVariability*-0.24, 0, 0)},
-            {stop: waterLevel*1.14, colour: new THREE.Color('#214A21')}, //.offsetHSL(this.biomeColourVariability*-0.24, 0, 0)},
-            {stop: waterLevel*1.25, colour: new THREE.Color('#746354')}, //.offsetHSL(this.biomeColourVariability*-0.24, 0, 0)},
+            {stop: waterLevel*1.04, colour: new THREE.Color('#749909')}, //.offsetHSL(this.biomeColourVariability*-0.24, 0, 0)},
+            {stop: waterLevel*1.08, colour: new THREE.Color('#215322')}, //.offsetHSL(this.biomeColourVariability*-0.24, 0, 0)},
+            {stop: waterLevel*1.17, colour: new THREE.Color('#152A15')}, //.offsetHSL(this.biomeColourVariability*-0.24, 0, 0)},
+            {stop: waterLevel*1.29, colour: new THREE.Color('#746354')}, //.offsetHSL(this.biomeColourVariability*-0.24, 0, 0)},
+            {stop: waterLevel*1.4, colour: new THREE.Color('#FFFFFF')}, //.offsetHSL(this.biomeColourVariability*-0.24, 0, 0)},
           ],
           [
             {stop: waterLevel*0.4, colour: new THREE.Color('#000044')},
@@ -386,11 +388,13 @@ export default class Planet {
             {stop: waterLevel*0.96, colour: new THREE.Color('#0000ff')},
             {stop: waterLevel*0.98, colour: new THREE.Color('#0047fe')},
             {stop: waterLevel*1.0, colour: new THREE.Color('#29d67a')},
-            {stop: waterLevel*1.0, colour: new THREE.Color('#FBE1B6')}, //.offsetHSL(this.biomeColourVariability*-0.24, 0, 0)},
-            {stop: waterLevel*1.02, colour: new THREE.Color('#FBE1B6')}, //.offsetHSL(this.biomeColourVariability*-0.24, 0, 0)},
+            {stop: waterLevel*1.0, colour: new THREE.Color('#F2DEB9')}, //.offsetHSL(this.biomeColourVariability*-0.24, 0, 0)},
+            {stop: waterLevel*1.02, colour: new THREE.Color('#E5C9B6')}, //.offsetHSL(this.biomeColourVariability*-0.24, 0, 0)},
             {stop: waterLevel*1.07, colour: new THREE.Color('#DAA46D')}, //.offsetHSL(this.biomeColourVariability*-0.24, 0, 0)},
             {stop: waterLevel*1.14, colour: new THREE.Color('#9C4F20')}, //.offsetHSL(this.biomeColourVariability*-0.24, 0, 0)},
-            {stop: waterLevel*1.25, colour: new THREE.Color('#9C4F20')}, //.offsetHSL(this.biomeColourVariability*-0.24, 0, 0)},
+            {stop: waterLevel*1.19, colour: new THREE.Color('#9E705C')},
+            {stop: waterLevel*1.25, colour: new THREE.Color('#A69385')}, //.offsetHSL(this.biomeColourVariability*-0.24, 0, 0)},
+            {stop: waterLevel*1.29, colour: new THREE.Color('#746354')}, //.offsetHSL(this.biomeColourVariability*-0.24, 0, 0)},
           ],
         ])});
         if (this.inhabited) {
