@@ -140,7 +140,7 @@ export default {
 
     float baseNoise(vec3 coordinate, float scale, float seed)
     {
-      int octaves = 12;
+      const int octaves = 12;
 
       float strength = 0.0;
       float frequency = 2.0;

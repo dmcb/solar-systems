@@ -56,7 +56,7 @@ export default {
 
     float baseNoise(float coordinate, float density, float definition, float thickness, float seed)
     {
-      int octaves = 12;
+      const int octaves = 12;
 
       float strength = 0.0;
       float frequency = 1.0;

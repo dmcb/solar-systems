@@ -17,7 +17,7 @@ export default {
     varying vec2 vUv;
 
     float getHeight(vec2 uv) {
-      return texture(uHeightMap, uv).r;
+      return texture2D(uHeightMap, uv).r;
     }
     
     void main()

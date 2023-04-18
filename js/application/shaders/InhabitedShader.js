@@ -33,17 +33,17 @@ export default {
 
     float getHeight(vec2 uv) 
     {
-      return max(uWaterLevel, texture(uHeightMap, uv).r);
+      return max(uWaterLevel, texture2D(uHeightMap, uv).r);
     }
 
     float getIce(vec2 uv) 
     {
-      return texture(uIceMap, uv).r;
+      return texture2D(uIceMap, uv).r;
     }
 
     float getDesert(vec2 uv) 
     {
-      return texture(uMoistureMap, uv).r;
+      return texture2D(uMoistureMap, uv).r;
     }
 
     //	Simplex 4D Noise 
@@ -155,7 +155,7 @@ export default {
 
     float baseNoise(vec3 coordinate, float scale, float seed)
     {
-      int octaves = 12;
+      const int octaves = 12;
 
       float strength = 0.0;
       float frequency = 2.0;

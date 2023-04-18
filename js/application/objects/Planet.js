@@ -119,13 +119,19 @@ export default class Planet {
       shader.fragmentShader = shader.fragmentShader.replace(
         '#include <output_fragment>',
         `
-          outgoingLight = mix(outgoingLight, mix(outgoingLight, vec3(0.9, 0.9, 0.6), texture(uInhabitedMap, vMapUv.xy).r), step(0.0, -reflectedLight.directDiffuse.b));
+          outgoingLight = mix(outgoingLight, mix(outgoingLight, vec3(0.9, 0.9, 0.6), texture2D(uInhabitedMap, vMapUv.xy).r), step(0.0, -reflectedLight.directDiffuse.b));
           #include <output_fragment>
         `
       );
 
       shader.uniforms.uInhabitedMap = this.customUniforms.uInhabitedMap;
     }
+
+    // Set placeholder atmosphere material
+    this.atmosphereMaterial = new THREE.MeshStandardMaterial({
+      visible: false,
+      transparent: true
+    });
 
     // Set placeholder ring surface material
     this.ringMaterial = new THREE.MeshPhongMaterial({ 
@@ -478,20 +484,13 @@ export default class Planet {
     this.planetSphere.receiveShadow = true;
     this.planetSphere.castShadow = true;
     this.planetSphere.geometry.scale(1, 1, (1-this.oblateness+7)/8);
+    const flatness = Math.pow((1-((Math.min(this.size, 4.5)-1)/3.5))*0.8, 7); 
+    this.planetMaterial.displacementScale = flatness;
     this.planetPivotPoint.add(this.planetSphere);
 
     // Add atmosphere
-    let atmosphereGeometry = new THREE.SphereGeometry(this.size*1.06, 128, 64);
-    let atmosphereMaterial = new THREE.MeshStandardMaterial({
-      side: THREE.FrontSide,
-      transparent: true,
-      opacity: Math.pow(this.atmosphere*0.85, 3),
-      color: this.colour,
-      depthWrite: false,
-      depthTest: true,
-      visible: false // disabled for now
-    });
-    this.planetAtmosphere = new THREE.Mesh(atmosphereGeometry, atmosphereMaterial);
+    let atmosphereGeometry = new THREE.SphereGeometry(this.size*1.005+flatness, 128, 64);
+    this.planetAtmosphere = new THREE.Mesh(atmosphereGeometry, this.atmosphereMaterial);
     this.planetAtmosphere.name = "planetAtmosphere";
     this.planetAtmosphere.receiveShadow = true;
     this.planetAtmosphere.castShadow = false;
@@ -542,6 +541,7 @@ export default class Planet {
     }
 
     if (this.planetAtmosphere) {
+      this.atmosphereMaterial.dispose();
       this.planetAtmosphere.material.dispose();
       this.planetAtmosphere.geometry.dispose();
       this.planetAtmosphere.removeFromParent();
@@ -595,10 +595,17 @@ export default class Planet {
     this.planetMaterial.map = this.planetTextureMap.map;
     this.planetMaterial.visible = true;
     this.customUniforms.uInhabitedMap.value = this.inhabitedMap.map;
-    const flatness = Math.pow((1-((Math.min(this.size, 4.5)-1)/3.5))*0.8, 7); 
-    this.planetMaterial.displacementScale = flatness;
     this.planetMaterial.needsUpdate = true;
 
+    if (this.habitable) {
+      this.atmosphereMaterial.color = new THREE.Color('#0000ff');
+    }
+    else {
+      this.atmosphereMaterial.color = this.colour;
+    }
+    // this.atmosphereMaterial.visible = true;
+    this.atmosphereMaterial.opacity = Math.pow(this.atmosphere, 3);
+    this.atmosphereMaterial.needsUpdate = true;
 
     this.ringMaterial.map = this.ringTextureMap.map;
     this.ringMaterial.visible = true;
@@ -690,7 +697,6 @@ export default class Planet {
         .onChange(() => {
           this.removeFromScene();
           this.addToScene();
-          this.updateMaterial();
         });
 
       this.debugFolder
@@ -784,8 +790,8 @@ export default class Planet {
         .max(1)
         .step(0.01)
         .onFinishChange(() => {
-          this.removeFromScene();
-          this.addToScene();
+          this.removeTextures();
+          this.generateTextures();
         });
 
       this.debugFolder

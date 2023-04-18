@@ -55,7 +55,7 @@ export default {
 
     float baseNoise(float coordinate, float seed)
     {
-      int octaves = 3;
+      const int octaves = 3;
 
       float strength = 0.0;
       float frequency = 1.0;
@@ -72,16 +72,16 @@ export default {
 
     float getHeight(vec2 uv)
     {
-      return texture(uHeightMap, uv).r;
+      return texture2D(uHeightMap, uv).r;
     }
 
     void main()
     {
       float height = getHeight(vUv);
-      vec3 heightColour = texture(uBiomeMap, vec2(height, 1.0)).rgb;
-      vec3 moistureColour = texture(uBiomeMap, vec2(height, 0.0)).rgb;
-      vec3 colour = mix(heightColour, moistureColour, texture(uMoistureMap, vUv).r);
-      colour = mix(colour, vec3(1.0), pow(texture(uIceMap, vUv).r, 1.0));
+      vec3 heightColour = texture2D(uBiomeMap, vec2(height, 1.0)).rgb;
+      vec3 moistureColour = texture2D(uBiomeMap, vec2(height, 0.0)).rgb;
+      vec3 colour = mix(heightColour, moistureColour, texture2D(uMoistureMap, vUv).r);
+      colour = mix(colour, vec3(1.0), pow(texture2D(uIceMap, vUv).r, 1.0));
 
       gl_FragColor = vec4(colour, 1.0);
   }

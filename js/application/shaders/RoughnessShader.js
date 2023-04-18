@@ -18,11 +18,11 @@ export default {
     varying vec2 vUv;
 
     float getHeight(vec2 uv) {
-      return max(uWaterLevel, texture(uHeightMap, uv).r);
+      return max(uWaterLevel, texture2D(uHeightMap, uv).r);
     }
 
     float getIce(vec2 uv) {
-      return texture(uIceMap, uv).r;
+      return texture2D(uIceMap, uv).r;
     }
     
     void main()
