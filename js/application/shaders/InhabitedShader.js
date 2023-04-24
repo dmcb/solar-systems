@@ -20,7 +20,8 @@ export default {
 
     varying vec2 vUv;
 
-    vec3 getSphericalCoord(float x, float y, float width) {
+    vec3 getSphericalCoord(float x, float y, float width)
+    {
       float lat = y / width * PI - PI / 2.0;
       float lng = x / width * 2.0 * PI - PI;
   

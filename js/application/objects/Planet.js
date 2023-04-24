@@ -130,7 +130,7 @@ export default class Planet {
     // Set placeholder atmosphere material
     this.atmosphereMaterial = new THREE.MeshStandardMaterial({
       visible: false,
-      transparent: true
+      transparent: true,
     });
 
     // Set placeholder ring surface material
@@ -489,12 +489,13 @@ export default class Planet {
     this.planetPivotPoint.add(this.planetSphere);
 
     // Add atmosphere
-    let atmosphereGeometry = new THREE.SphereGeometry(this.size*1.005+flatness, 128, 64);
+    let atmosphereGeometry = new THREE.SphereGeometry(this.size*1.002, 128, 64);
     this.planetAtmosphere = new THREE.Mesh(atmosphereGeometry, this.atmosphereMaterial);
     this.planetAtmosphere.name = "planetAtmosphere";
     this.planetAtmosphere.receiveShadow = true;
     this.planetAtmosphere.castShadow = false;
     this.planetAtmosphere.geometry.scale(1, 1, (1-this.oblateness+7)/8);
+    this.atmosphereMaterial.displacementScale = flatness;
     this.planetPivotPoint.add(this.planetAtmosphere);
 
     // Add rings
@@ -581,6 +582,7 @@ export default class Planet {
   update() {
     // Rotate the planet on its axis (day)
     this.planetSphere.rotation.z += this.rotationSpeed * 5 * this.time.delta * timeModifier;
+    this.planetAtmosphere.rotation.z += this.rotationSpeed * 5 * this.time.delta * timeModifier;
 
     // Orbit the planet (year)
     this.orbitalPosition += this.determineSpeed() * this.direction * this.time.delta * timeModifier;
@@ -598,12 +600,13 @@ export default class Planet {
     this.planetMaterial.needsUpdate = true;
 
     if (this.habitable) {
-      this.atmosphereMaterial.color = new THREE.Color('#0000ff');
+      this.atmosphereMaterial.color = new THREE.Color('#aaccff');
     }
     else {
       this.atmosphereMaterial.color = this.colour;
     }
-    // this.atmosphereMaterial.visible = true;
+    this.atmosphereMaterial.visible = true;
+    this.atmosphereMaterial.displacementMap = this.displacementMap.map;
     this.atmosphereMaterial.opacity = Math.pow(this.atmosphere, 3);
     this.atmosphereMaterial.needsUpdate = true;
 
