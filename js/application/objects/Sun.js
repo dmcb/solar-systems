@@ -44,7 +44,7 @@ export default class Sun {
     this.temperedKelvin = this.kelvin*0.85 + 13000*0.15;
     this.mass = Math.pow(this.size/2,3)*Math.PI*4/3;
     this.heat = Math.pow(this.size/16, 1.5)*Math.pow(this.temperedKelvin/13000, 0.25);
-    this.brightness = ((1.2 + (0.4 * this.surfaceBrightness)) / Math.pow(16 / this.size, 0.5));
+    this.brightness = ((1.0 + (0.4 * this.surfaceBrightness)) / Math.pow(16 / this.size, 0.5));
     this.surfaceColour = this.kelvinToRGB(this.kelvin);
     this.illuminationColour = this.kelvinToRGB(this.temperedKelvin);
 
