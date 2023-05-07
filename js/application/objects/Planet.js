@@ -143,7 +143,7 @@ export default class Planet {
 
     // Set atmosphere
     // I can't help but think I want to refine this a bit more
-    let heatFromSun = Math.pow((this.sunHeat*0.5+0.75)*(1.0-(this.actualDistanceFromSun/(this.maximumDistance*2))), 3.0-(this.sunMass/16));
+    let heatFromSun = Math.pow((this.sunHeat*0.5+0.75)*(1.0-((this.actualDistanceFromSun-this.minimumDistanceFromSuns*0.5)/(this.maximumDistance*1.6))), 2.5-(this.sunMass/16));
 
     if (this.rocky) {
       // Atmosphere probability based off of heat and planet size
@@ -157,7 +157,7 @@ export default class Planet {
     }
 
     // Set heat
-    this.heat = 0.8*heatFromSun+0.2*this.atmosphere;
+    this.heat = 0.85*heatFromSun+0.15*this.atmosphere;
     // Set water level
     let waterBias = -2;
     // Make water level higher on hotter planets
