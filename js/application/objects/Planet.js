@@ -17,7 +17,7 @@ const exaggeratedDistanceFromSunModifier = 1.25;
 // To do: timeModifier shouldn't be locked away in Planet but set by the scene
 const timeModifier = 0.0003125;
 export default class Planet {
-  constructor(planetNumber, minimumDistanceFromSuns, minimumDistance, maximumDistance, direction, sunHeat) {
+  constructor(planetNumber, minimumDistance, maximumDistance, direction, minimumDistanceFromSuns, sunHeat, sunMass) {
     this.application = new Application();
     this.seed = this.application.seed;
     this.scene = this.application.scene;
@@ -41,11 +41,12 @@ export default class Planet {
     };
 
     this.planetNumber = planetNumber;
-    this.minimumDistanceFromSuns = minimumDistanceFromSuns;
     this.minimumDistance = minimumDistance;
     this.maximumDistance = maximumDistance;
     this.direction = direction;
+    this.minimumDistanceFromSuns = minimumDistanceFromSuns;
     this.sunHeat = sunHeat;
+    this.sunMass = sunMass;
 
     this.generateProperties();
     this.addTouchPoint();
@@ -58,7 +59,7 @@ export default class Planet {
     // Basing this off minimum leads to some not great results though, but
     // we don't have final orbit because final orbit is produced from size
     // so not sure what to do yet — we may have to regenerate everything
-    this.rocky = Math.round(this.seed.fakeGaussianRandom((8*(this.maximumDistance-this.minimumDistance)/this.maximumDistance)-4));
+    this.rocky = Math.round(this.seed.fakeGaussianRandom((8*(this.maximumDistance-this.minimumDistance)/this.maximumDistance)-3));
     if (this.rocky) {
       this.size = this.seed.fakeGaussianRandom(-3)*3.5+1;
       this.sphereOfInfluenceCoefficient = 1.7;
@@ -142,7 +143,8 @@ export default class Planet {
 
     // Set atmosphere
     // I can't help but think I want to refine this a bit more
-    let heatFromSun = Math.pow(1-((this.actualDistanceFromSun-(this.minimumDistanceFromSuns*this.sunHeat*2.2)))/(this.maximumDistance-(this.minimumDistanceFromSuns*this.sunHeat*2.2)), (1.0-this.sunHeat)*4);
+    let heatFromSun = Math.pow((this.sunHeat*0.5+0.75)*(1.0-(this.actualDistanceFromSun/(this.maximumDistance*2))), 3.0-(this.sunMass/16));
+
     if (this.rocky) {
       // Atmosphere probability based off of heat and planet size
       let atmosphereProbabilityBias = -Math.pow(Math.abs(0.5-heatFromSun), 0.5)*10;
@@ -156,19 +158,26 @@ export default class Planet {
 
     // Set heat
     this.heat = 0.8*heatFromSun+0.2*this.atmosphere;
-    console.log(this.heat);
-    // Set water level, and make water level lower on colder and hotter planets
-    let heatWaterBias = Math.abs(0.5-this.heat);
-    if (heatWaterBias > 0.08) {
-      heatWaterBias = 2;
+    // Set water level
+    let waterBias = -2;
+    // Make water level higher on hotter planets
+    let heat = 0.6-this.heat;
+    if (heat < 0.05) {
+      waterBias += 2;
     }
-    else if (heatWaterBias > 0.05) {
-      heatWaterBias = 1;
+    else if (heat < 0.15) {
+      waterBias += 1;
     }
-    else {
-      heatWaterBias = 0;
+    // Make water level higher on high atmosphere planets
+    let atmosphere = 0.6-this.atmosphere;
+    if (atmosphere < 0.05) {
+      waterBias += 2;
     }
-    this.waterLevel = this.seed.fakeGaussianRandom(-heatWaterBias, 4);
+    else if (atmosphere < 0.15) {
+      waterBias += 1;
+    }
+
+    this.waterLevel = this.seed.fakeGaussianRandom(waterBias, 4);
 
     // Determine habitability
     if (this.rocky) {

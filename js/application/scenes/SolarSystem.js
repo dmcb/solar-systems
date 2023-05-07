@@ -58,12 +58,14 @@ export default class SolarSystem {
     this.minimumDistanceFromSuns = sun.size*3;
     sun.addToScene();
     this.sunHeat = sun.heat;
+    this.sunMass = sun.size;
     this.suns.push(sun);
     let secondSun = new Sun(2, this.direction);
     if (sun.size + secondSun.size < 16 && this.seed.getRandom() > 0.5) {
       this.sunDistance = this.seed.fakeGaussianRandom(0,2)*35+5;
       secondSun.addToScene();
-      this.sunHeat += secondSun.heat;
+      this.sunHeat = (this.sunHeat*sun.size + secondSun.heat*secondSun.size)/(sun.size + secondSun.size);
+      this.sunMass = sun.size + secondSun.size;
       this.suns.push(secondSun);
       this.placeSuns();
     }
@@ -72,12 +74,12 @@ export default class SolarSystem {
     }
     this.minimumDistanceForNextPlanet = this.minimumDistanceFromSuns;
 
-    console.log(this.sunHeat);
+    console.log('Solar heat: ' + this.sunHeat);
 
     // Add planets
     let planetNumber = 1;
     while (this.minimumDistanceForNextPlanet < this.maximumDistance) {
-      let planet = new Planet(planetNumber, this.minimumDistanceFromSuns, this.minimumDistanceForNextPlanet, this.maximumDistance, this.direction, this.sunHeat);
+      let planet = new Planet(planetNumber, this.minimumDistanceForNextPlanet, this.maximumDistance, this.direction, this.minimumDistanceFromSuns, this.sunHeat, this.sunMass);
       this.minimumDistanceForNextPlanet = planet.nextNeighbourMinimumDistance();
       if (this.minimumDistanceForNextPlanet < this.maximumDistance) {
         this.planets.push(planet);
