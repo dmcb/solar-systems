@@ -44,7 +44,7 @@ export default class Sun {
     this.temperedKelvin = this.kelvin*0.85 + 13000*0.15;
     this.mass = Math.pow(this.size/2,3)*Math.PI*4/3;
     this.heat = Math.pow(this.kelvin/13000, 0.6);
-    this.brightness = ((1.0 + (0.4 * this.surfaceBrightness)) / Math.pow(16 / this.size, 0.7));
+    this.brightness = ((1 + (0.4 * this.surfaceBrightness)) / Math.pow(16 / this.size, 0.4));
     this.surfaceColour = this.kelvinToRGB(this.kelvin);
     this.illuminationColour = this.kelvinToRGB(this.temperedKelvin);
 
@@ -79,7 +79,7 @@ export default class Sun {
     const sunsPivotPoint = this.scene.getObjectByName('sunsPivotPoint');
     sunsPivotPoint.add(this.sunPivotPoint);
 
-    this.sunLight = new THREE.PointLight(this.illuminationColour, this.brightness, this.solarSystemRadius*1.5);
+    this.sunLight = new THREE.PointLight(this.illuminationColour, this.brightness, this.solarSystemRadius*3);
     this.sunLight.position.set( 0, 0, 0 );
     this.sunLight.castShadow = true;
     this.sunLight.shadow.mapSize.width = 2048;
