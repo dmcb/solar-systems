@@ -21,7 +21,7 @@ export default class Sun {
   }
 
   generateProperties() {
-    this.kelvin = Math.abs(this.seed.fakeGaussianRandom(0,3)-0.5)*2*13000;
+    this.kelvin = Math.abs(this.seed.fakeGaussianRandom(0,2)-0.5)*2*13000;
     this.size = this.seed.fakeGaussianRandom(3)*15+1;
     this.volatility = this.seed.getRandom()*0.8+0.2;
     this.surfaceBrightness = this.seed.getRandom();
