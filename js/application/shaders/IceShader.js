@@ -179,6 +179,6 @@ export default {
       strength = clamp(strength*4.0, 0.0, 1.0);
 
       gl_FragColor = vec4(strength, strength, strength, 1.0);
-  }
+    }
   `,
 };

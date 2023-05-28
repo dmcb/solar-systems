@@ -41,6 +41,7 @@ export default class Planet {
     this.customUniforms = {
       uAtmosphere: { value: 0.0 },
       uInhabitedMap: { value: null },
+      uTime: { value: 0.0 }
     };
 
     this.planetNumber = planetNumber;
@@ -122,6 +123,9 @@ export default class Planet {
     this.atmosphereMaterial = new THREE.MeshStandardMaterial({
       visible: false,
       transparent: true,
+      defines: {
+        USE_UV: true
+      }
     });
 
     // Hooks into atmosphere material shader to add clouds
@@ -132,6 +136,7 @@ export default class Planet {
       });
 
       shader.uniforms.uAtmosphere = this.customUniforms.uAtmosphere;
+      shader.uniforms.uTime = this.customUniforms.uTime;
     }
 
     // Set placeholder ring surface material
@@ -597,6 +602,9 @@ export default class Planet {
     this.orbitalPosition += this.determineSpeed() * this.direction * this.time.delta * timeModifier;
     let position = this.determinePointInOrbit(this.orbitalPosition);
     this.planetPivotPoint.position.copy(position);
+
+    // Update clouds
+    this.customUniforms.uTime.value = this.time.elapsed * timeModifier;
   }
 
   updateMaterial() {
