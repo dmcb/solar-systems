@@ -12,6 +12,8 @@ import GasPlanetTextureShader from '../shaders/GasPlanetTextureShader.js';
 import RockyPlanetHeightShader from '../shaders/RockyPlanetHeightShader.js';
 import RockyPlanetTextureShader from '../shaders/RockyPlanetTextureShader.js';
 import RingShader from '../shaders/RingShader.js';
+import ModifiedAtmosphereMaterialShader from '../shaders/ModifiedAtmosphereMaterialShader.js';
+import ModifiedPlanetMaterialShader from '../shaders/ModifiedPlanetMaterialShader.js';
 
 const exaggeratedDistanceFromSunModifier = 1.25;
 // To do: timeModifier shouldn't be locked away in Planet but set by the scene
@@ -37,6 +39,7 @@ export default class Planet {
     this.planetTextureMap = new ShaderMap();
     this.ringTextureMap = new ShaderMap(256, 1);
     this.customUniforms = {
+      uAtmosphere: { value: 0.0 },
       uInhabitedMap: { value: null },
     };
 
@@ -108,22 +111,9 @@ export default class Planet {
     // Hooks into planet material shader to add inhabited map
     this.planetMaterial.onBeforeCompile = (shader) =>
     {
-      shader.fragmentShader = shader.fragmentShader.replace(
-        '#include <common>',
-        `
-          #include <common>
-
-          uniform sampler2D uInhabitedMap;
-        `
-      )
-
-      shader.fragmentShader = shader.fragmentShader.replace(
-        '#include <output_fragment>',
-        `
-          outgoingLight = mix(outgoingLight, mix(outgoingLight, vec3(0.9, 0.9, 0.6), texture2D(uInhabitedMap, vMapUv.xy).r), step(0.0, -reflectedLight.directDiffuse.b));
-          #include <output_fragment>
-        `
-      );
+      ModifiedPlanetMaterialShader.forEach((hook) => {
+        shader.fragmentShader = shader.fragmentShader.replace(hook.hook, hook.replacement);
+      });
 
       shader.uniforms.uInhabitedMap = this.customUniforms.uInhabitedMap;
     }
@@ -133,6 +123,16 @@ export default class Planet {
       visible: false,
       transparent: true,
     });
+
+    // Hooks into atmosphere material shader to add clouds
+    this.atmosphereMaterial.onBeforeCompile = (shader) =>
+    {
+      ModifiedAtmosphereMaterialShader.forEach((hook) => {
+        shader.fragmentShader = shader.fragmentShader.replace(hook.hook, hook.replacement);
+      });
+
+      shader.uniforms.uAtmosphere = this.customUniforms.uAtmosphere;
+    }
 
     // Set placeholder ring surface material
     this.ringMaterial = new THREE.MeshPhongMaterial({ 
@@ -605,18 +605,12 @@ export default class Planet {
     this.planetMaterial.displacementMap = this.displacementMap.map;
     this.planetMaterial.map = this.planetTextureMap.map;
     this.planetMaterial.visible = true;
+    this.customUniforms.uAtmosphere.value = this.atmosphere;
     this.customUniforms.uInhabitedMap.value = this.inhabitedMap.map;
     this.planetMaterial.needsUpdate = true;
 
-    if (this.habitable) {
-      this.atmosphereMaterial.color = new THREE.Color('#aaccff');
-    }
-    else {
-      this.atmosphereMaterial.color = this.colour;
-    }
     this.atmosphereMaterial.visible = true;
     this.atmosphereMaterial.displacementMap = this.displacementMap.map;
-    this.atmosphereMaterial.opacity = Math.pow(this.atmosphere, 3);
     this.atmosphereMaterial.needsUpdate = true;
 
     this.ringMaterial.map = this.ringTextureMap.map;
