@@ -40,6 +40,7 @@ export default class Planet {
     this.ringTextureMap = new ShaderMap(256, 1);
     this.customUniforms = {
       uAtmosphere: { value: 0.0 },
+      uColour: { value: new THREE.Color(0x000000) },
       uInhabitedMap: { value: null },
       uTime: { value: 0.0 }
     };
@@ -136,6 +137,7 @@ export default class Planet {
       });
 
       shader.uniforms.uAtmosphere = this.customUniforms.uAtmosphere;
+      shader.uniforms.uColour = this.customUniforms.uColour;
       shader.uniforms.uTime = this.customUniforms.uTime;
     }
 
@@ -595,8 +597,8 @@ export default class Planet {
 
   update() {
     // Rotate the planet on its axis (day)
-    this.planetSphere.rotation.z += this.rotationSpeed * 5 * this.time.delta * timeModifier;
-    this.planetAtmosphere.rotation.z += this.rotationSpeed * 5 * this.time.delta * timeModifier;
+    this.planetSphere.rotation.z += this.rotationSpeed * 3 * this.time.delta * timeModifier;
+    this.planetAtmosphere.rotation.z += this.rotationSpeed * 3 * this.time.delta * timeModifier;
 
     // Orbit the planet (year)
     this.orbitalPosition += this.determineSpeed() * this.direction * this.time.delta * timeModifier;
@@ -616,6 +618,13 @@ export default class Planet {
     this.customUniforms.uAtmosphere.value = this.atmosphere;
     this.customUniforms.uInhabitedMap.value = this.inhabitedMap.map;
     this.planetMaterial.needsUpdate = true;
+
+    if (this.habitable) {
+      this.customUniforms.uColour.value = new THREE.Color('#ddeeff');
+    }
+    else {
+      this.customUniforms.uColour.value = this.colour;
+    }
 
     this.atmosphereMaterial.visible = true;
     this.atmosphereMaterial.displacementMap = this.displacementMap.map;
