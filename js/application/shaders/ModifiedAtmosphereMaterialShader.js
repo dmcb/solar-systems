@@ -154,8 +154,8 @@ export default [
 
       float atmosphereSpeed = 1.0 / (uAtmosphere*0.5 + 0.5);
       float atmosphereScale = 0.35 / (uAtmosphere*0.4 + 0.6);
-      float noise = baseNoise(sphericalCoord, atmosphereScale, uTime*0.5*atmosphereSpeed);
-      float strength = noise * (1.0 - uAtmosphere * 0.5) + pow(uAtmosphere, 2.0) - pow(1.0 - uAtmosphere, 3.0);
+      float noise = baseNoise(sphericalCoord, atmosphereScale, uTime*0.3*atmosphereSpeed);
+      float strength = noise * (1.0 - uAtmosphere * 0.5) + pow(uAtmosphere, 3.5) - pow(1.0 - uAtmosphere, 3.0);
       strength = clamp(strength, 0.0, 1.0);
       diffuseColor *= vec4(uColour.r, uColour.g, uColour.b, pow(strength, 0.8)*1.3);
     `
