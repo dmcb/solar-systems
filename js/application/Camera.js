@@ -22,7 +22,6 @@ export default class Camera {
   adjustRotation(x, y) {
     this.cameraVerticalRotation -= Math.PI * y;
     this.cameraHorizonalRotation -= Math.PI * x;
-
     this.rotate();
   }
 
@@ -102,6 +101,7 @@ export default class Camera {
     this.cameraAnimationTime = 0;
     this.cameraPositionTarget = new THREE.Vector3(0,0,this.cameraDistance);
     this.cameraPositionStart = new THREE.Vector3(0,0,this.cameraDistance);
+    this.preFocusCameraPosition = new THREE.Vector3(0,0,this.cameraDistance);
     this.cameraUpTarget = new THREE.Vector3(0,1,0);
     this.cameraUpStart = new THREE.Vector3(0,1,0);
     this.cameraSizeTarget = this.solarSystemRadius;
@@ -109,7 +109,6 @@ export default class Camera {
     this.cameraSize = this.solarSystemRadius;
     this.cameraVerticalRotation = 0;
     this.cameraHorizonalRotation = 0;
-    
     this.focus = false;
 
     this.resize();
@@ -137,7 +136,7 @@ export default class Camera {
   }
 
   update() {
-    // Smooth camera
+    // Smooth camera animations if animating
     let percentageOfAnimation = Math.abs(this.cameraAnimationTime - this.time.elapsed) / animationDuration;
     if (percentageOfAnimation > 1) {
       percentageOfAnimation = 1;
@@ -151,34 +150,37 @@ export default class Camera {
       this.resize();
 
       if (percentageOfAnimation == 1) {
+        this.preFocusCameraPosition.copy(this.instance.position);
         this.cameraAnimating = false;
       }
     }
     else {
-      // If the camera has a focus, keep position locked on focused body
-      if (this.focus) {
-        // Get focus target position
-        let targetPosition = new THREE.Vector3(this.focus.position.x, this.focus.position.y, this.focus.position.z)
-        
-        // Reverse binary sun rotation to focus on correct sun position
-        if (this.focus.name == "sun") {
-          targetPosition.applyAxisAngle(new THREE.Vector3( 0, 0, 1 ), this.focus.parent.rotation.z);
-        }
-
-        // Calculate new camera position
-        let alteredCameraPosition = new THREE.Vector3();
-        alteredCameraPosition.addVectors(targetPosition, this.preFocusCameraPosition);
-        this.instance.position.copy(alteredCameraPosition);
-      }
-      else {
-        // Dampen rotation
+      // Apply dampened rotation
+      // if (this.cameraPositionTarget.distanceTo(this.instance.position) > 0.5) {
         // Ensure lerped value is always on a point on a sphere at length cameraDistance and not closer to the center
-        if (this.cameraPositionTarget.distanceTo(this.instance.position) > 0.1) {
-          this.instance.position.lerp(this.cameraPositionTarget, 0.01 * this.time.delta).normalize().multiplyScalar(this.cameraDistance);
-          this.instance.up.lerp(this.cameraUpTarget, 0.01 * this.time.delta);
+        this.preFocusCameraPosition.lerp(this.cameraPositionTarget, 0.01 * this.time.delta).normalize().multiplyScalar(this.cameraDistance);
+        this.instance.up.lerp(this.cameraUpTarget, 0.01 * this.time.delta);
+      // }
+
+      // Get position of camera's focus
+      const focusPosition = new THREE.Vector3(0,0,0);
+      if (this.focus) {
+        focusPosition.copy(this.focus.position);
+
+        // If focus is sun, reverse binary sun rotation to focus on correct sun position
+        // This is gross for now
+        if (this.focus.name == "sun") {
+          focusPosition.applyAxisAngle(new THREE.Vector3( 0, 0, 1 ), this.focus.parent.rotation.z);
         }
-        this.instance.lookAt(new THREE.Vector3(0,0,0));
       }
+
+      // Calculate new camera position
+      let alteredCameraPosition = new THREE.Vector3();
+      alteredCameraPosition.addVectors(focusPosition, this.preFocusCameraPosition);
+      this.instance.position.copy(alteredCameraPosition);
+    
+      // Look at focus target
+      this.instance.lookAt(focusPosition);
     }
   }
 }
