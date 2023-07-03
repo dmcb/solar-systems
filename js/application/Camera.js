@@ -56,9 +56,6 @@ export default class Camera {
 
   setFocus(objectId) {
     if (!this.focus) {
-      // Save current position of camera before focus
-      this.preFocusCameraPosition = new THREE.Vector3(this.instance.position.x, this.instance.position.y, this.instance.position.z);
-
       // Get focused celestial body
       this.focus = this.scene.getObjectById(objectId);
 
@@ -78,17 +75,19 @@ export default class Camera {
         futurePosition = planet.determineFuturePosition(animationDuration);
       }
       this.cameraSizeStart = this.cameraSize;
-      this.cameraPositionStart.copy(this.preFocusCameraPosition);
-      this.cameraPositionTarget.addVectors(futurePosition, this.preFocusCameraPosition);
+      this.cameraPositionStart.copy(this.instance.position);
+      this.cameraPositionTarget.addVectors(futurePosition, this.instance.position);
+      this.lastFocusPosition.copy(futurePosition);
     }
     else {
-      this.focus = false;
-
       // Set original camera bounds and camera position and look at target
       this.cameraSizeStart = this.cameraSize;
       this.cameraSizeTarget = this.solarSystemRadius;
       this.cameraPositionStart.copy(this.instance.position);
-      this.cameraPositionTarget.copy(this.preFocusCameraPosition);
+      this.cameraPositionTarget.subVectors(this.instance.position, this.focus.position);
+      this.lastFocusPosition = new THREE.Vector3(0,0,0);
+
+      this.focus = false;
     }
 
     // Begin animation
@@ -101,7 +100,6 @@ export default class Camera {
     this.cameraAnimationTime = 0;
     this.cameraPositionTarget = new THREE.Vector3(0,0,this.cameraDistance);
     this.cameraPositionStart = new THREE.Vector3(0,0,this.cameraDistance);
-    this.preFocusCameraPosition = new THREE.Vector3(0,0,this.cameraDistance);
     this.cameraUpTarget = new THREE.Vector3(0,1,0);
     this.cameraUpStart = new THREE.Vector3(0,1,0);
     this.cameraSizeTarget = this.solarSystemRadius;
@@ -110,6 +108,7 @@ export default class Camera {
     this.cameraVerticalRotation = 0;
     this.cameraHorizonalRotation = 0;
     this.focus = false;
+    this.lastFocusPosition = new THREE.Vector3(0,0,0);
 
     this.resize();
     this.instance.position.copy(this.cameraPositionTarget);
@@ -150,17 +149,16 @@ export default class Camera {
       this.resize();
 
       if (percentageOfAnimation == 1) {
-        this.preFocusCameraPosition.copy(this.instance.position);
         this.cameraAnimating = false;
       }
     }
     else {
       // Apply dampened rotation
-      // if (this.cameraPositionTarget.distanceTo(this.instance.position) > 0.5) {
+      if (this.cameraPositionTarget.distanceTo(this.instance.position) > 0.5) {
         // Ensure lerped value is always on a point on a sphere at length cameraDistance and not closer to the center
-        this.preFocusCameraPosition.lerp(this.cameraPositionTarget, 0.01 * this.time.delta).normalize().multiplyScalar(this.cameraDistance);
+        this.instance.position.lerp(this.cameraPositionTarget, 0.01 * this.time.delta).normalize().multiplyScalar(this.cameraDistance);
         this.instance.up.lerp(this.cameraUpTarget, 0.01 * this.time.delta);
-      // }
+      }
 
       // Get position of camera's focus
       const focusPosition = new THREE.Vector3(0,0,0);
@@ -172,12 +170,14 @@ export default class Camera {
         if (this.focus.name == "sun") {
           focusPosition.applyAxisAngle(new THREE.Vector3( 0, 0, 1 ), this.focus.parent.rotation.z);
         }
-      }
 
-      // Calculate new camera position
-      let alteredCameraPosition = new THREE.Vector3();
-      alteredCameraPosition.addVectors(focusPosition, this.preFocusCameraPosition);
-      this.instance.position.copy(alteredCameraPosition);
+        // Set camera position to stay locked with object in focus
+        let focusDelta = new THREE.Vector3();
+        focusDelta.subVectors(this.lastFocusPosition, focusPosition);
+        this.instance.position.add(focusDelta);
+        this.cameraPositionTarget.add(focusDelta);
+        this.lastFocusPosition.copy(focusPosition);
+      }
     
       // Look at focus target
       this.instance.lookAt(focusPosition);
