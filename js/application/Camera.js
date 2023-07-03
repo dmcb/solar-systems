@@ -84,7 +84,16 @@ export default class Camera {
       this.cameraSizeStart = this.cameraSize;
       this.cameraSizeTarget = this.solarSystemRadius;
       this.cameraPositionStart.copy(this.instance.position);
-      this.cameraPositionTarget.subVectors(this.instance.position, this.focus.position);
+
+      const focusPosition = new THREE.Vector3(0,0,0);
+      focusPosition.copy(this.focus.position);
+      // If focus is sun, reverse binary sun rotation to focus on correct sun position
+      // This is gross for now
+      if (this.focus.name == "sun") {
+        focusPosition.applyAxisAngle(new THREE.Vector3( 0, 0, 1 ), this.focus.parent.rotation.z);
+      }
+
+      this.cameraPositionTarget.subVectors(this.instance.position, focusPosition);
       this.lastFocusPosition = new THREE.Vector3(0,0,0);
 
       this.focus = false;
